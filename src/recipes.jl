@@ -1,5 +1,5 @@
 
-function AbstractPlotting.plot!(graph_plot::Combined{Any, S} where S<:Tuple{<: AbstractGraph})
+function AbstractPlotting.plot!(graph_plot::Combined{Any,S} where {S<:Tuple{<:AbstractGraph}})
     # create initial vertex positions
     graph = graph_plot[1]
 
@@ -10,7 +10,7 @@ function AbstractPlotting.plot!(graph_plot::Combined{Any, S} where S<:Tuple{<: A
 
     # plot vertices
     vertex_plot = scatter!(graph_plot, layout_node)
-        # plot edges
+    # plot edges
     lines = map(vertex_plot[1]) do x
         indices = vec([getfield(e, src) for src in (:src, :dst), e in edges(graph[])])
         return view(x, indices)

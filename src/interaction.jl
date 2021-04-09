@@ -4,26 +4,18 @@
 Returns the index of the point in `positions` closest to `p`
 """
 function closest_point(p, positions)
-	return findmin([norm(p .- v) for v in positions])
+    return findmin([norm(p .- v) for v in positions])
 end
 
 function make_axis(f::Figure)
-    ax = f[1, 1] = Axis(
-        f,
-        visible=false,
-        xrectzoom=false,
-        yrectzoom=false,
-        leftspinevisible=false,
-        rightspinevisible=false,
-        topspinevisible=false,
-        bottomspinevisible=false
-    )
+    ax = f[1, 1] = Axis(f; visible=false, xrectzoom=false, yrectzoom=false, leftspinevisible=false,
+                        rightspinevisible=false, topspinevisible=false, bottomspinevisible=false)
     hidedecorations!(ax)
     return ax
 end
 
 function plot_graph(g::AbstractGraph)
-    f = Figure(resolution=(800, 800))
+    f = Figure(; resolution=(800, 800))
     ax = make_axis(f)
 
     # initialize for drag & drop
@@ -54,7 +46,6 @@ function plot_graph(g::AbstractGraph)
         else
             mouse_left_pressed = false
         end
-
     end
 
     return f
