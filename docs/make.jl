@@ -6,11 +6,11 @@ DocMeta.setdocmeta!(GraphMakie, :DocTestSetup, :(using GraphMakie); recursive=tr
 makedocs(;
     modules=[GraphMakie],
     authors="Simon Danisch",
-    repo="https://github.com/SimonDanisch/GraphMakie.jl/blob/{commit}{path}#{line}",
+    repo="https://github.com/JuliaPlots/GraphMakie.jl/blob/{commit}{path}#{line}",
     sitename="GraphMakie.jl",
     format=Documenter.HTML(;
         prettyurls=get(ENV, "CI", "false") == "true",
-        canonical="https://SimonDanisch.github.io/GraphMakie.jl",
+        canonical="https://JuliaPlots.github.io/GraphMakie.jl",
         assets=String[],
     ),
     pages=[
@@ -19,5 +19,5 @@ makedocs(;
 )
 
 deploydocs(;
-    repo="github.com/SimonDanisch/GraphMakie.jl",
+    repo="github.com/JuliaPlots/GraphMakie.jl",
 )

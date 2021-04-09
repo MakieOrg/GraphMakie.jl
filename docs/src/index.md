@@ -4,9 +4,10 @@ CurrentModule = GraphMakie
 
 # GraphMakie
 
-Documentation for [GraphMakie](https://github.com/SimonDanisch/GraphMakie.jl).
+Documentation for [GraphMakie](https://github.com/JuliaPlots/GraphMakie.jl).
 
 ```@index
+
 ```
 
 ```@autodocs
