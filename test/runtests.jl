@@ -1,4 +1,4 @@
-using GLMakie
+using CairoMakie
 using GraphMakie
 using GraphMakie.LightGraphs
 using GraphMakie.AbstractPlotting
