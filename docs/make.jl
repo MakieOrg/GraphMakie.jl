@@ -10,4 +10,5 @@ makedocs(; modules=[GraphMakie], authors="Simon Danisch",
                                 canonical="https://JuliaPlots.github.io/GraphMakie.jl", assets=String[]),
          pages=["Home" => "index.md"])
 
-deploydocs(; repo="github.com/JuliaPlots/GraphMakie.jl")
+deploydocs(;repo="github.com/JuliaPlots/GraphMakie.jl",
+           push_preview=true)
