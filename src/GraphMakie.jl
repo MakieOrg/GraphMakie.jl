@@ -5,8 +5,10 @@ using LightGraphs
 using AbstractPlotting
 using LinearAlgebra
 
+using DocStringExtensions
+import AbstractPlotting: DocThemer, ATTRIBUTES
+
 include("recipes.jl")
 include("interaction.jl")
-export plot_graph
 
 end

@@ -1,13 +1,18 @@
 using CairoMakie
 using GraphMakie
 using GraphMakie.LightGraphs
-using GraphMakie.AbstractPlotting
-using NetworkLayout
+using GraphMakie.NetworkLayout
 using Test
 
 @testset "GraphMakie.jl" begin
     g = Node(wheel_digraph(10))
     f, ax, p = graphplot(g)
+    f, ax, p = graphplot(g, node_attr=Attributes(visible=false))
+    f, ax, p = graphplot(g, node_attr=(;visible=false))
+
+    a = Attributes(visible=true)
+    scatter([1,2,3], [4,1,2])
+    scatter!([1,2,3], [1,2,3]; visible=true, a...)
 
     # try to update graph
     add_edge!(g[], 2, 4)

@@ -2,4 +2,5 @@
 CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 GraphMakie = "1ecd5474-83a3-4783-bb4f-06765db800d2"
+LightGraphs = "093fc24a-ae57-5d10-9952-331d41423f4d"
 Literate = "98b081ad-f1c9-55d3-8b20-4c87d4299306"

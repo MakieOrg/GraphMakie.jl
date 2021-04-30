@@ -25,5 +25,7 @@ makedocs(; modules=[GraphMakie], authors="Simon Danisch",
          pages=["Home" => "index.md",
                 "Plot Examples" => "generated/plots.md"])
 
+# if gh_pages branch gets to big, check out
+# https://juliadocs.github.io/Documenter.jl/stable/man/hosting/#gh-pages-Branch
 deploydocs(;repo="github.com/JuliaPlots/GraphMakie.jl",
            push_preview=true)
