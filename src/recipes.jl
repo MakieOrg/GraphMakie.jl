@@ -44,12 +44,19 @@ function AbstractPlotting.plot!(gp::GraphPlot)
         indices = vec([getfield(e, s) for s in (:src, :dst), e in edges(graph[])])
         ($node_positions)[indices]
     end
-    @info "edges" edge_segments edge_segments[] gp.edge_color[]
+
+    # in case the edge_with is same as the number of edges
+    # create a new observable which doubles the values for compat with line segments
+    if length(gp.edge_width[]) == ne(graph[])
+        lineseg_width = @lift repeat($(gp.edge_width), inner=2)
+    else
+        lineseg_width = gp.edge_width
+    end
 
     # plot edges
     edge_plot = linesegments!(gp, edge_segments;
                               color=gp.edge_color,
-                              linewidth=gp.edge_width,
+                              linewidth=lineseg_width,
                               gp.edge_attr...)
 
     # plot vertices
