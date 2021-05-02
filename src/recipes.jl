@@ -33,10 +33,13 @@ function AbstractPlotting.plot!(gp::GraphPlot)
     graph = gp[:graph]
 
     # create initial vertex positions, will be updated on changes to graph or layout
-    node_positions = @lift begin
+    # make node_position-Observable available as named attribute from the outside
+    gp[:node_positions] = @lift begin
         A = adjacency_matrix($graph)
         [Point2f0(p) for p in ($(gp.layout))(A)]
     end
+
+    node_positions = gp[:node_positions]
 
     # create views into the node_positions, will be updated node_position changes
     # in case of a graph change the node_position will change anyway
