@@ -8,11 +8,12 @@ CairoMakie.activate!(type="png") # hide
 AbstractPlotting.inline!(true) # hide
 using GraphMakie
 using LightGraphs
-import Random; Random.seed!(42) # hide
+import Random; Random.seed!(2) # hide
 
 g = wheel_graph(10)
 f, ax, p = graphplot(g)
 hidedecorations!(ax); hidespines!(ax)
+ax.aspect = DataAspect()
 f # hide
 
 #=

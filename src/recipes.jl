@@ -1,5 +1,8 @@
+export GraphPlot, graphplot, graphplot!
+
 """
     graphplot(graph::AbstractGraph)
+    graphplot!(ax, graph::AbstractGraph)
 
 Creates a plot of the network `graph`. Consists of multiple steps:
 - Layout the nodes: the `layout` attribute is has to be a function `f(adj_matrix)::pos`

@@ -8,6 +8,7 @@ DocMeta.setdocmeta!(GraphMakie, :DocTestSetup, :(using GraphMakie); recursive=tr
 # generate examples
 examples = [
     joinpath(@__DIR__, "examples", "plots.jl"),
+    joinpath(@__DIR__, "examples", "interactions.jl"),
 ]
 OUTPUT = joinpath(@__DIR__, "src", "generated")
 isdir(OUTPUT) && rm(OUTPUT, recursive=true)
@@ -23,7 +24,8 @@ makedocs(; modules=[GraphMakie], authors="Simon Danisch",
          format=Documenter.HTML(; prettyurls=get(ENV, "CI", "false") == "true",
                                 canonical="https://JuliaPlots.github.io/GraphMakie.jl", assets=String[]),
          pages=["Home" => "index.md",
-                "Plot Examples" => "generated/plots.md"])
+                "Plot Examples" => "generated/plots.md",
+                "Interaction Examples" => "generated/interactions.md"])
 
 # if gh_pages branch gets to big, check out
 # https://juliadocs.github.io/Documenter.jl/stable/man/hosting/#gh-pages-Branch
