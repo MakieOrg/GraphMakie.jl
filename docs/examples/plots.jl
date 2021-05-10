@@ -1,5 +1,6 @@
 #=
 # Plotting Graphs with `GraphMakie.jl`
+## The `graphplot` Command
 Plotting your first `AbstractGraph` from [`LightGraphs.jl`](https://juliagraphs.org/LightGraphs.jl/latest/)
 is as simple as
 =#
@@ -65,7 +66,7 @@ p.edge_color = p.edge_color[] # trigger observable
 f #hide
 
 #=
-## Nodelabels
+## Adding Node Labels
 =#
 Random.seed!(2)
 g = wheel_graph(10)
@@ -80,10 +81,69 @@ f, ax, p = graphplot(g,
 hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()
 f # hide
 
-# This is not to nice, lets change the offsets based on the node_positions
+# This is not very nice, lets change the offsets based on the `node_positions`
 
-offsets = 0.10 * (p[:node_positions][] .- p[:node_positions][][1])
+offsets = 0.15 * (p[:node_positions][] .- p[:node_positions][][1])
 offsets[1] = Point2f0(0, 0.3)
 p.nlabels_offset[] = offsets
 autolimits!(ax)
 f # hide
+
+# ## Adding Edge Labels
+Random.seed!(42)
+g = barabasi_albert(6, 2)
+
+labels =  repr.(1:ne(g))
+
+f, ax, p = graphplot(g, elabels=labels,
+                     elabels_color=[:black for i in 1:ne(g)],
+                     edge_color=[:black for i in 1:ne(g)])
+hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()
+f # hide
+
+#=
+The position of the edge labels is determined by several plot arguments.
+Each label is placed in the middle of the edge and rotated to match the edge rotation.
+
+Note: Since the `text` is displayed in the `screen` system, this rotations only really works
+for `DataAspect()`! See [the Makie docs](https://makie.juliaplots.org/stable/plotting_functions/text.html).
+
+The rotaion for each label can be overwritten with the `elabels_rotation` argument.
+=#
+p.elabels_rotation[] = Vector{Union{Nothing, Float64}}(nothing, ne(g))
+p.elabels_rotation[][5] = 0.0 # set absolute rotation angle for label 5
+p.elabels_rotation[] = p.elabels_rotation[]
+nothing #hide
+
+#=
+The position of each label can be modified using different arguments.
+  - `elabels_opposite` is a vector if edge indices which tells the plot to display labels on the oppisite site.
+  - `elabels_offset` will be added to the middle of the edge in axis coordinates
+  - `elabels_distance` increses/decreases the normal distance to the edge
+  - `elabels_shift` shifts the label along the edge
+  - `elabels_align` tells the `text` plot where to place the text in relation to the position
+=#
+p.elabels_opposite[] = [4,7]
+
+p.elabels_offset[] = [Point2f0(0.0, 0.0) for i in 1:ne(g)]
+p.elabels_offset[][5] = Point2f0(-0.4,0)
+p.elabels_offset[] = p.elabels_offset[]
+
+p.elabels_shift[] = zeros(ne(g))
+p.elabels_shift[][4] = -.5
+p.elabels_shift[][3] = +.2
+p.elabels_shift[] = p.elabels_shift[]
+
+p.elabels_distance[] = zeros(ne(g))
+p.elabels_distance[][8] = -.3
+p.elabels_distance[] = p.elabels_distance[]
+
+f # hide
+
+# Is it a bird?
+p.edge_width[] = 3.0
+p.elabels_color[] = [:green, :red, :green, :green, :red, :goldenrod1, :green, :goldenrod1]
+p.edge_color[] = [:green, :black, :green, :green, :black, :goldenrod1, :green, :goldenrod1]
+p.elabels[] =["left", "There\n should\n be an add-\n itional node\n for the wings!", "right", "leg", "O", "beak", "leg", "weird"]
+xlims!(ax, (-1.5,2.5))
+f #hide
