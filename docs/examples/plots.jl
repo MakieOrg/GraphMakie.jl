@@ -63,3 +63,27 @@ p.edge_width = 5.0
 p.edge_color[][3] = :green;
 p.edge_color = p.edge_color[] # trigger observable
 f #hide
+
+#=
+## Nodelabels
+=#
+Random.seed!(2)
+g = wheel_graph(10)
+
+colors = [:black for i in 1:nv(g)]
+colors[1] = :red
+
+f, ax, p = graphplot(g,
+                     nlabels=repr.(1:nv(g)),
+                     nlabels_color=colors,
+                     nlabels_align=(:center,:center))
+hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()
+f # hide
+
+# This is not to nice, lets change the offsets based on the node_positions
+
+offsets = 0.10 * (p[:node_positions][] .- p[:node_positions][][1])
+offsets[1] = Point2f0(0, 0.3)
+p.nlabels_offset[] = offsets
+autolimits!(ax)
+f # hide

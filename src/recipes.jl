@@ -9,10 +9,15 @@ Creates a plot of the network `graph`. Consists of multiple steps:
   where `pos` is either an array of `Point2f0` or `(x, y)` tuples
 - plot edges as `linesegments`-plot
 - plot nodes as `scatter`-plot
+- if `nlabels!=nothing` plot node labels as `text`-plot
 
 The main attributes for the subplots are exposed as attributes for `graphplot`.
-Additional attributes for the `scatter` or `linesegments` plots can be provided
-as a named tuples to `node_attr` and `edge_attr`.
+Additional attributes for the `scatter`, `linesegments` and `text` plots can be provided
+as a named tuples to `node_attr`, `edge_attr`, `nlabels_attr` ,...
+
+Most of the arguments can be either given as a vector of length of the
+edges/nodes or as a single value. One might run into errors when changing the
+underlying graph and therefore changing the number of Edges/Nodes.
 
 ## Attributes
 $(ATTRIBUTES)
@@ -20,15 +25,25 @@ $(ATTRIBUTES)
 @recipe(GraphPlot, graph) do scene
     scatter_theme = default_theme(scene, Scatter)
     lineseg_theme = default_theme(scene, LineSegments)
+    labels_theme = default_theme(scene, AbstractPlotting.Text)
     Attributes(
         layout = NetworkLayout.Spring.layout,
+        nlabels = nothing,
+        # node attributes (Scatter)
         node_color = scatter_theme.color,
         node_size = scatter_theme.markersize,
         node_marker = scatter_theme.marker,
         node_attr = (;),
+        # edge attributes (LineSegements)
         edge_color = lineseg_theme.color,
         edge_width = lineseg_theme.linewidth,
         edge_attr = (;),
+        # node label attributes (Text)
+        nlabels_align = (:left, :bottom),
+        nlabels_color = labels_theme.color,
+        nlabels_offset = Point2f0(0.0, 0.0),
+        nlabels_textsize = labels_theme.textsize,
+        nlabels_attr = (;),
     )
 end
 
@@ -71,5 +86,17 @@ function AbstractPlotting.plot!(gp::GraphPlot)
                            marker=gp.node_marker,
                            markersize=gp.node_size,
                            gp.node_attr...)
+
+    # plot node labels
+    if gp.nlabels[] !== nothing
+        positions = @lift $node_positions .+ $(gp.nlabels_offset)
+        nlabels_plot = text!(gp, gp.nlabels;
+                             position=positions,
+                             align=gp.nlabels_align,
+                             color=gp.nlabels_color,
+                             textsize=gp.nlabels_textsize,
+                             gp.nlabels_attr...)
+    end
+
     return gp
 end
