@@ -5,6 +5,7 @@ is as simple as
 =#
 using CairoMakie
 CairoMakie.activate!(type="png") # hide
+set_theme!(resolution=(800, 400)) #hide
 AbstractPlotting.inline!(true) # hide
 using GraphMakie
 using LightGraphs
@@ -28,7 +29,7 @@ layout attribute can be any function which takes the adjacency matrix of the
 graph an returns a list of `(x,y)` tuples or `Point2f0` objects.
 
 Besides that there are some common attributes which are forwarded to the
-underlying plot commands. See [`graphplot(graph)`].
+underlying plot commands. See [`graphplot`](@ref).
 =#
 using GraphMakie.NetworkLayout
 

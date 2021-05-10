@@ -7,6 +7,7 @@ because we want to change them later in the interactions for individual nodes/ed
 =#
 using CairoMakie
 CairoMakie.activate!(type="png") # hide
+set_theme!(resolution=(800, 400)) #hide
 AbstractPlotting.inline!(true) # hide
 using GraphMakie
 using LightGraphs
@@ -15,9 +16,9 @@ using AbstractPlotting.Colors
 import Random; Random.seed!(2) # hide
 g = wheel_digraph(10)
 f, ax, p = graphplot(g,
-                     edge_width = [3.0 for i in 1:ne(g)],
+                     edge_width = [2.0 for i in 1:ne(g)],
                      edge_color = [colorant"gray" for i in 1:ne(g)],
-                     node_size = [20 for i in 1:nv(g)],
+                     node_size = [10 for i in 1:nv(g)],
                      node_color = [colorant"red" for i in 1:nv(g)])
 hidedecorations!(ax); hidespines!(ax)
 ax.aspect = DataAspect()
@@ -34,7 +35,7 @@ nothing #hide
 # We use the action to make the nodes bigger on hover events.
 function node_hover_action(state, idx, event, axis)
     @info idx #hide
-    p.node_size[][idx] = state ? 40 : 20
+    p.node_size[][idx] = state ? 20 : 10
     p.node_size[] = p.node_size[] # trigger observable
 end
 nhover = NodeHoverHandler(node_hover_action)
@@ -42,28 +43,28 @@ register_interaction!(ax, :nhover, nhover)
 
 function set_cursor!(p) #hide
     direction = Point2f0(-0.1, 0.2) #hide
-    arrows!([p-direction], [direction], linewidth=5, arrowsize=30, lengthscale=0.8) #hide
+    arrows!([p-direction], [direction], linewidth=3, arrowsize=20, lengthscale=0.8) #hide
 end #hide
 nodepos = copy(p[:node_positions][]) #hide
 set_cursor!(nodepos[5] + Point2f0(0.05, 0)) #hide
-p.node_size[][5] = 40; p.node_size[] = p.node_size[] #hide
+p.node_size[][5] = 20; p.node_size[] = p.node_size[] #hide
 f #hide
 
 # Please run the script locally with `GLMakie.jl` if you want to play with the Graph 🙂
 # The edge hover interaction is quite similar:
 
 pop!(ax.scene.plots) #hide
-p.node_size[][5] = 20; p.node_size[] = p.node_size[] #hide
+p.node_size[][5] = 10; p.node_size[] = p.node_size[] #hide
 function edge_hover_action(state, idx, event, axis)
     @info idx #hide
-    p.edge_width[][idx]= state ? 6.0 : 3.0
+    p.edge_width[][idx]= state ? 5.0 : 2.0
     p.edge_width[] = p.edge_width[] # trigger observable
 end
 ehover = EdgeHoverHandler(edge_hover_action)
 register_interaction!(ax, :ehover, ehover)
 
 set_cursor!((nodepos[4]+nodepos[1])/2) #hide
-p.edge_width[][3] = 6.0; p.edge_width[] = p.edge_width[] #hide
+p.edge_width[][3] = 5.0; p.edge_width[] = p.edge_width[] #hide
 f #hide
 
 # ## Click interactions
@@ -92,7 +93,7 @@ f #hide
 
 # ## Drag interactions
 pop!(ax.scene.plots) #hide
-p.edge_width[][3] = 3.0; p.edge_width[] = p.edge_width[] #hide
+p.edge_width[][3] = 2.0; p.edge_width[] = p.edge_width[] #hide
 function node_drag_action(state, idx, event, axis)
     p[:node_positions][][idx] = event.data
     p[:node_positions][] = p[:node_positions][]
@@ -103,14 +104,14 @@ register_interaction!(ax, :ndrag, ndrag)
 p[:node_positions][][1] = nodepos[1] + Point2f0(1.0,0.5) #hide
 p[:node_positions][] = p[:node_positions][] #hide
 set_cursor!(p[:node_positions][][1] + Point2f0(0.05, 0)) #hide
-p.node_size[][1] = 40; p.node_size[] = p.node_size[] #hide
+p.node_size[][1] = 20; p.node_size[] = p.node_size[] #hide
 f # hide
 
 # The last example is not as straight forward. By dragging an edge we want to
 # change the positions of both attached nodes. Therefore we need some more state
 # inside the action. We can achieve this with a callable struct.
 pop!(ax.scene.plots) #hide
-p.node_size[][1] = 20; p.node_size[] = p.node_size[] #hide
+p.node_size[][1] = 10; p.node_size[] = p.node_size[] #hide
 mutable struct EdgeDragAction
     init::Union{Nothing, Point2f0} # save click position
     src::Union{Nothing, Point2f0}  # save src vertex position
@@ -141,5 +142,5 @@ p[:node_positions][][4] = nodepos[4] + Point2f0(0.9,1.0) #hide
 p[:node_positions][] = p[:node_positions][] #hide
 pm = (p[:node_positions][][3] + p[:node_positions][][4])/2
 set_cursor!(pm) #hide
-p.edge_width[][11] = 6.0; p.edge_width[] = p.edge_width[] #hide
+p.edge_width[][11] = 5.0; p.edge_width[] = p.edge_width[] #hide
 f # hide
