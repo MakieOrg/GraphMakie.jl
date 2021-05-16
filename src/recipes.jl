@@ -66,7 +66,7 @@ function AbstractPlotting.plot!(gp::GraphPlot)
     # make node_position-Observable available as named attribute from the outside
     gp[:node_positions] = @lift begin
         A = adjacency_matrix($graph)
-        [Point2f0(p) for p in ($(gp.layout))(A)]
+        [Point(p) for p in ($(gp.layout))(A)]
     end
 
     node_positions = gp[:node_positions]
