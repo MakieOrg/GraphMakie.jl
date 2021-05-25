@@ -26,7 +26,7 @@ $(ATTRIBUTES)
 @recipe(GraphPlot, graph) do scene
     scatter_theme = default_theme(scene, Scatter)
     lineseg_theme = default_theme(scene, LineSegments)
-    labels_theme = default_theme(scene, AbstractPlotting.Text)
+    labels_theme = default_theme(scene, Makie.Text)
     Attributes(
         layout = NetworkLayout.Spring.layout,
         nlabels = nothing,
@@ -59,7 +59,7 @@ $(ATTRIBUTES)
     )
 end
 
-function AbstractPlotting.plot!(gp::GraphPlot)
+function Makie.plot!(gp::GraphPlot)
     graph = gp[:graph]
 
     # create initial vertex positions, will be updated on changes to graph or layout

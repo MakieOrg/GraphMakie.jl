@@ -1,5 +1,5 @@
-using AbstractPlotting: ScenePlot
-import AbstractPlotting.MakieLayout: registration_setup!, process_interaction
+using Makie: ScenePlot
+import Makie.MakieLayout: registration_setup!, process_interaction
 
 export NodeHoverHandler, EdgeHoverHandler
 export NodeClickHandler, EdgeClickHandler
@@ -242,7 +242,7 @@ on left-click events where `idx` is the node index.
 
 # Example
 ```
-julia> using AbstractPlotting.Colors
+julia> using Makie.Colors
 julia> g = wheel_digraph(10)
 julia> f, ax, p = graphplot(g, node_size=30, node_color=[colorant"red" for i in 1:nv(g)])
 julia> function action(idx, event, axis)
@@ -265,7 +265,7 @@ on left-click events where `idx` is the edge index.
 
 # Example
 ```
-julia> using AbstractPlotting.Colors
+julia> using Makie.Colors
 julia> g = wheel_digraph(10)
 julia> f, ax, p = graphplot(g, edge_width=4, edge_color=[colorant"black" for i in 1:ne(g)])
 julia> function action(idx, event, axis)

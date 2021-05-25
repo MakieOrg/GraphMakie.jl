@@ -2,7 +2,7 @@ using CairoMakie
 using GraphMakie
 using GraphMakie.LightGraphs
 using GraphMakie.NetworkLayout
-using AbstractPlotting.Colors
+using Makie.Colors
 # using GLMakie
 using Test
 
