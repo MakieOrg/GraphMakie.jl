@@ -2,11 +2,11 @@ module GraphMakie
 
 using NetworkLayout
 using LightGraphs
-using AbstractPlotting
+using Makie
 using LinearAlgebra
 
 using DocStringExtensions
-import AbstractPlotting: DocThemer, ATTRIBUTES
+import Makie: DocThemer, ATTRIBUTES
 
 include("recipes.jl")
 include("interaction.jl")

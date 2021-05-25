@@ -7,7 +7,7 @@ is as simple as
 using CairoMakie
 CairoMakie.activate!(type="png") # hide
 set_theme!(resolution=(800, 400)) #hide
-AbstractPlotting.inline!(true) # hide
+CairoMakie.inline!(true) # hide
 using GraphMakie
 using LightGraphs
 import Random; Random.seed!(2) # hide

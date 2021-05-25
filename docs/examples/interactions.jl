@@ -8,10 +8,10 @@ because we want to change them later in the interactions for individual nodes/ed
 using CairoMakie
 CairoMakie.activate!(type="png") # hide
 set_theme!(resolution=(800, 400)) #hide
-AbstractPlotting.inline!(true) # hide
+CairoMakie.inline!(true) # hide
 using GraphMakie
 using LightGraphs
-using AbstractPlotting.Colors
+using CairoMakie.Colors
 
 import Random; Random.seed!(2) # hide
 g = wheel_digraph(10)
