@@ -28,7 +28,7 @@ $(ATTRIBUTES)
     lineseg_theme = default_theme(scene, LineSegments)
     labels_theme = default_theme(scene, Makie.Text)
     Attributes(
-        layout = NetworkLayout.Spring.layout,
+        layout = NetworkLayout.Spring(),
         nlabels = nothing,
         elabels = nothing,
         # node attributes (Scatter)

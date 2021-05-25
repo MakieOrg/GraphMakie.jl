@@ -20,7 +20,7 @@ using Test
     add_edge!(g[], 2, 4)
     g[] = g[]
     # try to update network
-    p.layout = NetworkLayout.SFDP.layout
+    p.layout = NetworkLayout.SFDP()
 
     # update node observables
     p.nodecolor = :blue

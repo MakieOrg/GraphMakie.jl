@@ -24,7 +24,7 @@ The `graphplot` command is a recipe which wraps several steps
 - create a `scatter` plot for the nodes and
 - create a `linesegments` plot for the edges.
 
-The default layout is `NetworkLayout.Spring.layout` from
+The default layout is `NetworkLayout.Spring()` from
 [`NetworkLayout.jl`](https://github.com/JuliaGraphs/NetworkLayout.jl). The
 layout attribute can be any function which takes the adjacency matrix of the
 graph an returns a list of `(x,y)` tuples or `Point2f0` objects.
@@ -44,7 +44,7 @@ add_edge!(g, 4, 1); add_edge!(g, 1, 5);
 edgecolors = [:black for i in 1:ne(g)]
 edgecolors[4] = edgecolors[7] = :red
 
-f, ax, p = graphplot(g, layout=NetworkLayout.Circular.layout,
+f, ax, p = graphplot(g, layout=NetworkLayout.Circular(),
                      node_color=[:black, :red, :red, :red, :black],
                      edge_color=edgecolors)
 
