@@ -21,16 +21,55 @@ edges/nodes or as a single value. One might run into errors when changing the
 underlying graph and therefore changing the number of Edges/Nodes.
 
 ## Attributes
-$(ATTRIBUTES)
+### Main attributes
+- `layout`: function `adj_matrix->Vector{Point}` determines the base layout
+- `node_color=scatter_theme.color`
+- `node_size=scatter_theme.markersize`
+- `node_marker=scatter_theme.marker`k
+- `node_attr=(;)`: List of kw arguments which gets passed to the `scatter` command
+- `edge_color=lineseg_theme.color`: Pass a vector with 2 colors per edge to get
+  color gradients.
+- `edge_width=lineseg_theme.linewidth`: Pass a vector with 2 width per edge to
+  get pointy edges.
+- `edge_attr=(;)`: List of kw arguments which gets passed to the `linesegments` command
+
+### Node labels
+The position of each label is determined by the node position plus an offset in
+data space.
+
+- `nlabels=nothing`: `Vector{String}` with label for each node
+- `nlabels_align=(:left, :bottom)`: Anchor of text field.
+- `nlabels_color=labels_theme.color`
+- `nlabels_offset=nothing`: `Point` or `Vector{Point}`
+- `nlabels_textsize=labels_theme.textsize`
+- `nlabels_attr=(;)`: List of kw arguments which gets passed to the `text` command
+
+### Edge labels
+The base position of each label is determinded by `src + shift*(dst-src)`. The
+additional `distance` parameter is given in pixels and shifts the text away from
+the edge.
+
+- `elabels=nothing`: `Vector{String}` with label for each edge
+- `elabels_align=(:center, :bottom)`: Anchor of text field.
+- `elabels_distance=0.0`: Pixel distance of anchor to edge.
+- `elabels_shift=0.5`: Position between src and dst of edge.
+- `elabels_opposite=Int[]`: List of edge indices, for which the label should be
+  displayed on the opposite side
+- `elabels_rotation=nothing`: Angle of text per label. If `nothing` this will be
+  determined by the edge angle!
+- `elabels_offset=nothing`: Additional offset in data space
+- `elabels_color=labels_theme.color`
+- `elabels_textsize=labels_theme.textsize`
+- `elabels_attr=(;)`: List of kw arguments which gets passed to the `text` command
+
 """
 @recipe(GraphPlot, graph) do scene
+    # TODO: figure out this whole theme business
     scatter_theme = default_theme(scene, Scatter)
     lineseg_theme = default_theme(scene, LineSegments)
     labels_theme = default_theme(scene, Makie.Text)
     Attributes(
         layout = NetworkLayout.Spring.layout,
-        nlabels = nothing,
-        elabels = nothing,
         # node attributes (Scatter)
         node_color = scatter_theme.color,
         node_size = scatter_theme.markersize,
@@ -103,7 +142,13 @@ function Makie.plot!(gp::GraphPlot)
 
     # plot node labels
     if gp.nlabels[] !== nothing
-        positions = @lift $node_positions .+ $(gp.nlabels_offset)
+        positions = @lift begin
+            if $(gp.nlabels_offset) != nothing
+                $node_positions .+ $(gp.nlabels_offset)
+            else
+                copy($node_positions)
+            end
+        end
         nlabels_plot = text!(gp, gp.nlabels;
                              position=positions,
                              align=gp.nlabels_align,
@@ -159,8 +204,8 @@ function Makie.plot!(gp::GraphPlot)
 
         # calculate the offset in pixels in normal direction to the edge
         offsets = @lift begin
-            normals = map(p -> Point(-p.data[2], p.data[1])/norm(p), $edge_vec_px)
-            $(gp.elabels_distance) .* normals
+            offsets = map(p -> Point(-p.data[2], p.data[1])/norm(p), $edge_vec_px)
+            offsets .= $(gp.elabels_distance) .* offsets
         end
 
         elabels_plot = text!(gp, gp.elabels;
