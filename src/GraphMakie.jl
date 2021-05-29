@@ -6,7 +6,7 @@ using Makie
 using LinearAlgebra
 
 using DocStringExtensions
-import Makie: DocThemer, ATTRIBUTES
+import Makie: DocThemer, ATTRIBUTES, project
 
 include("recipes.jl")
 include("interaction.jl")

@@ -41,17 +41,19 @@ $(ATTRIBUTES)
         edge_width = lineseg_theme.linewidth,
         edge_attr = (;),
         # node label attributes (Text)
+        nlabels = nothing,
         nlabels_align = (:left, :bottom),
         nlabels_color = labels_theme.color,
-        nlabels_offset = Point2f0(0.0, 0.0),
+        nlabels_offset = nothing,
         nlabels_textsize = labels_theme.textsize,
         nlabels_attr = (;),
         # edge label attributes (Text)
+        elabels = nothing,
         elabels_align = (:center, :bottom),
         elabels_color = labels_theme.color,
         elabels_distance = 0.0,
-        elabels_shift = 0.0,
-        elabels_offset = Point2f0(0.0, 0.0),
+        elabels_shift = 0.5,
+        elabels_offset = nothing,
         elabels_rotation = nothing,
         elabels_opposite = Int[],
         elabels_textsize = labels_theme.textsize,
@@ -112,19 +114,22 @@ function Makie.plot!(gp::GraphPlot)
 
     # plot edge labels
     if gp.elabels[] !== nothing
+        sc = Makie.parent_scene(gp)
         # calculate the vectors for each edge
-        edge_vec = lift(edge_segments, graph) do seg, g
-            [seg[2i] - seg[2i-1] for i in 1:ne(g)]
+        edge_vec_px = lift(edge_segments, graph, sc.px_area, sc.camera.projectionview) do seg, g, pxa, pv
+            # project should transform to 2d point in px space
+            [project(sc, seg[2i]) - project(sc, seg[2i-1]) for i in 1:ne(g)]
+            # [seg[2i] - seg[2i-1] for i in 1:ne(g)]
         end
 
-        # rotations based on the edge_vec and opposite argument
+        # rotations based on the edge_vec_px and opposite argument
         rotations = @lift begin
             if $(gp.elabels_rotation) isa Real
                 # fix rotation to a signle angle
                 rot = [$(gp.elabels_rotation) for i in 1:ne($graph)]
             else
                 # determine rotation by edge vector
-                rot = map(v -> atan(v.data[2], v.data[1]), $edge_vec)
+                rot = map(v -> atan(v.data[2], v.data[1]), $edge_vec_px)
                 for i in $(gp.elabels_opposite)
                     rot[i] += π
                 end
@@ -138,21 +143,30 @@ function Makie.plot!(gp::GraphPlot)
             return rot
         end
 
-        # calculate the normal vectors for the distance
-        # this needs to be recalculated from angle because the angle is user provided
-        edge_dir = @lift map(α -> Point2f0(cos(α), sin(α)), $rotations)
-        normal_dir = @lift map(p -> Point2f0(-p.data[2], p.data[1]), $edge_dir)
-
         # positions: center point between nodes + offset + distance*normal + shift*edge direction
         positions = @lift begin
-            pos = [($edge_segments[2i-1] + $edge_segments[2i])/2 for i in 1:ne($graph)]
-            pos .= pos .+ $(gp.elabels_offset)
-            pos .= pos .+ $(gp.elabels_distance) .* $normal_dir .+ $(gp.elabels_shift) .* $edge_dir
+            # do the same for nodes...
+            pos = [$edge_segments[2i-1] for i in 1:ne($graph)]
+            dst = [$edge_segments[2i]   for i in 1:ne($graph)]
+
+            pos .= pos .+ $(gp.elabels_shift) .* (dst .- pos)
+
+            if $(gp.elabels_offset) !== nothing
+                pos .= pos .+ $(gp.elabels_offset)
+            end
+            pos
+        end
+
+        # calculate the offset in pixels in normal direction to the edge
+        offsets = @lift begin
+            normals = map(p -> Point(-p.data[2], p.data[1])/norm(p), $edge_vec_px)
+            $(gp.elabels_distance) .* normals
         end
 
         elabels_plot = text!(gp, gp.elabels;
                              position=positions,
                              rotation=rotations,
+                             offset=offsets,
                              align=gp.elabels_align,
                              color=gp.elabels_color,
                              textsize=gp.elabels_textsize,
