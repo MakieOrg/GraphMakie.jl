@@ -89,12 +89,12 @@ the edge.
         # edge label attributes (Text)
         elabels = nothing,
         elabels_align = (:center, :bottom),
-        elabels_color = labels_theme.color,
         elabels_distance = 0.0,
         elabels_shift = 0.5,
-        elabels_offset = nothing,
-        elabels_rotation = nothing,
         elabels_opposite = Int[],
+        elabels_rotation = nothing,
+        elabels_offset = nothing,
+        elabels_color = labels_theme.color,
         elabels_textsize = labels_theme.textsize,
         elabels_attr = (;),
     )
