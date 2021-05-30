@@ -79,6 +79,9 @@ the edge.
         edge_color = lineseg_theme.color,
         edge_width = lineseg_theme.linewidth,
         edge_attr = (;),
+        arrow_show = automatic,
+        arrow_size = scatter_theme.markersize,
+        arrow_shift = 0.5,
         # node label attributes (Text)
         nlabels = nothing,
         nlabels_align = (:left, :bottom),
@@ -114,10 +117,9 @@ function Makie.plot!(gp::GraphPlot)
 
     # create views into the node_positions, will be updated node_position changes
     # in case of a graph change the node_position will change anyway
-    edge_segments = @lift begin
-        indices = vec([getfield(e, s) for s in (:src, :dst), e in edges(graph[])])
-        ($node_positions)[indices]
-    end
+    edge_src = @lift [$node_positions[e.src] for e in edges(graph[])]
+    edge_dst = @lift [$node_positions[e.dst] for e in edges(graph[])]
+    edge_segments = @lift vec(permutedims(hcat($edge_src, $edge_dst)))
 
     # in case the edge_with is same as the number of edges
     # create a new observable which doubles the values for compat with line segments
@@ -127,11 +129,33 @@ function Makie.plot!(gp::GraphPlot)
         lineseg_width = gp.edge_width
     end
 
+    # calculate the vectors for each edge in pixel space
+    sc = Makie.parent_scene(gp)
+    edge_vec_px = lift(edge_src, edge_dst, sc.px_area, sc.camera.projectionview) do esrc, edst, pxa, pv
+        # project should transform to 2d point in px space
+        # [project(sc, seg[2i]) - project(sc, seg[2i-1]) for i in 1:ne(g)]
+        map((src, dst)->project(sc, dst) - project(sc, src), esrc, edst)
+    end
+    # get rotation in px space (for arrow markers and edge_labels)
+    edge_rotations_px = @lift map(v -> atan(v.data[2], v.data[1]), $edge_vec_px)
+
     # plot edges
     edge_plot = linesegments!(gp, edge_segments;
                               color=gp.edge_color,
                               linewidth=lineseg_width,
                               gp.edge_attr...)
+
+    # plott arrow heads
+    arrow_heads = scatter!(gp,
+                           @lift($edge_src .+ $(gp.arrow_shift) .* ($edge_dst .- $edge_src)),
+                           # marker = '▲',
+                           marker = '➤',
+                           markersize = gp.arrow_size,
+                           color = gp.edge_color,
+                           rotations = @lift(Billboard($edge_rotations_px)),
+                           strokewidth = 0.0,
+                           markerspace = Pixel,
+                           visible = @lift($(gp.arrow_show) === automatic ? $graph isa SimpleDiGraph : $(gp.arrow_show)))
 
     # plot vertices
     vertex_plot = scatter!(gp, node_positions;
@@ -159,26 +183,18 @@ function Makie.plot!(gp::GraphPlot)
 
     # plot edge labels
     if gp.elabels[] !== nothing
-        sc = Makie.parent_scene(gp)
-        # calculate the vectors for each edge
-        edge_vec_px = lift(edge_segments, graph, sc.px_area, sc.camera.projectionview) do seg, g, pxa, pv
-            # project should transform to 2d point in px space
-            [project(sc, seg[2i]) - project(sc, seg[2i-1]) for i in 1:ne(g)]
-            # [seg[2i] - seg[2i-1] for i in 1:ne(g)]
-        end
-
         # rotations based on the edge_vec_px and opposite argument
-        rotations = @lift begin
+        rotation = @lift begin
             if $(gp.elabels_rotation) isa Real
-                # fix rotation to a signle angle
-                rot = [$(gp.elabels_rotation) for i in 1:ne($graph)]
+                # fix rotation to a single angle
+                rot = $(gp.elabels_rotation)
             else
                 # determine rotation by edge vector
-                rot = map(v -> atan(v.data[2], v.data[1]), $edge_vec_px)
+                rot = copy($edge_rotations_px)
                 for i in $(gp.elabels_opposite)
                     rot[i] += π
                 end
-                # if there are user provided rotations for some labels, use those
+                # if there are user provided rotation for some labels, use those
                 if $(gp.elabels_rotation) isa Vector
                     for (i, α) in enumerate($(gp.elabels_rotation))
                         α !== nothing && (rot[i] = α)
@@ -190,11 +206,7 @@ function Makie.plot!(gp::GraphPlot)
 
         # positions: center point between nodes + offset + distance*normal + shift*edge direction
         positions = @lift begin
-            # do the same for nodes...
-            pos = [$edge_segments[2i-1] for i in 1:ne($graph)]
-            dst = [$edge_segments[2i]   for i in 1:ne($graph)]
-
-            pos .= pos .+ $(gp.elabels_shift) .* (dst .- pos)
+            pos = $edge_src .+ $(gp.elabels_shift) .* ($edge_dst .- $edge_src)
 
             if $(gp.elabels_offset) !== nothing
                 pos .= pos .+ $(gp.elabels_offset)
@@ -210,7 +222,7 @@ function Makie.plot!(gp::GraphPlot)
 
         elabels_plot = text!(gp, gp.elabels;
                              position=positions,
-                             rotation=rotations,
+                             rotation=rotation,
                              offset=offsets,
                              align=gp.elabels_align,
                              color=gp.elabels_color,
