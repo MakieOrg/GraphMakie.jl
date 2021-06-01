@@ -32,6 +32,10 @@ underlying graph and therefore changing the number of Edges/Nodes.
 - `edge_width=lineseg_theme.linewidth`: Pass a vector with 2 width per edge to
   get pointy edges.
 - `edge_attr=(;)`: List of kw arguments which gets passed to the `linesegments` command
+- `arrow_show=Makie.automatic`: `Bool`, indicate edge directions with arrowheads?
+  Defaults to `true` for `SimpleDiGraph` and `false` otherwise.
+- `arrow_size=scatter_theme.markersize`: Size of arrowheads.
+- `arrow_shift=0.5`: Shift arrow position from source (0) to dest (1) node.
 
 ### Node labels
 The position of each label is determined by the node position plus an offset in
