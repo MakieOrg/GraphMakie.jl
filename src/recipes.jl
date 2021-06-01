@@ -21,16 +21,55 @@ edges/nodes or as a single value. One might run into errors when changing the
 underlying graph and therefore changing the number of Edges/Nodes.
 
 ## Attributes
-$(ATTRIBUTES)
+### Main attributes
+- `layout`: function `adj_matrix->Vector{Point}` determines the base layout
+- `node_color=scatter_theme.color`
+- `node_size=scatter_theme.markersize`
+- `node_marker=scatter_theme.marker`k
+- `node_attr=(;)`: List of kw arguments which gets passed to the `scatter` command
+- `edge_color=lineseg_theme.color`: Pass a vector with 2 colors per edge to get
+  color gradients.
+- `edge_width=lineseg_theme.linewidth`: Pass a vector with 2 width per edge to
+  get pointy edges.
+- `edge_attr=(;)`: List of kw arguments which gets passed to the `linesegments` command
+
+### Node labels
+The position of each label is determined by the node position plus an offset in
+data space.
+
+- `nlabels=nothing`: `Vector{String}` with label for each node
+- `nlabels_align=(:left, :bottom)`: Anchor of text field.
+- `nlabels_color=labels_theme.color`
+- `nlabels_offset=nothing`: `Point` or `Vector{Point}`
+- `nlabels_textsize=labels_theme.textsize`
+- `nlabels_attr=(;)`: List of kw arguments which gets passed to the `text` command
+
+### Edge labels
+The base position of each label is determinded by `src + shift*(dst-src)`. The
+additional `distance` parameter is given in pixels and shifts the text away from
+the edge.
+
+- `elabels=nothing`: `Vector{String}` with label for each edge
+- `elabels_align=(:center, :bottom)`: Anchor of text field.
+- `elabels_distance=0.0`: Pixel distance of anchor to edge.
+- `elabels_shift=0.5`: Position between src and dst of edge.
+- `elabels_opposite=Int[]`: List of edge indices, for which the label should be
+  displayed on the opposite side
+- `elabels_rotation=nothing`: Angle of text per label. If `nothing` this will be
+  determined by the edge angle!
+- `elabels_offset=nothing`: Additional offset in data space
+- `elabels_color=labels_theme.color`
+- `elabels_textsize=labels_theme.textsize`
+- `elabels_attr=(;)`: List of kw arguments which gets passed to the `text` command
+
 """
 @recipe(GraphPlot, graph) do scene
+    # TODO: figure out this whole theme business
     scatter_theme = default_theme(scene, Scatter)
     lineseg_theme = default_theme(scene, LineSegments)
     labels_theme = default_theme(scene, Makie.Text)
     Attributes(
         layout = NetworkLayout.Spring.layout,
-        nlabels = nothing,
-        elabels = nothing,
         # node attributes (Scatter)
         node_color = scatter_theme.color,
         node_size = scatter_theme.markersize,
@@ -41,19 +80,21 @@ $(ATTRIBUTES)
         edge_width = lineseg_theme.linewidth,
         edge_attr = (;),
         # node label attributes (Text)
+        nlabels = nothing,
         nlabels_align = (:left, :bottom),
         nlabels_color = labels_theme.color,
-        nlabels_offset = Point2f0(0.0, 0.0),
+        nlabels_offset = nothing,
         nlabels_textsize = labels_theme.textsize,
         nlabels_attr = (;),
         # edge label attributes (Text)
+        elabels = nothing,
         elabels_align = (:center, :bottom),
-        elabels_color = labels_theme.color,
         elabels_distance = 0.0,
-        elabels_shift = 0.0,
-        elabels_offset = Point2f0(0.0, 0.0),
-        elabels_rotation = nothing,
+        elabels_shift = 0.5,
         elabels_opposite = Int[],
+        elabels_rotation = nothing,
+        elabels_offset = nothing,
+        elabels_color = labels_theme.color,
         elabels_textsize = labels_theme.textsize,
         elabels_attr = (;),
     )
@@ -101,7 +142,13 @@ function Makie.plot!(gp::GraphPlot)
 
     # plot node labels
     if gp.nlabels[] !== nothing
-        positions = @lift $node_positions .+ $(gp.nlabels_offset)
+        positions = @lift begin
+            if $(gp.nlabels_offset) != nothing
+                $node_positions .+ $(gp.nlabels_offset)
+            else
+                copy($node_positions)
+            end
+        end
         nlabels_plot = text!(gp, gp.nlabels;
                              position=positions,
                              align=gp.nlabels_align,
@@ -112,19 +159,22 @@ function Makie.plot!(gp::GraphPlot)
 
     # plot edge labels
     if gp.elabels[] !== nothing
+        sc = Makie.parent_scene(gp)
         # calculate the vectors for each edge
-        edge_vec = lift(edge_segments, graph) do seg, g
-            [seg[2i] - seg[2i-1] for i in 1:ne(g)]
+        edge_vec_px = lift(edge_segments, graph, sc.px_area, sc.camera.projectionview) do seg, g, pxa, pv
+            # project should transform to 2d point in px space
+            [project(sc, seg[2i]) - project(sc, seg[2i-1]) for i in 1:ne(g)]
+            # [seg[2i] - seg[2i-1] for i in 1:ne(g)]
         end
 
-        # rotations based on the edge_vec and opposite argument
+        # rotations based on the edge_vec_px and opposite argument
         rotations = @lift begin
             if $(gp.elabels_rotation) isa Real
                 # fix rotation to a signle angle
                 rot = [$(gp.elabels_rotation) for i in 1:ne($graph)]
             else
                 # determine rotation by edge vector
-                rot = map(v -> atan(v.data[2], v.data[1]), $edge_vec)
+                rot = map(v -> atan(v.data[2], v.data[1]), $edge_vec_px)
                 for i in $(gp.elabels_opposite)
                     rot[i] += π
                 end
@@ -138,21 +188,30 @@ function Makie.plot!(gp::GraphPlot)
             return rot
         end
 
-        # calculate the normal vectors for the distance
-        # this needs to be recalculated from angle because the angle is user provided
-        edge_dir = @lift map(α -> Point2f0(cos(α), sin(α)), $rotations)
-        normal_dir = @lift map(p -> Point2f0(-p.data[2], p.data[1]), $edge_dir)
-
         # positions: center point between nodes + offset + distance*normal + shift*edge direction
         positions = @lift begin
-            pos = [($edge_segments[2i-1] + $edge_segments[2i])/2 for i in 1:ne($graph)]
-            pos .= pos .+ $(gp.elabels_offset)
-            pos .= pos .+ $(gp.elabels_distance) .* $normal_dir .+ $(gp.elabels_shift) .* $edge_dir
+            # do the same for nodes...
+            pos = [$edge_segments[2i-1] for i in 1:ne($graph)]
+            dst = [$edge_segments[2i]   for i in 1:ne($graph)]
+
+            pos .= pos .+ $(gp.elabels_shift) .* (dst .- pos)
+
+            if $(gp.elabels_offset) !== nothing
+                pos .= pos .+ $(gp.elabels_offset)
+            end
+            pos
+        end
+
+        # calculate the offset in pixels in normal direction to the edge
+        offsets = @lift begin
+            offsets = map(p -> Point(-p.data[2], p.data[1])/norm(p), $edge_vec_px)
+            offsets .= $(gp.elabels_distance) .* offsets
         end
 
         elabels_plot = text!(gp, gp.elabels;
                              position=positions,
                              rotation=rotations,
+                             offset=offsets,
                              align=gp.elabels_align,
                              color=gp.elabels_color,
                              textsize=gp.elabels_textsize,

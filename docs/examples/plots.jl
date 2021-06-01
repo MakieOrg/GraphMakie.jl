@@ -129,9 +129,9 @@ p.elabels_offset[] = [Point2f0(0.0, 0.0) for i in 1:ne(g)]
 p.elabels_offset[][5] = Point2f0(-0.4,0)
 p.elabels_offset[] = p.elabels_offset[]
 
-p.elabels_shift[] = zeros(ne(g))
-p.elabels_shift[][4] = -.5
-p.elabels_shift[][3] = +.2
+p.elabels_shift[] = [0.5 for i in 1:ne(g)]
+p.elabels_shift[][4] = 0.7
+p.elabels_shift[][3] = 0.6
 p.elabels_shift[] = p.elabels_shift[]
 
 p.elabels_distance[] = zeros(ne(g))
