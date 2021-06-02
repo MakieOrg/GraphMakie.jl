@@ -205,7 +205,8 @@ end
 Object to handle left mous drags on `plot::P`.
 """
 mutable struct DragHandler{P<:ScenePlot,F} <: GraphInteraction
-    idx::Union{Nothing,Int}
+    dragstate::Bool
+    idx::Int
     plot::Union{Nothing,P}
     fun::F
 end
@@ -213,22 +214,23 @@ set_nodeplot!(h::DragHandler{Scatter}, plot) = h.plot = plot
 set_edgeplot!(h::DragHandler{LineSegments}, plot) = h.plot = plot
 
 function process_interaction(handler::DragHandler, event::MouseEvent, axis)
-    if handler.idx === nothing # not in drag state
-        if event.type === MouseEventTypes.leftdragstart && handler.idx === nothing
-            # TODO: idealy this would take the position of the most recent leftdown event!
-            # however i am not quite sure how to use mouse_selection on px or data points
+    if handler.dragstate == false # not in drag state
+        if event.type === MouseEventTypes.leftdown
+            # on leftdown save idx if happens to be on right element/plot
             (element, idx) = convert_selection(mouse_selection(axis.scene)...)
-            if element === handler.plot
-                handler.idx = idx
-            end
+            handler.idx = element === handler.plot ? idx : 0
+        elseif event.type === MouseEventTypes.leftdragstart && handler.idx != 0
+            # if idx!=0 the last leftdown was on right element!
+            handler.dragstate = true
         end
-    elseif handler.idx !== nothing # drag state
+    elseif handler.dragstate == true # drag state
         if event.type === MouseEventTypes.leftdrag
             ret = handler.fun(true, handler.idx, event, axis)
             return ret isa Bool ? ret : false
         elseif event.type === MouseEventTypes.leftdragstop
             ret = handler.fun(false, handler.idx, event, axis)
-            handler.idx = nothing
+            handler.idx = 0
+            handler.dragstate = false
             return ret isa Bool ? ret : false
         end
     end
@@ -257,7 +259,7 @@ julia> function action(state, idx, event, axis)
 julia> register_interaction!(ax, :nodedrag, NodeDragHandler(action))
 ```
 """
-NodeDragHandler(fun::F) where {F} = DragHandler{Scatter,F}(nothing, nothing, fun)
+NodeDragHandler(fun::F) where {F} = DragHandler{Scatter,F}(false, 0, nothing, fun)
 
 """
     NodeDrag(p::GraphPlot)
@@ -294,7 +296,7 @@ the last time `fun` is triggered. `idx` is the edge index.
 See [`EdgeDrag`](@ref) for a concrete implementation.
 ```
 """
-EdgeDragHandler(fun::F) where {F} = DragHandler{LineSegments,F}(nothing, nothing, fun)
+EdgeDragHandler(fun::F) where {F} = DragHandler{LineSegments,F}(false, 0, nothing, fun)
 
 """
     EdgeDrag(p::GraphPlot)
