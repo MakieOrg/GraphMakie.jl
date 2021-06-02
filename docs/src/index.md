@@ -9,9 +9,9 @@ This Package consists of two parts: a plot recipe for graphs types from
 [LightGraphs.jl](https://juliagraphs.org/LightGraphs.jl/latest/) and some helper
 functions to add interactions to those plots.
 
-There are also [plot examples](generated/plots.md) and [interaction examples](generated/interactions.md).
+There are also [plot examples](generated/plots.md) and [interaction examples](generated/interactions.md) pages.
 
-## `graphplot` recipe
+## The `graphplot` Recipe
 ```@docs
 graphplot
 ```
@@ -24,18 +24,18 @@ For more information on the axis interaction please consult the [`Makie.jl` docs
 The general idea is to create some handler type, provide some action function and register it
 as an interaction with the axes.
 
-### Click interactions
+### Click Interactions
 ```@docs
 NodeClickHandler
 EdgeClickHandler
 ```
-### Hover interactions
+### Hover Interactions
 ```@docs
 NodeHoverHandler
 EdgeHoverHandler
 ```
 
-### Drag interactions
+### Drag Interactions
 ```@docs
 NodeDragHandler
 EdgeDragHandler
