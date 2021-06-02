@@ -36,6 +36,7 @@ underlying graph and therefore changing the number of Edges/Nodes.
   Defaults to `true` for `SimpleDiGraph` and `false` otherwise.
 - `arrow_size=scatter_theme.markersize`: Size of arrowheads.
 - `arrow_shift=0.5`: Shift arrow position from source (0) to dest (1) node.
+- `arrow_attr=(;)`: List of kw arguments which gets passed to the `scatter` command
 
 ### Node labels
 The position of each label is determined by the node position plus an offset in
@@ -83,9 +84,11 @@ the edge.
         edge_color = lineseg_theme.color,
         edge_width = lineseg_theme.linewidth,
         edge_attr = (;),
+        # arrow attributes (Scatter)
         arrow_show = automatic,
         arrow_size = scatter_theme.markersize,
         arrow_shift = 0.5,
+        arrow_attr = (;),
         # node label attributes (Text)
         nlabels = nothing,
         nlabels_align = (:left, :bottom),
@@ -166,7 +169,8 @@ function Makie.plot!(gp::GraphPlot)
                                rotations = @lift(Billboard($edge_rotations_px)),
                                strokewidth = 0.0,
                                markerspace = Pixel,
-                               visible = arrow_show)
+                               visible = arrow_show,
+                               gp.arrow_attr...)
     end
 
     # plot vertices
