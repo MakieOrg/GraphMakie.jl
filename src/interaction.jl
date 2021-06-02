@@ -30,7 +30,6 @@ set_nodeplot!(::GraphInteraction, plot) = nothing
 set_edgeplot!(::GraphInteraction, plot) = nothing
 
 function registration_setup!(parent, inter::GraphInteraction)
-    @assert parent isa Axis "GraphInteraction has to be registered to an Axis!"
     # in case of multiple graph plots in one axis this won't work
     gplots = filter(p -> p isa GraphPlot, parent.scene.plots)
     @assert length(gplots) == 1 "There has to be exactly one GraphPlot in Axis!"
@@ -60,6 +59,26 @@ mutable struct HoverHandler{P<:ScenePlot,F} <: GraphInteraction
 end
 set_nodeplot!(h::HoverHandler{Scatter}, plot) = h.plot = plot
 set_edgeplot!(h::HoverHandler{LineSegments}, plot) = h.plot = plot
+
+function process_interaction(handler::HoverHandler, event::MouseEvent, axis)
+    if event.type === MouseEventTypes.over
+        (element, idx) = convert_selection(mouse_selection(axis.scene)...)
+        if element == handler.plot
+            if handler.idx === nothing
+                handler.idx = idx
+                ret = handler.fun(true, handler.idx, event, axis)
+                return ret isa Bool ? ret : false
+            end
+        else
+            if handler.idx !== nothing
+                ret = handler.fun(false, handler.idx, event, axis)
+                handler.idx = nothing
+                return ret isa Bool ? ret : false
+            end
+        end
+    end
+    return false
+end
 
 """
     NodeHoverHandler(fun)
@@ -176,26 +195,6 @@ function EdgeHoverHighlight(p::GraphPlot, factor=2)
     return EdgeHoverHandler(action)
 end
 
-function process_interaction(handler::HoverHandler, event::MouseEvent, axis)
-    if event.type === MouseEventTypes.over
-        (element, idx) = convert_selection(mouse_selection(axis.scene)...)
-        if element == handler.plot
-            if handler.idx === nothing
-                handler.idx = idx
-                ret = handler.fun(true, handler.idx, event, axis)
-                return ret isa Bool ? ret : false
-            end
-        else
-            if handler.idx !== nothing
-                ret = handler.fun(false, handler.idx, event, axis)
-                handler.idx = nothing
-                return ret isa Bool ? ret : false
-            end
-        end
-    end
-    return false
-end
-
 ####
 #### Drag Interaction
 ####
@@ -212,6 +211,29 @@ mutable struct DragHandler{P<:ScenePlot,F} <: GraphInteraction
 end
 set_nodeplot!(h::DragHandler{Scatter}, plot) = h.plot = plot
 set_edgeplot!(h::DragHandler{LineSegments}, plot) = h.plot = plot
+
+function process_interaction(handler::DragHandler, event::MouseEvent, axis)
+    if handler.idx === nothing # not in drag state
+        if event.type === MouseEventTypes.leftdragstart && handler.idx === nothing
+            # TODO: idealy this would take the position of the most recent leftdown event!
+            # however i am not quite sure how to use mouse_selection on px or data points
+            (element, idx) = convert_selection(mouse_selection(axis.scene)...)
+            if element === handler.plot
+                handler.idx = idx
+            end
+        end
+    elseif handler.idx !== nothing # drag state
+        if event.type === MouseEventTypes.leftdrag
+            ret = handler.fun(true, handler.idx, event, axis)
+            return ret isa Bool ? ret : false
+        elseif event.type === MouseEventTypes.leftdragstop
+            ret = handler.fun(false, handler.idx, event, axis)
+            handler.idx = nothing
+            return ret isa Bool ? ret : false
+        end
+    end
+    return false
+end
 
 """
     NodeDragHandler(fun)
@@ -318,29 +340,6 @@ function (action::EdgeDragAction)(state, idx, event, _)
     end
 end
 
-function process_interaction(handler::DragHandler, event::MouseEvent, axis)
-    if handler.idx === nothing # not in drag state
-        if event.type === MouseEventTypes.leftdragstart && handler.idx === nothing
-            # TODO: idealy this would take the position of the most recent leftdown event!
-            # however i am not quite sure how to use mouse_selection on px or data points
-            (element, idx) = convert_selection(mouse_selection(axis.scene)...)
-            if element === handler.plot
-                handler.idx = idx
-            end
-        end
-    elseif handler.idx !== nothing # drag state
-        if event.type === MouseEventTypes.leftdrag
-            ret = handler.fun(true, handler.idx, event, axis)
-            return ret isa Bool ? ret : false
-        elseif event.type === MouseEventTypes.leftdragstop
-            ret = handler.fun(false, handler.idx, event, axis)
-            handler.idx = nothing
-            return ret isa Bool ? ret : false
-        end
-    end
-    return false
-end
-
 ####
 #### Click Interaction
 ####
@@ -356,6 +355,17 @@ mutable struct ClickHandler{P<:ScenePlot,F} <: GraphInteraction
 end
 set_nodeplot!(h::ClickHandler{Scatter}, plot) = h.plot = plot
 set_edgeplot!(h::ClickHandler{LineSegments}, plot) = h.plot = plot
+
+function process_interaction(handler::ClickHandler, event::MouseEvent, axis)
+    if event.type === MouseEventTypes.leftclick
+        (element, idx) = convert_selection(mouse_selection(axis.scene)...)
+        if element == handler.plot
+            ret = handler.fun(idx, event, axis)
+            return ret isa Bool ? ret : false
+        end
+    end
+    return false
+end
 
 """
     NodeClickHandler(fun)
@@ -402,14 +412,3 @@ julia> register_interaction!(ax, :edgeclick, EdgeClickHandler(action))
 ```
 """
 EdgeClickHandler(fun::F) where {F} = ClickHandler{LineSegments,F}(nothing, fun)
-
-function process_interaction(handler::ClickHandler, event::MouseEvent, axis)
-    if event.type === MouseEventTypes.leftclick
-        (element, idx) = convert_selection(mouse_selection(axis.scene)...)
-        if element == handler.plot
-            ret = handler.fun(idx, event, axis)
-            return ret isa Bool ? ret : false
-        end
-    end
-    return false
-end
