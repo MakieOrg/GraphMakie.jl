@@ -2,8 +2,10 @@ using Makie: ScenePlot
 import Makie.MakieLayout: registration_setup!, process_interaction
 
 export NodeHoverHandler, EdgeHoverHandler
+export NodeHoverHighlight, EdgeHoverHighlight
 export NodeClickHandler, EdgeClickHandler
 export NodeDragHandler, EdgeDragHandler
+export NodeDrag, EdgeDrag
 
 """
     convert_selection(element, idx) = (element, idx)
@@ -13,7 +15,7 @@ In case of `LineSegements` the reported `idx` by `pick` is allways two
 times the edge index (since LineSegments have 2 points per Line).
 """
 convert_selection(element, idx) = (element, idx)
-convert_selection(element::LineSegments, idx) = (element, Int(idx/2))
+convert_selection(element::LineSegments, idx) = (element, Int(idx / 2))
 
 """
     abstract type GraphInteraction
@@ -30,27 +32,30 @@ set_edgeplot!(::GraphInteraction, plot) = nothing
 function registration_setup!(parent, inter::GraphInteraction)
     @assert parent isa Axis "GraphInteraction has to be registered to an Axis!"
     # in case of multiple graph plots in one axis this won't work
-    gplots = filter(p->p isa GraphPlot, parent.scene.plots)
-    @assert length(gplots)==1 "There has to be exactly one GraphPlot in Axis!"
+    gplots = filter(p -> p isa GraphPlot, parent.scene.plots)
+    @assert length(gplots) == 1 "There has to be exactly one GraphPlot in Axis!"
 
     # in case of multiple plots of type Scatter/Linesegments in GraphPlot this won't work
-    scatter = filter(p->p isa Scatter, gplots[1].plots)
-    @assert length(scatter)==1 "There has to be exactly one Scatter-Plot in GraphPlot!"
-    set_nodeplot!(inter, scatter[1])
+    scatter = filter(p -> p isa Scatter, gplots[1].plots)
+    set_nodeplot!(inter, scatter[end]) # assume that the node scatter is the last scatter in recipe
 
-    lines = filter(p->p isa LineSegments, gplots[1].plots)
-    @assert length(lines)==1 "There has to be exactly one LineSegments-Plot in GraphPlot!"
-    set_edgeplot!(inter, lines[1])
+    lines = filter(p -> p isa LineSegments, gplots[1].plots)
+    @assert length(lines) == 1 "There has to be exactly one LineSegments-Plot in GraphPlot!"
+    return set_edgeplot!(inter, lines[1])
 end
+
+####
+#### Hover Interaction
+####
 
 """
     mutable struct HoverHandler{P<:ScenePlot, F} <: GraphInteraction
 
 Object to handle hovers on `plot::P`.
 """
-mutable struct HoverHandler{P<:ScenePlot, F} <: GraphInteraction
-    idx::Union{Nothing, Int}
-    plot::Union{Nothing, P}
+mutable struct HoverHandler{P<:ScenePlot,F} <: GraphInteraction
+    idx::Union{Nothing,Int}
+    plot::Union{Nothing,P}
     fun::F
 end
 set_nodeplot!(h::HoverHandler{Scatter}, plot) = h.plot = plot
@@ -76,7 +81,29 @@ julia> function action(state, idx, event, axis)
 julia> register_interaction!(ax, :nodehover, NodeHoverHandler(action))
 ```
 """
-NodeHoverHandler(fun::F) where F = HoverHandler{Scatter, F}(nothing, nothing, fun)
+NodeHoverHandler(fun::F) where {F} = HoverHandler{Scatter,F}(nothing, nothing, fun)
+
+"""
+    NodeHoverHeighlight(p::GraphPlot, factor=2)
+
+Magnifies the `node_size` of node under cursor by `factor`.
+
+# Example
+```
+julia> g = wheel_graph(10)
+julia> f, ax, p = graphplot(g, node_size = [20 for i in 1:nv(g)])
+julia> register_interaction!(ax, :nodehover, NodeHoverHighlight(p))
+```
+"""
+function NodeHoverHighlight(p::GraphPlot, factor=2)
+    @assert p.node_size[] isa Vector{<:Real} "`node_size` object needs to be an Vector{<:Real} for this interaction to work!"
+    action = (state, idx, _, _) -> begin
+        old = p.node_size[][idx]
+        p.node_size[][idx] = state ? old * factor : old / factor
+        p.node_size[] = p.node_size[] #trigger observable
+    end
+    return NodeHoverHandler(action)
+end
 
 """
     EdgeHoverHandler(fun)
@@ -98,7 +125,56 @@ julia> function action(state, idx, event, axis)
 julia> register_interaction!(ax, :edgehover, EdgeHoverHandler(action))
 ```
 """
-EdgeHoverHandler(fun::F) where F = HoverHandler{LineSegments, F}(nothing, nothing, fun)
+EdgeHoverHandler(fun::F) where {F} = HoverHandler{LineSegments,F}(nothing, nothing, fun)
+
+"""
+    EdgeHoverHeighlight(p::GraphPlot, factor=2)
+
+Magnifies the `edge_width` of edge under cursor by `factor`.
+If `arrow_size isa Vector{<:Real}` it also magnefies the arrow scatter.
+
+# Example
+```
+julia> g = wheel_digraph(10)
+julia> f, ax, p = graphplot(g, edge_width = [3 for i in 1:ne(g)],
+                               arrow_size=[10 for i in 1:ne(g)])
+julia> register_interaction!(ax, :nodehover, EdgeHoverHighlight(p))
+```
+"""
+function EdgeHoverHighlight(p::GraphPlot, factor=2)
+    @assert p.edge_width[] isa Vector{<:Real} "`edge_width` object needs to be an Vector{<:Real} for this interaction to work!"
+    scale_arrows = p.arrow_size[] isa Vector{<:Real}
+
+    if length(p.edge_width[]) == ne(p[:graph][])
+        action = (state, idx, _, _) -> begin
+            old = p.edge_width[][idx]
+            p.edge_width[][idx] = state ? old * factor : old / factor
+            p.edge_width[] = p.edge_width[] #trigger observable
+            if scale_arrows
+                old = p.arrow_size[][idx]
+                p.arrow_size[][idx] = state ? old * factor : old / factor
+                p.arrow_size[] = p.arrow_size[] #trigger observable
+            end
+        end
+    elseif length(p.edge_width[]) == 2 * ne(p[:graph][])
+        action = (state, idx, _, _) -> begin
+            oldA = p.edge_width[][2 * idx - 1]
+            oldB = p.edge_width[][2 * idx]
+            p.edge_width[][2 * idx - 1] = state ? oldA * factor : oldA / factor
+            p.edge_width[][2 * idx] = state ? oldB * factor : oldB / factor
+            p.edge_width[] = p.edge_width[] #trigger observable
+            if scale_arrows
+                old = p.arrow_size[][idx]
+                p.arrow_size[][idx] = state ? old * factor : old / factor
+                p.arrow_size[] = p.arrow_size[] #trigger observable
+            end
+        end
+    else
+        error("Can not make sense of `length(p.edge_width)`")
+    end
+
+    return EdgeHoverHandler(action)
+end
 
 function process_interaction(handler::HoverHandler, event::MouseEvent, axis)
     if event.type === MouseEventTypes.over
@@ -106,26 +182,32 @@ function process_interaction(handler::HoverHandler, event::MouseEvent, axis)
         if element == handler.plot
             if handler.idx === nothing
                 handler.idx = idx
-                handler.fun(true, handler.idx, event, axis)
+                ret = handler.fun(true, handler.idx, event, axis)
+                return ret isa Bool ? ret : false
             end
         else
             if handler.idx !== nothing
-                handler.fun(false, handler.idx, event, axis)
+                ret = handler.fun(false, handler.idx, event, axis)
                 handler.idx = nothing
+                return ret isa Bool ? ret : false
             end
         end
     end
+    return false
 end
 
+####
+#### Drag Interaction
+####
 
 """
     mutable struct DragHandler{P<:ScenePlot, F} <: GraphInteraction
 
 Object to handle left mous drags on `plot::P`.
 """
-mutable struct DragHandler{P<:ScenePlot, F} <: GraphInteraction
-    idx::Union{Nothing, Int}
-    plot::Union{Nothing, P}
+mutable struct DragHandler{P<:ScenePlot,F} <: GraphInteraction
+    idx::Union{Nothing,Int}
+    plot::Union{Nothing,P}
     fun::F
 end
 set_nodeplot!(h::DragHandler{Scatter}, plot) = h.plot = plot
@@ -153,7 +235,29 @@ julia> function action(state, idx, event, axis)
 julia> register_interaction!(ax, :nodedrag, NodeDragHandler(action))
 ```
 """
-NodeDragHandler(fun::F) where F = DragHandler{Scatter, F}(nothing, nothing, fun)
+NodeDragHandler(fun::F) where {F} = DragHandler{Scatter,F}(nothing, nothing, fun)
+
+"""
+    NodeDrag(p::GraphPlot)
+
+Allows drag and drop of Nodes. Please deregister the `:rectanglezoom` interaction.
+
+# Example
+```
+julia> g = wheel_graph(10)
+julia> f, ax, p = graphplot(g, node_size = [10 for i in 1:nv(g)])
+julia> deregister_interaction!(ax, :rectanglezoom)
+julia> register_interaction!(ax, :nodehover, NodeHoverHighlight(p))
+julia> register_interaction!(ax, :nodedrag, NodeDrag(p))
+```
+"""
+function NodeDrag(p)
+    action = (state, idx, event, _) -> begin
+        p[:node_positions][][idx] = event.data
+        p[:node_positions][] = p[:node_positions][]
+    end
+    return NodeDragHandler(action)
+end
 
 """
     EdgeDragHandler(fun)
@@ -165,38 +269,54 @@ Initializes `DragHandler` for Edges. Calls function
 where `dragstate=true` during the drag and `false` at the end of the drag,
 the last time `fun` is triggered. `idx` is the edge index.
 
-# Example
-```
-julia> g = wheel_digraph(10)
-julia> f, ax, p = graphplot(g, edge_width=3)
-julia> deregister_interaction!(ax, :rectanglezoom)
-julia> mutable struct EdgeDragAction
-           init::Union{Nothing, Point2f0} # save click position
-           src::Union{Nothing, Point2f0}  # save src vertex position
-           dst::Union{Nothing, Point2f0}  # save dst vertex position
-           EdgeDragAction() = new(nothing, nothing, nothing)
-       end
-julia> function (action::EdgeDragAction)(state, idx, event, axis)
-           edge = collect(edges(g))[idx]
-           if state == true
-               if action.src===action.dst===action.init===nothing
-                   action.init = event.data
-                   action.src = p[:node_positions][][edge.src]
-                   action.dst = p[:node_positions][][edge.dst]
-               end
-               offset = event.data - action.init
-               p[:node_positions][][edge.src] = action.src + offset
-               p[:node_positions][][edge.dst] = action.dst + offset
-               p[:node_positions][] = p[:node_positions][] # trigger change
-           elseif state == false
-               action.src = action.dst = action.init =  nothing
-           end
-       end
-julia> handler = EdgeDragHandler(EdgeDragAction())
-julia> register_interaction!(ax, :edgedrag, handler)
+See [`EdgeDrag`](@ref) for a concrete implementation.
 ```
 """
-EdgeDragHandler(fun::F) where F = DragHandler{LineSegments, F}(nothing, nothing, fun)
+EdgeDragHandler(fun::F) where {F} = DragHandler{LineSegments,F}(nothing, nothing, fun)
+
+"""
+    EdgeDrag(p::GraphPlot)
+
+Allows drag and drop of Edges. Please deregister the `:rectanglezoom` interaction.
+
+# Example
+```
+julia> g = wheel_graph(10)
+julia> f, ax, p = graphplot(g, edge_width = [3 for i in 1:ne(g)])
+julia> deregister_interaction!(ax, :rectanglezoom)
+julia> register_interaction!(ax, :edgehover, EdgeHoverHighlight(p))
+julia> register_interaction!(ax, :edgedrag, EdgeDrag(p))
+```
+"""
+function EdgeDrag(p)
+    action = EdgeDragAction(p)
+    return EdgeDragHandler(action)
+end
+
+mutable struct EdgeDragAction{PT<:GraphPlot}
+    p::PT
+    init::Union{Nothing,Point2f0} # save click position
+    src::Union{Nothing,Point2f0}  # save src vertex position
+    dst::Union{Nothing,Point2f0}  # save dst vertex position
+    EdgeDragAction(p::T) where {T} = new{T}(p, nothing, nothing, nothing)
+end
+
+function (action::EdgeDragAction)(state, idx, event, _)
+    edge = collect(edges(action.p[:graph][]))[idx]
+    if state == true
+        if action.src === action.dst === action.init === nothing
+            action.init = event.data
+            action.src = action.p[:node_positions][][edge.src]
+            action.dst = action.p[:node_positions][][edge.dst]
+        end
+        offset = event.data - action.init
+        action.p[:node_positions][][edge.src] = action.src + offset
+        action.p[:node_positions][][edge.dst] = action.dst + offset
+        action.p[:node_positions][] = action.p[:node_positions][] # trigger change
+    elseif state == false
+        action.src = action.dst = action.init = nothing
+    end
+end
 
 function process_interaction(handler::DragHandler, event::MouseEvent, axis)
     if handler.idx === nothing # not in drag state
@@ -210,22 +330,28 @@ function process_interaction(handler::DragHandler, event::MouseEvent, axis)
         end
     elseif handler.idx !== nothing # drag state
         if event.type === MouseEventTypes.leftdrag
-            handler.fun(true, handler.idx, event, axis)
+            ret = handler.fun(true, handler.idx, event, axis)
+            return ret isa Bool ? ret : false
         elseif event.type === MouseEventTypes.leftdragstop
-            handler.fun(false, handler.idx, event, axis)
+            ret = handler.fun(false, handler.idx, event, axis)
             handler.idx = nothing
+            return ret isa Bool ? ret : false
         end
     end
+    return false
 end
 
+####
+#### Click Interaction
+####
 
 """
     mutable struct ClickHandler{P<:ScenePlot, F} <: GraphInteraction
 
 Object to handle left mouse clicks on `plot::P`.
 """
-mutable struct ClickHandler{P<:ScenePlot, F} <: GraphInteraction
-    plot::Union{Nothing, P}
+mutable struct ClickHandler{P<:ScenePlot,F} <: GraphInteraction
+    plot::Union{Nothing,P}
     fun::F
 end
 set_nodeplot!(h::ClickHandler{Scatter}, plot) = h.plot = plot
@@ -252,7 +378,7 @@ julia> function action(idx, event, axis)
 julia> register_interaction!(ax, :nodeclick, NodeClickHandler(action))
 ```
 """
-NodeClickHandler(fun::F) where F = ClickHandler{Scatter, F}(nothing, fun)
+NodeClickHandler(fun::F) where {F} = ClickHandler{Scatter,F}(nothing, fun)
 
 """
     EdgeClickHandler(fun)
@@ -275,13 +401,15 @@ julia> function action(idx, event, axis)
 julia> register_interaction!(ax, :edgeclick, EdgeClickHandler(action))
 ```
 """
-EdgeClickHandler(fun::F) where F = ClickHandler{LineSegments, F}(nothing, fun)
+EdgeClickHandler(fun::F) where {F} = ClickHandler{LineSegments,F}(nothing, fun)
 
 function process_interaction(handler::ClickHandler, event::MouseEvent, axis)
     if event.type === MouseEventTypes.leftclick
         (element, idx) = convert_selection(mouse_selection(axis.scene)...)
         if element == handler.plot
-            handler.fun(idx, event, axis)
+            ret = handler.fun(idx, event, axis)
+            return ret isa Bool ? ret : false
         end
     end
+    return false
 end
