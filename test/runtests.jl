@@ -10,11 +10,7 @@ using Test
     g = Node(wheel_digraph(10))
     f, ax, p = graphplot(g)
     f, ax, p = graphplot(g, node_attr=Attributes(visible=false))
-    f, ax, p = graphplot(g, node_attr=(;visible=false))
-
-    a = Attributes(visible=true)
-    scatter([1,2,3], [4,1,2])
-    scatter!([1,2,3], [1,2,3]; visible=true, a...)
+    f, ax, p = graphplot(g, node_attr=(;visible=true))
 
     # try to update graph
     add_edge!(g[], 2, 4)
@@ -23,16 +19,15 @@ using Test
     p.layout = NetworkLayout.SFDP.layout
 
     # update node observables
-    p.nodecolor = :blue
-    p.nodesize = 30
-    p.marker = :rect
+    p.node_color = :blue
+    p.node_size = 30
 
     # update edge observables
-    p.edgewidth = 5.0
-    p.edgecolor = :green
+    p.edge_width = 5.0
+    p.edge_color = :green
 
     # it should be also possible to pass multiple values
-    f, ax, p = graphplot(g, nodecolor=[rand([:blue,:red,:green]) for i in 1:nv(g[])])
+    f, ax, p = graphplot(g, node_color=[rand([:blue,:red,:green]) for i in 1:nv(g[])])
 end
 
 @testset "Hover, click and drag Interaction" begin

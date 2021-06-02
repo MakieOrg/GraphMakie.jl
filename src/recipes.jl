@@ -117,16 +117,16 @@ function Makie.plot!(gp::GraphPlot)
         [Point(p) for p in ($(gp.layout))(A)]
     end
 
-    node_positions = gp[:node_positions]
+    node_pos = gp[:node_positions]
 
-    # create views into the node_positions, will be updated node_position changes
+    # create two arrays for src pos and dst pos triggered by node_pos changes
     # in case of a graph change the node_position will change anyway
-    edge_src = @lift [$node_positions[e.src] for e in edges(graph[])]
-    edge_dst = @lift [$node_positions[e.dst] for e in edges(graph[])]
-    edge_segments = @lift vec(permutedims(hcat($edge_src, $edge_dst)))
+    edge_pos = @lift ([$node_pos[e.src] for e in edges(graph[])],
+                      [$node_pos[e.dst] for e in edges(graph[])])
 
     # in case the edge_with is same as the number of edges
     # create a new observable which doubles the values for compat with line segments
+    # https://github.com/JuliaPlots/Makie.jl/pull/992
     if length(gp.edge_width[]) == ne(graph[])
         lineseg_width = @lift repeat($(gp.edge_width), inner=2)
     else
@@ -135,34 +135,37 @@ function Makie.plot!(gp::GraphPlot)
 
     # calculate the vectors for each edge in pixel space
     sc = Makie.parent_scene(gp)
-    edge_vec_px = lift(edge_src, edge_dst, sc.px_area, sc.camera.projectionview) do esrc, edst, pxa, pv
+    edge_vec_px = lift(edge_pos, sc.px_area, sc.camera.projectionview) do epos, pxa, pv
         # project should transform to 2d point in px space
-        # [project(sc, seg[2i]) - project(sc, seg[2i-1]) for i in 1:ne(g)]
-        map((src, dst)->project(sc, dst) - project(sc, src), esrc, edst)
+        map((src, dst)->project(sc, dst) - project(sc, src), epos[1], epos[2])
     end
+
     # get rotation in px space (for arrow markers and edge_labels)
     edge_rotations_px = @lift map(v -> atan(v.data[2], v.data[1]), $edge_vec_px)
 
     # plot edges
+    edge_segments = @lift vec(permutedims(hcat($edge_pos[1], $edge_pos[2])))
     edge_plot = linesegments!(gp, edge_segments;
                               color=gp.edge_color,
                               linewidth=lineseg_width,
                               gp.edge_attr...)
 
     # plott arrow heads
+    arrow_pos = @lift $edge_pos[1] .+ $(gp.arrow_shift) .* ($edge_pos[2] .- $edge_pos[1])
+    arrow_show = @lift $(gp.arrow_show) === automatic ? $graph isa SimpleDiGraph : $(gp.arrow_show)
+
     arrow_heads = scatter!(gp,
-                           @lift($edge_src .+ $(gp.arrow_shift) .* ($edge_dst .- $edge_src)),
-                           # marker = '▲',
+                           arrow_pos,
                            marker = '➤',
                            markersize = gp.arrow_size,
                            color = gp.edge_color,
                            rotations = @lift(Billboard($edge_rotations_px)),
                            strokewidth = 0.0,
                            markerspace = Pixel,
-                           visible = @lift($(gp.arrow_show) === automatic ? $graph isa SimpleDiGraph : $(gp.arrow_show)))
+                           visible = arrow_show)
 
     # plot vertices
-    vertex_plot = scatter!(gp, node_positions;
+    vertex_plot = scatter!(gp, node_pos;
                            color=gp.node_color,
                            marker=gp.node_marker,
                            markersize=gp.node_size,
@@ -172,9 +175,9 @@ function Makie.plot!(gp::GraphPlot)
     if gp.nlabels[] !== nothing
         positions = @lift begin
             if $(gp.nlabels_offset) != nothing
-                $node_positions .+ $(gp.nlabels_offset)
+                $node_pos .+ $(gp.nlabels_offset)
             else
-                copy($node_positions)
+                copy($node_pos)
             end
         end
         nlabels_plot = text!(gp, gp.nlabels;
@@ -210,7 +213,7 @@ function Makie.plot!(gp::GraphPlot)
 
         # positions: center point between nodes + offset + distance*normal + shift*edge direction
         positions = @lift begin
-            pos = $edge_src .+ $(gp.elabels_shift) .* ($edge_dst .- $edge_src)
+            pos = $edge_pos[1] .+ $(gp.elabels_shift) .* ($edge_pos[2] .- $edge_pos[1])
 
             if $(gp.elabels_offset) !== nothing
                 pos .= pos .+ $(gp.elabels_offset)
