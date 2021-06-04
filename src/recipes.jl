@@ -5,9 +5,10 @@ export GraphPlot, graphplot, graphplot!
     graphplot!(ax, graph::AbstractGraph)
 
 Creates a plot of the network `graph`. Consists of multiple steps:
-- Layout the nodes: the `layout` attribute is has to be a function `f(g)::pos`
-  where `pos` is either an array of `Point2f0` or `(x, y)` tuples
+- Layout the nodes: see `layout` attribute. The node position is accesible from outside
+  the plot object `p` as an observable using `p[:node_positions]`.
 - plot edges as `linesegments`-plot
+- if `arrows_show` plot arrowheads as `scatter`-plot
 - plot nodes as `scatter`-plot
 - if `nlabels!=nothing` plot node labels as `text`-plot
 - if `elabels!=nothing` plot edge labels as `text`-plot
