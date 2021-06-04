@@ -13,6 +13,7 @@ examples = [
     joinpath(@__DIR__, "examples", "interactions.jl"),
     joinpath(@__DIR__, "examples", "depgraph.jl"),
     joinpath(@__DIR__, "examples", "truss.jl"),
+    joinpath(@__DIR__, "examples", "syntaxtree.jl"),
 ]
 OUTPUT = joinpath(@__DIR__, "src", "generated")
 isdir(OUTPUT) && rm(OUTPUT, recursive=true)
@@ -33,6 +34,7 @@ makedocs(; modules=[GraphMakie], authors="Simon Danisch",
                     "Interaction Examples" => "generated/interactions.md",
                     "Dependency Graph" => "generated/depgraph.md",
                     "Stress on Truss" => "generated/truss.md",
+                    "Julia AST" => "generated/syntaxtree.md",
                 ]
                 ])
 
