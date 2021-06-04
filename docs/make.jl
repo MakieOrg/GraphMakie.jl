@@ -3,8 +3,6 @@ using Documenter
 using Literate
 using CairoMakie
 
-using Pkg; Pkg.add(name="NetworkLayout", rev="interface") # XXX: remove ND#layout
-
 DocMeta.setdocmeta!(GraphMakie, :DocTestSetup, :(using GraphMakie); recursive=true)
 
 # generate examples
@@ -30,7 +28,7 @@ makedocs(; modules=[GraphMakie], authors="Simon Danisch",
                                 canonical="https://JuliaPlots.github.io/GraphMakie.jl", assets=String[]),
          pages=["Home" => "index.md",
                 "Examples" => [
-                    "Simple Walkthrough" => "generated/plots.md",
+                    "Feature Walkthrough" => "generated/plots.md",
                     "Interaction Examples" => "generated/interactions.md",
                     "Dependency Graph" => "generated/depgraph.md",
                     "Stress on Truss" => "generated/truss.md",

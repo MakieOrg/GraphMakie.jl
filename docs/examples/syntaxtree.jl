@@ -52,6 +52,7 @@ function walk_tree!(g, labels, ex, show_call)
 
     return top_vertex
 end
+nothing #hide
 
 #=
 The expression we want to look at is the recursive definition of the Fibonacci sequence.

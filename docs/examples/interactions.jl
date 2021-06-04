@@ -137,10 +137,10 @@ end
 edrag = EdgeDragHandler(EdgeDragAction())
 register_interaction!(ax, :edrag, edrag)
 
-p[:node_positions][][3] = nodepos[3] + Point2f0(0.9,1.0) #hide
-p[:node_positions][][4] = nodepos[4] + Point2f0(0.9,1.0) #hide
+p[:node_positions][][9] = nodepos[9] + Point2f0(0.9,1.0) #hide
+p[:node_positions][][10] = nodepos[10] + Point2f0(0.9,1.0) #hide
 p[:node_positions][] = p[:node_positions][] #hide
-pm = (p[:node_positions][][3] + p[:node_positions][][4])/2
+pm = (p[:node_positions][][9] + p[:node_positions][][10])/2 #hide
 set_cursor!(pm) #hide
-p.edge_width[][11] = 5.0; p.edge_width[] = p.edge_width[] #hide
+p.edge_width[][18] = 5.0; p.edge_width[] = p.edge_width[] #hide
 f # hide

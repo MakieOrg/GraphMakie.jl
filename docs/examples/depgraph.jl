@@ -82,7 +82,7 @@ f, ax, p = graphplot(g; layout=lay,
                      node_size=[9.0 for i in 1:N],
                      edge_width=[3 for i in 1:ne(g)])
 ax.title = "Dependency Graph of Revise.jl"
-xlims!(ax, -0.3, 5.6)
+xlims!(ax, -0.6, 5.6)
 hidedecorations!(ax); hidespines!(ax)
 f #hide
 

@@ -47,7 +47,7 @@ data space.
 - `nlabels_align=(:left, :bottom)`: Anchor of text field.
 - `nlabels_distance=0.0`: Pixel distance from node in direction of align.
 - `nlabels_color=labels_theme.color`
-- `nlabels_offset=nothing`: `Point` or `Vector{Point}`
+- `nlabels_offset=nothing`: `Point` or `Vector{Point}` (in data space)
 - `nlabels_textsize=labels_theme.textsize`
 - `nlabels_attr=(;)`: List of kw arguments which gets passed to the `text` command
 
@@ -242,6 +242,10 @@ function Makie.plot!(gp::GraphPlot)
         offsets = @lift begin
             offsets = map(p -> Point(-p.data[2], p.data[1])/norm(p), $edge_vec_px)
             offsets .= $(gp.elabels_distance) .* offsets
+            for i in $(gp.elabels_opposite)
+                offsets[i] = -1.0 * offsets[i] # flip offset if in opposite
+            end
+            offsets
         end
 
         elabels_plot = text!(gp, gp.elabels;

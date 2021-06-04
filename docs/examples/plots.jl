@@ -130,7 +130,7 @@ p.elabels_shift[][7] = 0.4
 p.elabels_shift[] = p.elabels_shift[]
 
 p.elabels_distance[] = zeros(ne(g))
-p.elabels_distance[][8] = -15 # minus because it is in opposite!
+p.elabels_distance[][8] = 15
 p.elabels_distance[] = p.elabels_distance[]
 
 f # hide
@@ -150,14 +150,34 @@ hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()
 f # hide
 
 #=
-## Plot 3D Graphs
+## Plot Graphs in 3D
 If the layout returns points in 3 dimensions, the plot will be in 3D. However this is a bit
 experimental. Feel free to file an issue if there are any problems.
 =#
+set_theme!(resolution=(800, 800)) #hide
+g = smallgraph(:cubical)
+elabels_shift = [0.5 for i in 1:ne(g)]
+elabels_shift[[2,7,8,9]] .= 0.3
+elabels_shift[10] = 0.25
+graphplot(g; layout=Spring(dim=3, seed=5),
+          elabels="Edge ".*repr.(1:ne(g)),
+          elabels_textsize=12,
+          elabels_opposite=[3,5,7,8,12],
+          elabels_shift,
+          elabels_distance=3,
+          arrow_show=true,
+          arrow_shift=0.9,
+          arrow_size=15)
+
+#=
+Using [`JSServe.jl`](https://github.com/SimonDanisch/JSServe.jl) and [`WGLMakie.jl`](https://github.com/JuliaPlots/WGLMakie.jl)
+we can also add some interactivity:
+=#
 using JSServe
 Page(exportable=true, offline=true)
+#
 using WGLMakie
 WGLMakie.activate!()
-
-g = smallgraph(:cubical)
-graphplot(g, layout=Spring(dim=3))
+set_theme!(resolution=(800, 600))
+g = smallgraph(:dodecahedral)
+graphplot(g, layout=Spring(dim=3), node_size=100)
