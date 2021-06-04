@@ -191,7 +191,13 @@ function Makie.plot!(gp::GraphPlot)
                 copy($node_pos)
             end
         end
-        offset = @lift $(gp.nlabels_distance) .* align_to_dir.($(gp.nlabels_align))
+
+        offset = @lift if $(gp.nlabels_align) isa Vector
+            $(gp.nlabels_distance) .* align_to_dir.($(gp.nlabels_align))
+        else
+            $(gp.nlabels_distance) .* align_to_dir($(gp.nlabels_align))
+        end
+
         nlabels_plot = text!(gp, gp.nlabels;
                              position=positions,
                              align=gp.nlabels_align,
