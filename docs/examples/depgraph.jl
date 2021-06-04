@@ -10,9 +10,10 @@ CairoMakie.inline!(true) #hide
 set_theme!(resolution=(800, 600)) #hide
 using GraphMakie
 using LightGraphs
-using GraphMakie.Makie.Colors
 using LayeredLayouts
 using PkgDeps
+using Makie.GeometryBasics
+using Makie.Colors
 
 #=
 First we need a small function which goes recursively through the dependencies of a package and
@@ -61,8 +62,8 @@ additional waypoints to the edges).
 lay = _ -> Point.(zip(xs,ys))
 
 ## manually tweak some of the lable aligns
-align = [(:right, :bottom) for i in 1:N]
-align[1] = (:left, :bottom)
+align = [(:right, :center) for i in 1:N]
+align[1] = (:left, :center)
 align[3] = align[13] = (:left, :top)
 align[6] = (:center, :bottom)
 align[10] = (:right, :top)
@@ -71,14 +72,17 @@ align[10] = (:right, :top)
 offset = [Point2f0(0,0) for i in 1:N]
 offset[6] = Point(0.0, 0.4)
 
-f, ax, p = graphplot(g; layout=lay, arrow_size=15, edge_color=:gray,
+f, ax, p = graphplot(g; layout=lay,
+                     arrow_size=15,
+                     edge_color=:gray,
                      nlabels=packages,
                      nlabels_align=align,
+                     nlabels_distance=10,
                      nlabels_offset=offset,
                      node_size=[9.0 for i in 1:N],
                      edge_width=[3 for i in 1:ne(g)])
-ax.title = "Dep Graph of Revise.jl"
-xlims!(ax, -0.5, 5.5)
+ax.title = "Dependency Graph of Revise.jl"
+xlims!(ax, -0.3, 5.6)
 hidedecorations!(ax); hidespines!(ax)
 f #hide
 
