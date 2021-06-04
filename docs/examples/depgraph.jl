@@ -1,9 +1,12 @@
-using CairoMakie #md
-CairoMakie.activate!(type="png") #md
-CairoMakie.inline!(true) #md
-using GLMakie #src
-GLMakie.activate!() #src
-
+#=
+# Dependency Graph of a Package
+In this example we'll plot a dependency graph of a package using
+[`PkgDeps.jl`](https://github.com/JuliaEcosystem/PkgDeps.jl) and
+and a DAG layout from [`LayeredLayouts.jl`](https://github.com/oxinabox/LayeredLayouts.jl)
+=#
+using CairoMakie
+CairoMakie.activate!(type="png") #hide
+CairoMakie.inline!(true) #hide
 set_theme!(resolution=(800, 600)) #hide
 using GraphMakie
 using LightGraphs
@@ -11,12 +14,15 @@ using GraphMakie.Makie.Colors
 using LayeredLayouts
 using PkgDeps
 
+#=
+First we need a small function which goes recursively through the dependencies of a package and
+builds a `SimpleDiGraph` object.
+=#
 function depgraph(root)
     packages = [root]
     connections = Vector{Pair{Int,Int}}()
 
     for pkg in packages
-        println("Check ", pkg)
         pkgidx = findfirst(isequal(pkg), packages)
         deps = direct_dependencies(pkg)
 
@@ -30,29 +36,38 @@ function depgraph(root)
         end
     end
     g = SimpleDiGraph(length(packages))
-    t
     for c in connections
         add_edge!(g, c)
     end
     return (packages, g)
 end
+nothing #hide
 
+#=
+As an example we'll plot the dependency Graph of [`Revise.jl`](https://github.com/timholy/Revise.jl)
+because it is one of the most important packages in the Julia ecosystem but does not have a huge
+dependency tree.
+=#
 (packages, g) = depgraph("Revise")
 N = length(packages)
 xs, ys, paths = solve_positions(Zarate(), g)
+nothing #hide
 
-# define layout as function adj_matrix -> Vector{Point}
-# support for paths not yet implemented
+#=
+In `GraphMakie` the layout allways needs to be function. So we're creating a dummy function...
+At the moment, `GraphMakie` can not make use of the nice `paths` property (which would add
+additional waypoints to the edges).
+=#
 lay = _ -> Point.(zip(xs,ys))
 
-# manually tweak some of the lable aligns
+## manually tweak some of the lable aligns
 align = [(:right, :bottom) for i in 1:N]
 align[1] = (:left, :bottom)
 align[3] = align[13] = (:left, :top)
 align[6] = (:center, :bottom)
 align[10] = (:right, :top)
 
-# shift "CodeTracking" node in data space
+## shift "CodeTracking" node in data space
 offset = [Point2f0(0,0) for i in 1:N]
 offset[6] = Point(0.0, 0.4)
 
@@ -65,10 +80,16 @@ f, ax, p = graphplot(g; layout=lay, arrow_size=15, edge_color=:gray,
 ax.title = "Dep Graph of Revise.jl"
 xlims!(ax, -0.5, 5.5)
 hidedecorations!(ax); hidespines!(ax)
-f #md
+f #hide
 
-deregister_interaction!(ax, :rectanglezoom) #src
-register_interaction!(ax, :nodehover, NodeHoverHighlight(p)) #src
-register_interaction!(ax, :edgehover, EdgeHoverHighlight(p)) #src
-register_interaction!(ax, :edrag, EdgeDrag(p)) #src
-register_interaction!(ax, :ndrag, NodeDrag(p)) #src
+#=
+If you run this example using `GLMakie` you can add this code to play
+around with the interactive features.
+```julia
+deregister_interaction!(ax, :rectanglezoom)
+register_interaction!(ax, :nodehover, NodeHoverHighlight(p))
+register_interaction!(ax, :edgehover, EdgeHoverHighlight(p))
+register_interaction!(ax, :edrag, EdgeDrag(p))
+register_interaction!(ax, :ndrag, NodeDrag(p))
+```
+=#

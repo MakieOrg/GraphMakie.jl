@@ -1,7 +1,9 @@
 #=
-# Stres on truss
+# Stress on Truss
 In this example we'll plot an animation of the stress on some truss structure
 using `GaphMakie.jl` and [`NetworkDynamics.jl`](https://github.com/PIK-ICoN/NetworkDynamics.jl)
+
+![truss animation](truss.mp4)
 =#
 using NetworkDynamics
 using OrdinaryDiffEq
@@ -69,7 +71,7 @@ nd = network_dynamics(vertices, edge, g);
 nothing #hide
 
 #=
-write some auxilliary functions to map between state vector of DGL `u` and graph data
+write some auxiliary functions to map between state vector of DGL `u` and graph data
 =#
 x_idxs = [findfirst(isequal(Symbol("x_$i")), nd.syms) for i in 1:nv(g)]
 
@@ -176,4 +178,3 @@ record(fig, "truss.mp4", trange; framerate=fps) do t
     p.edge_color[] = load
 end
 nothing #hide
-# ![stress animation](stress_animation.mp4)
