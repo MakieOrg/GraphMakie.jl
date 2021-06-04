@@ -44,6 +44,7 @@ data space.
 
 - `nlabels=nothing`: `Vector{String}` with label for each node
 - `nlabels_align=(:left, :bottom)`: Anchor of text field.
+- `nlabels_distance=0.0`: Pixel distance from node in direction of align.
 - `nlabels_color=labels_theme.color`
 - `nlabels_offset=nothing`: `Point` or `Vector{Point}`
 - `nlabels_textsize=labels_theme.textsize`
@@ -92,6 +93,7 @@ the edge.
         # node label attributes (Text)
         nlabels = nothing,
         nlabels_align = (:left, :bottom),
+        nlabels_distance = 0.0,
         nlabels_color = labels_theme.color,
         nlabels_offset = nothing,
         nlabels_textsize = labels_theme.textsize,
@@ -189,10 +191,12 @@ function Makie.plot!(gp::GraphPlot)
                 copy($node_pos)
             end
         end
+        offset = @lift $(gp.nlabels_distance) .* align_to_dir.($(gp.nlabels_align))
         nlabels_plot = text!(gp, gp.nlabels;
                              position=positions,
                              align=gp.nlabels_align,
                              color=gp.nlabels_color,
+                             offset=offset,
                              textsize=gp.nlabels_textsize,
                              gp.nlabels_attr...)
     end
@@ -247,4 +251,24 @@ function Makie.plot!(gp::GraphPlot)
     end
 
     return gp
+end
+
+function align_to_dir(align)
+    halign, valign = align
+
+    x = 0.0
+    if halign === :left
+        x = 1.0
+    elseif halign === :right
+        x = -1.0
+    end
+
+    y = 0.0
+    if valign === :top
+        y = -1.0
+    elseif valign === :bottom
+        y = 1.0
+    end
+    norm = x==y==0.0 ? 1 : sqrt(x^2 + y^2)
+    return Point(x/norm, y/norm)
 end

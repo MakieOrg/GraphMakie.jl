@@ -99,3 +99,26 @@ end
     edrag = EdgeDragHandler(EdgeDragAction())
     register_interaction!(ax, :edrag, edrag)
 end
+
+@testset "align_to_direction" begin
+    using GraphMakie: align_to_dir
+    using LinearAlgebra: normalize
+
+    @test align_to_dir((:left, :center)) == Point(1.0, 0)
+    @test align_to_dir((:right, :center)) == Point(-1.0, 0)
+    @test align_to_dir((:center, :center)) == Point(0.0, 0)
+
+    @test align_to_dir((:left, :top)) == normalize(Point(1.0, -1.0))
+    @test align_to_dir((:right, :top)) == normalize(Point(-1.0, -1))
+    @test align_to_dir((:center, :top)) == normalize(Point(0.0, -1))
+
+    @test align_to_dir((:left, :bottom)) == normalize(Point(1.0, 1.0))
+    @test align_to_dir((:right, :bottom)) == normalize(Point(-1.0, 1.0))
+    @test align_to_dir((:center, :bottom)) == normalize(Point(0.0, 1.0))
+
+    # g = complete_graph(9)
+    # nlabels_align = vec(collect(Iterators.product((:left,:center,:right),(:top,:center,:bottom))))
+    # nlabels= repr.(nlabels_align)
+    # graphplot(g; nlabels, nlabels_align, nlabels_distance=20)
+end
+
