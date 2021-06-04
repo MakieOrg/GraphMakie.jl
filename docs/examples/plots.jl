@@ -148,3 +148,16 @@ arrow_shift = range(0.1, 0.8, length=ne(g))
 f, ax, p = graphplot(g; arrow_size, arrow_shift)
 hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()
 f # hide
+
+#=
+## Plot 3D Graphs
+If the layout returns points in 3 dimensions, the plot will be in 3D. However this is a bit
+experimental. Feel free to file an issue if there are any problems.
+=#
+using JSServe
+Page(exportable=true, offline=true)
+using WGLMakie
+WGLMakie.activate!()
+
+g = smallgraph(:cubical)
+graphplot(g, layout=Spring(dim=3))
