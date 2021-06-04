@@ -14,7 +14,7 @@ using LightGraphs
 using CairoMakie.Colors
 
 import Random; Random.seed!(2) # hide
-g = wheel_digraph(10)
+g = wheel_graph(10)
 f, ax, p = graphplot(g,
                      edge_width = [2.0 for i in 1:ne(g)],
                      edge_color = [colorant"gray" for i in 1:ne(g)],

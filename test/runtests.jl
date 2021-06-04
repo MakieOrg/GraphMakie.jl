@@ -10,11 +10,7 @@ using Test
     g = Node(wheel_digraph(10))
     f, ax, p = graphplot(g)
     f, ax, p = graphplot(g, node_attr=Attributes(visible=false))
-    f, ax, p = graphplot(g, node_attr=(;visible=false))
-
-    a = Attributes(visible=true)
-    scatter([1,2,3], [4,1,2])
-    scatter!([1,2,3], [1,2,3]; visible=true, a...)
+    f, ax, p = graphplot(g, node_attr=(;visible=true))
 
     # try to update graph
     add_edge!(g[], 2, 4)
@@ -23,20 +19,19 @@ using Test
     p.layout = NetworkLayout.SFDP.layout
 
     # update node observables
-    p.nodecolor = :blue
-    p.nodesize = 30
-    p.marker = :rect
+    p.node_color = :blue
+    p.node_size = 30
 
     # update edge observables
-    p.edgewidth = 5.0
-    p.edgecolor = :green
+    p.edge_width = 5.0
+    p.edge_color = :green
 
     # it should be also possible to pass multiple values
-    f, ax, p = graphplot(g, nodecolor=[rand([:blue,:red,:green]) for i in 1:nv(g[])])
+    f, ax, p = graphplot(g, node_color=[rand([:blue,:red,:green]) for i in 1:nv(g[])])
 end
 
 @testset "Hover, click and drag Interaction" begin
-    g = wheel_digraph(10)
+    g = wheel_graph(10)
     f, ax, p = graphplot(g,
                          edge_width = [3.0 for i in 1:ne(g)],
                          edge_color = [colorant"black" for i in 1:ne(g)],
@@ -104,3 +99,26 @@ end
     edrag = EdgeDragHandler(EdgeDragAction())
     register_interaction!(ax, :edrag, edrag)
 end
+
+@testset "align_to_direction" begin
+    using GraphMakie: align_to_dir
+    using LinearAlgebra: normalize
+
+    @test align_to_dir((:left, :center)) == Point(1.0, 0)
+    @test align_to_dir((:right, :center)) == Point(-1.0, 0)
+    @test align_to_dir((:center, :center)) == Point(0.0, 0)
+
+    @test align_to_dir((:left, :top)) == normalize(Point(1.0, -1.0))
+    @test align_to_dir((:right, :top)) == normalize(Point(-1.0, -1))
+    @test align_to_dir((:center, :top)) == normalize(Point(0.0, -1))
+
+    @test align_to_dir((:left, :bottom)) == normalize(Point(1.0, 1.0))
+    @test align_to_dir((:right, :bottom)) == normalize(Point(-1.0, 1.0))
+    @test align_to_dir((:center, :bottom)) == normalize(Point(0.0, 1.0))
+
+    # g = complete_graph(9)
+    # nlabels_align = vec(collect(Iterators.product((:left,:center,:right),(:top,:center,:bottom))))
+    # nlabels= repr.(nlabels_align)
+    # graphplot(g; nlabels, nlabels_align, nlabels_distance=20)
+end
+
