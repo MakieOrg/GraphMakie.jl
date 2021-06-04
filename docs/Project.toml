@@ -6,6 +6,7 @@ LayeredLayouts = "f4a74d36-062a-4d48-97cd-1356bad1de4e"
 LightGraphs = "093fc24a-ae57-5d10-9952-331d41423f4d"
 Literate = "98b081ad-f1c9-55d3-8b20-4c87d4299306"
 NetworkDynamics = "22e9dc34-2a0d-11e9-0de0-8588d035468b"
+NetworkLayout = "46757867-2c16-5918-afeb-47bfcb05e46a"
 OrdinaryDiffEq = "1dea7af3-3e70-54e6-95c3-0bf5283fa5ed"
 PkgDeps = "839e9fc8-855b-5b3c-a3b7-2833d3dd1f59"
 

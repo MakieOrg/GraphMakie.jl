@@ -3,6 +3,8 @@ using Documenter
 using Literate
 using CairoMakie
 
+using Pkg; Pkg.add(name="NetworkLayout", rev="interface") # XXX: remove ND#layout
+
 DocMeta.setdocmeta!(GraphMakie, :DocTestSetup, :(using GraphMakie); recursive=true)
 
 # generate examples

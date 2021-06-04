@@ -5,7 +5,7 @@ export GraphPlot, graphplot, graphplot!
     graphplot!(ax, graph::AbstractGraph)
 
 Creates a plot of the network `graph`. Consists of multiple steps:
-- Layout the nodes: the `layout` attribute is has to be a function `f(adj_matrix)::pos`
+- Layout the nodes: the `layout` attribute is has to be a function `f(g)::pos`
   where `pos` is either an array of `Point2f0` or `(x, y)` tuples
 - plot edges as `linesegments`-plot
 - plot nodes as `scatter`-plot
@@ -22,7 +22,7 @@ underlying graph and therefore changing the number of Edges/Nodes.
 
 ## Attributes
 ### Main attributes
-- `layout`: function `adj_matrix->Vector{Point}` determines the base layout
+- `layout=Spring()`: function `AbstractGraph->Vector{Point}` determines the base layout
 - `node_color=scatter_theme.color`
 - `node_size=scatter_theme.markersize`
 - `node_marker=scatter_theme.marker`k
@@ -75,7 +75,7 @@ the edge.
     lineseg_theme = default_theme(scene, LineSegments)
     labels_theme = default_theme(scene, Makie.Text)
     Attributes(
-        layout = NetworkLayout.Spring.layout,
+        layout = Spring(),
         # node attributes (Scatter)
         node_color = scatter_theme.color,
         node_size = scatter_theme.markersize,
@@ -117,10 +117,7 @@ function Makie.plot!(gp::GraphPlot)
 
     # create initial vertex positions, will be updated on changes to graph or layout
     # make node_position-Observable available as named attribute from the outside
-    gp[:node_positions] = @lift begin
-        A = adjacency_matrix($graph)
-        [Point(p) for p in ($(gp.layout))(A)]
-    end
+    gp[:node_positions] = @lift [Point(p) for p in ($(gp.layout))($graph)]
 
     node_pos = gp[:node_positions]
 

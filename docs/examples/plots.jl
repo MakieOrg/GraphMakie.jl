@@ -24,10 +24,11 @@ The `graphplot` command is a recipe which wraps several steps
 - create a `scatter` plot for the nodes and
 - create a `linesegments` plot for the edges.
 
-The default layout is `NetworkLayout.Spring.layout` from
+The default layout is `Spring()` from
 [`NetworkLayout.jl`](https://github.com/JuliaGraphs/NetworkLayout.jl). The
-layout attribute can be any function which takes the adjacency matrix of the
-graph an returns a list of `(x,y)` tuples or `Point2f0` objects.
+layout attribute can be any function which takes an `AbstractGraph` and returns
+a list of `Point{dim,Ptype}` (see [`GeometryBasics.jl`](https://github.com/JuliaGeometry/GeometryBasics.jl)
+objects where `dim` determines the dimensionality of the plot.
 
 Besides that there are some common attributes which are forwarded to the
 underlying plot commands. See [`graphplot`](@ref).
