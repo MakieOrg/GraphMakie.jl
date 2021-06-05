@@ -2,6 +2,10 @@
 # Add interactions to your graph plot
 
 In this example you will see, how to register interactions with your graph plot.
+This tutorial will make use of the more basic [Interaction Interface](@ref).
+If you just want to move nodes check out the [Predefined Interactions](@ref). The
+implementation of those is quit similar to what is shown in this tutorial.
+
 We star with a simple wheel graph again. This time we use arrays for some attributes
 because we want to change them later in the interactions for individual nodes/edges.
 =#
