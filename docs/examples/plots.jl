@@ -45,7 +45,7 @@ add_edge!(g, 4, 1); add_edge!(g, 1, 5);
 edgecolors = [:black for i in 1:ne(g)]
 edgecolors[4] = edgecolors[7] = :red
 
-f, ax, p = graphplot(g, layout=Circular(),
+f, ax, p = graphplot(g, layout=Shell(),
                      node_color=[:black, :red, :red, :red, :black],
                      edge_color=edgecolors)
 
