@@ -69,8 +69,7 @@ end
 
 g, labels = walk_tree(expr, show_call=true)
 nlabels_align = [(:left, :bottom) for v in vertices(g)]
-buch = Buchheim()
-fig, ax, p = graphplot(g;  layout=buch,
+fig, ax, p = graphplot(g; layout=Buchheim(),
                        nlabels=repr.(labels),
                        nlabels_distance=5,
                        nlabels_align)

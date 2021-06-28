@@ -12,6 +12,3 @@ NetworkLayout = "46757867-2c16-5918-afeb-47bfcb05e46a"
 OrdinaryDiffEq = "1dea7af3-3e70-54e6-95c3-0bf5283fa5ed"
 PkgDeps = "839e9fc8-855b-5b3c-a3b7-2833d3dd1f59"
 WGLMakie = "276b4fcb-3e11-5398-bf8b-a0c2d153d008"
-
-[compat]
-CairoMakie = "0.5"

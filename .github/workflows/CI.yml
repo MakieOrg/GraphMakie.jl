@@ -49,7 +49,7 @@ jobs:
           julia --project=docs -e '
             using Pkg
             Pkg.develop(PackageSpec(path=pwd()))
-            Pkg.add(name="NetworkLayout", rev="interface") # XXX: remove after nl0.4 release
+            Pkg.add(name="NetworkLayout", rev="c12883c") # XXX: remove after nl0.4 release
             Pkg.instantiate()'
       - run: |
           julia --project=docs -e '
