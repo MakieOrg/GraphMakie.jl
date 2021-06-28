@@ -1,6 +1,6 @@
 name = "GraphMakie"
 uuid = "1ecd5474-83a3-4783-bb4f-06765db800d2"
-authors = ["Simon Danisch"]
+authors = ["Simon Danisch", "Hans Würfel"]
 version = "0.1.0"
 
 [deps]

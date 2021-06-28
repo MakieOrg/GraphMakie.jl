@@ -21,7 +21,7 @@ for ex in examples
     Literate.markdown(ex, OUTPUT)
 end
 
-makedocs(; modules=[GraphMakie], authors="Simon Danisch",
+makedocs(; modules=[GraphMakie], authors="Simon Danisch, Hans Würfel",
          repo="https://github.com/JuliaPlots/GraphMakie.jl/blob/{commit}{path}#{line}",
          sitename="GraphMakie.jl",
          format=Documenter.HTML(; prettyurls=get(ENV, "CI", "false") == "true",
