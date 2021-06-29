@@ -156,22 +156,16 @@ function Makie.plot!(gp::GraphPlot)
     # plott arrow heads
     arrow_pos = @lift $edge_pos[1] .+ $(gp.arrow_shift) .* ($edge_pos[2] .- $edge_pos[1])
     arrow_show = @lift $(gp.arrow_show) === automatic ? $graph isa SimpleDiGraph : $(gp.arrow_show)
-
-    # hotfix for https://github.com/JuliaPlots/Makie.jl/issues/1018
-    # don't plot if arrow_show=false and Cairo
-    iscairo = repr(typeof(Makie.current_backend[])) == "CairoMakie.CairoBackend"
-    if !iscairo || (iscairo && arrow_show[])
-        arrow_heads = scatter!(gp,
-                               arrow_pos,
-                               marker = '➤',
-                               markersize = gp.arrow_size,
-                               color = gp.edge_color,
-                               rotations = @lift(Billboard($edge_rotations_px)),
-                               strokewidth = 0.0,
-                               markerspace = Pixel,
-                               visible = arrow_show,
-                               gp.arrow_attr...)
-    end
+    arrow_heads = scatter!(gp,
+                           arrow_pos,
+                           marker = '➤',
+                           markersize = gp.arrow_size,
+                           color = gp.edge_color,
+                           rotations = @lift(Billboard($edge_rotations_px)),
+                           strokewidth = 0.0,
+                           markerspace = Pixel,
+                           visible = arrow_show,
+                           gp.arrow_attr...)
 
     # plot vertices
     vertex_plot = scatter!(gp, node_pos;
