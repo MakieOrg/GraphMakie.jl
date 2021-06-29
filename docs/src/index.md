@@ -16,6 +16,21 @@ There are also [plot examples](generated/plots.md) and [interaction examples](ge
 graphplot
 ```
 
+## Network Layouts
+The layout algorithms are provided by [`NetworkLayout.jl`](https://github.com/JuliaGraphs/NetworkLayout.jl). See
+the [docs](https://juliagraphs.org/NetworkLayout.jl/stable/) for a list of available layouts.
+
+A layout has to be a function `f(g::AbstractGraph) -> pos::Vector{Point}`. You can also provide your
+own layouts or use other packages like [`LayeredLayouts.jl`](https://github.com/oxinabox/LayeredLayouts.jl) for
+DAG (see also the [Dependency Graph of a Package](@ref) example).
+```julia
+using LayeredLayouts
+function mylayout(g::SimpleGraph)
+   xs, ys, _ = solve_positions(Zarate(), g)
+   return Point.(zip(xs, ys))
+end
+```
+
 ## Predefined Interactions
 `GraphMakie.jl` provides some pre-built interactions to enable drag&drop of nodes and edges as well as highlight on hover.
 
