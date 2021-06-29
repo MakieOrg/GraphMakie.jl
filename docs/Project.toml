@@ -2,8 +2,13 @@
 CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 GraphMakie = "1ecd5474-83a3-4783-bb4f-06765db800d2"
+JSServe = "824d6782-a2ef-11e9-3a09-e5662e0c26f9"
+LayeredLayouts = "f4a74d36-062a-4d48-97cd-1356bad1de4e"
 LightGraphs = "093fc24a-ae57-5d10-9952-331d41423f4d"
 Literate = "98b081ad-f1c9-55d3-8b20-4c87d4299306"
-
-[compat]
-CairoMakie = "0.5"
+Makie = "ee78f7c6-11fb-53f2-987a-cfe4a2b5a57a"
+NetworkDynamics = "22e9dc34-2a0d-11e9-0de0-8588d035468b"
+NetworkLayout = "46757867-2c16-5918-afeb-47bfcb05e46a"
+OrdinaryDiffEq = "1dea7af3-3e70-54e6-95c3-0bf5283fa5ed"
+PkgDeps = "839e9fc8-855b-5b3c-a3b7-2833d3dd1f59"
+WGLMakie = "276b4fcb-3e11-5398-bf8b-a0c2d153d008"

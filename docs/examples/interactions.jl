@@ -2,6 +2,10 @@
 # Add interactions to your graph plot
 
 In this example you will see, how to register interactions with your graph plot.
+This tutorial will make use of the more basic [Interaction Interface](@ref).
+If you just want to move nodes check out the [Predefined Interactions](@ref). The
+implementation of those is quit similar to what is shown in this tutorial.
+
 We star with a simple wheel graph again. This time we use arrays for some attributes
 because we want to change them later in the interactions for individual nodes/edges.
 =#
@@ -137,10 +141,10 @@ end
 edrag = EdgeDragHandler(EdgeDragAction())
 register_interaction!(ax, :edrag, edrag)
 
-p[:node_positions][][3] = nodepos[3] + Point2f0(0.9,1.0) #hide
-p[:node_positions][][4] = nodepos[4] + Point2f0(0.9,1.0) #hide
+p[:node_positions][][9] = nodepos[9] + Point2f0(0.9,1.0) #hide
+p[:node_positions][][10] = nodepos[10] + Point2f0(0.9,1.0) #hide
 p[:node_positions][] = p[:node_positions][] #hide
-pm = (p[:node_positions][][3] + p[:node_positions][][4])/2
+pm = (p[:node_positions][][9] + p[:node_positions][][10])/2 #hide
 set_cursor!(pm) #hide
-p.edge_width[][11] = 5.0; p.edge_width[] = p.edge_width[] #hide
+p.edge_width[][18] = 5.0; p.edge_width[] = p.edge_width[] #hide
 f # hide

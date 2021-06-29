@@ -20,14 +20,15 @@ f # hide
 
 #=
 The `graphplot` command is a recipe which wraps several steps
-- layout the graph in 2D space using a layout function,
+- layout the graph in space using a layout function,
 - create a `scatter` plot for the nodes and
 - create a `linesegments` plot for the edges.
 
-The default layout is `NetworkLayout.Spring.layout` from
+The default layout is `Spring()` from
 [`NetworkLayout.jl`](https://github.com/JuliaGraphs/NetworkLayout.jl). The
-layout attribute can be any function which takes the adjacency matrix of the
-graph an returns a list of `(x,y)` tuples or `Point2f0` objects.
+layout attribute can be any function which takes an `AbstractGraph` and returns
+a list of `Point{dim,Ptype}` (see [`GeometryBasics.jl`](https://github.com/JuliaGeometry/GeometryBasics.jl)
+objects where `dim` determines the dimensionality of the plot.
 
 Besides that there are some common attributes which are forwarded to the
 underlying plot commands. See [`graphplot`](@ref).
@@ -44,7 +45,7 @@ add_edge!(g, 4, 1); add_edge!(g, 1, 5);
 edgecolors = [:black for i in 1:ne(g)]
 edgecolors[4] = edgecolors[7] = :red
 
-f, ax, p = graphplot(g, layout=NetworkLayout.Circular.layout,
+f, ax, p = graphplot(g, layout=Shell(),
                      node_color=[:black, :red, :red, :red, :black],
                      edge_color=edgecolors)
 
@@ -103,11 +104,9 @@ f # hide
 
 #=
 The position of the edge labels is determined by several plot arguments.
-Each label is placed in the middle of the edge and rotated to match the edge rotation.
+All possible arguments are described in the docs of the [`graphplot`](@ref) function.
 
-Note: Since the `text` is displayed in the `screen` system, this rotations only really works
-for `DataAspect()`! See [the Makie docs](https://makie.juliaplots.org/stable/plotting_functions/text.html).
-
+Basicially, each label is placed in the middle of the edge and rotated to match the edge rotation.
 The rotaion for each label can be overwritten with the `elabels_rotation` argument.
 =#
 p.elabels_rotation[] = Vector{Union{Nothing, Float64}}(nothing, ne(g))
@@ -116,34 +115,69 @@ p.elabels_rotation[] = p.elabels_rotation[]
 nothing #hide
 
 #=
-The position of each label can be modified using different arguments.
-  - `elabels_opposite` is a vector if edge indices which tells the plot to display labels on the oppisite site.
-  - `elabels_offset` will be added to the middle of the edge in axis coordinates
-  - `elabels_distance` increses/decreases the normal distance to the edge
-  - `elabels_shift` shifts the label along the edge
-  - `elabels_align` tells the `text` plot where to place the text in relation to the position
+One can shift the label along the edge with the `elabels_shift` argument and determine the distance
+in pixels using the `elabels_distance` argument.
 =#
-p.elabels_opposite[] = [4,7]
+p.elabels_opposite[] = [1,2,8,6]
 
 p.elabels_offset[] = [Point2f0(0.0, 0.0) for i in 1:ne(g)]
 p.elabels_offset[][5] = Point2f0(-0.4,0)
 p.elabels_offset[] = p.elabels_offset[]
 
 p.elabels_shift[] = [0.5 for i in 1:ne(g)]
-p.elabels_shift[][4] = 0.7
-p.elabels_shift[][3] = 0.6
+p.elabels_shift[][1] = 0.6
+p.elabels_shift[][7] = 0.4
 p.elabels_shift[] = p.elabels_shift[]
 
 p.elabels_distance[] = zeros(ne(g))
-p.elabels_distance[][8] = -.3
+p.elabels_distance[][8] = 15
 p.elabels_distance[] = p.elabels_distance[]
 
 f # hide
 
-# Is it a bird?
-p.edge_width[] = 3.0
-p.elabels_color[] = [:green, :red, :green, :green, :red, :goldenrod1, :green, :goldenrod1]
-p.edge_color[] = [:green, :black, :green, :green, :black, :goldenrod1, :green, :goldenrod1]
-p.elabels[] =["left", "There\n should\n be an add-\n itional node\n for the wings!", "right", "leg", "O", "beak", "leg", "weird"]
-xlims!(ax, (-1.5,2.5))
-f #hide
+#=
+## Indicate Edge Direction
+
+It is possible to put arrows on the edges using the `arrow_show` parameter. This parameter
+is `true` for `SimpleDiGraph` by default. The position and size of each arrowhead can be
+change using the `arrow_shift` and `arrow_size` parameters.
+=#
+g = wheel_digraph(10)
+arrow_size = [10+i for i in 1:ne(g)]
+arrow_shift = range(0.1, 0.8, length=ne(g))
+f, ax, p = graphplot(g; arrow_size, arrow_shift)
+hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()
+f # hide
+
+#=
+## Plot Graphs in 3D
+If the layout returns points in 3 dimensions, the plot will be in 3D. However this is a bit
+experimental. Feel free to file an issue if there are any problems.
+=#
+set_theme!(resolution=(800, 800)) #hide
+g = smallgraph(:cubical)
+elabels_shift = [0.5 for i in 1:ne(g)]
+elabels_shift[[2,7,8,9]] .= 0.3
+elabels_shift[10] = 0.25
+graphplot(g; layout=Spring(dim=3, seed=5),
+          elabels="Edge ".*repr.(1:ne(g)),
+          elabels_textsize=12,
+          elabels_opposite=[3,5,7,8,12],
+          elabels_shift,
+          elabels_distance=3,
+          arrow_show=true,
+          arrow_shift=0.9,
+          arrow_size=15)
+
+#=
+Using [`JSServe.jl`](https://github.com/SimonDanisch/JSServe.jl) and [`WGLMakie.jl`](https://github.com/JuliaPlots/WGLMakie.jl)
+we can also add some interactivity:
+=#
+using JSServe
+Page(exportable=true, offline=true)
+#
+using WGLMakie
+WGLMakie.activate!()
+set_theme!(resolution=(800, 600))
+g = smallgraph(:dodecahedral)
+graphplot(g, layout=Spring(dim=3), node_size=100)

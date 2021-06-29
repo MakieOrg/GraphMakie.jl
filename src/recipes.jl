@@ -5,9 +5,10 @@ export GraphPlot, graphplot, graphplot!
     graphplot!(ax, graph::AbstractGraph)
 
 Creates a plot of the network `graph`. Consists of multiple steps:
-- Layout the nodes: the `layout` attribute is has to be a function `f(adj_matrix)::pos`
-  where `pos` is either an array of `Point2f0` or `(x, y)` tuples
+- Layout the nodes: see `layout` attribute. The node position is accesible from outside
+  the plot object `p` as an observable using `p[:node_positions]`.
 - plot edges as `linesegments`-plot
+- if `arrows_show` plot arrowheads as `scatter`-plot
 - plot nodes as `scatter`-plot
 - if `nlabels!=nothing` plot node labels as `text`-plot
 - if `elabels!=nothing` plot edge labels as `text`-plot
@@ -22,7 +23,7 @@ underlying graph and therefore changing the number of Edges/Nodes.
 
 ## Attributes
 ### Main attributes
-- `layout`: function `adj_matrix->Vector{Point}` determines the base layout
+- `layout=Spring()`: function `AbstractGraph->Vector{Point}` determines the base layout
 - `node_color=scatter_theme.color`
 - `node_size=scatter_theme.markersize`
 - `node_marker=scatter_theme.marker`k
@@ -46,7 +47,7 @@ data space.
 - `nlabels_align=(:left, :bottom)`: Anchor of text field.
 - `nlabels_distance=0.0`: Pixel distance from node in direction of align.
 - `nlabels_color=labels_theme.color`
-- `nlabels_offset=nothing`: `Point` or `Vector{Point}`
+- `nlabels_offset=nothing`: `Point` or `Vector{Point}` (in data space)
 - `nlabels_textsize=labels_theme.textsize`
 - `nlabels_attr=(;)`: List of kw arguments which gets passed to the `text` command
 
@@ -75,7 +76,7 @@ the edge.
     lineseg_theme = default_theme(scene, LineSegments)
     labels_theme = default_theme(scene, Makie.Text)
     Attributes(
-        layout = NetworkLayout.Spring.layout,
+        layout = Spring(),
         # node attributes (Scatter)
         node_color = scatter_theme.color,
         node_size = scatter_theme.markersize,
@@ -117,10 +118,7 @@ function Makie.plot!(gp::GraphPlot)
 
     # create initial vertex positions, will be updated on changes to graph or layout
     # make node_position-Observable available as named attribute from the outside
-    gp[:node_positions] = @lift begin
-        A = adjacency_matrix($graph)
-        [Point(p) for p in ($(gp.layout))(A)]
-    end
+    gp[:node_positions] = @lift [Point(p) for p in ($(gp.layout))($graph)]
 
     node_pos = gp[:node_positions]
 
@@ -158,22 +156,16 @@ function Makie.plot!(gp::GraphPlot)
     # plott arrow heads
     arrow_pos = @lift $edge_pos[1] .+ $(gp.arrow_shift) .* ($edge_pos[2] .- $edge_pos[1])
     arrow_show = @lift $(gp.arrow_show) === automatic ? $graph isa SimpleDiGraph : $(gp.arrow_show)
-
-    # hotfix for https://github.com/JuliaPlots/Makie.jl/issues/1018
-    # don't plot if arrow_show=false and Cairo
-    iscairo = repr(typeof(Makie.current_backend[])) == "CairoMakie.CairoBackend"
-    if !iscairo || (iscairo && arrow_show[])
-        arrow_heads = scatter!(gp,
-                               arrow_pos,
-                               marker = '➤',
-                               markersize = gp.arrow_size,
-                               color = gp.edge_color,
-                               rotations = @lift(Billboard($edge_rotations_px)),
-                               strokewidth = 0.0,
-                               markerspace = Pixel,
-                               visible = arrow_show,
-                               gp.arrow_attr...)
-    end
+    arrow_heads = scatter!(gp,
+                           arrow_pos,
+                           marker = '➤',
+                           markersize = gp.arrow_size,
+                           color = gp.edge_color,
+                           rotations = @lift(Billboard($edge_rotations_px)),
+                           strokewidth = 0.0,
+                           markerspace = Pixel,
+                           visible = arrow_show,
+                           gp.arrow_attr...)
 
     # plot vertices
     vertex_plot = scatter!(gp, node_pos;
@@ -244,6 +236,10 @@ function Makie.plot!(gp::GraphPlot)
         offsets = @lift begin
             offsets = map(p -> Point(-p.data[2], p.data[1])/norm(p), $edge_vec_px)
             offsets .= $(gp.elabels_distance) .* offsets
+            for i in $(gp.elabels_opposite)
+                offsets[i] = -1.0 * offsets[i] # flip offset if in opposite
+            end
+            offsets
         end
 
         elabels_plot = text!(gp, gp.elabels;
