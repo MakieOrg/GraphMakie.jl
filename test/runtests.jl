@@ -6,6 +6,8 @@ using Makie.Colors
 # using GLMakie
 using Test
 
+include("beziercurves_test.jl")
+
 @testset "GraphMakie.jl" begin
     g = Node(wheel_digraph(10))
     f, ax, p = graphplot(g)

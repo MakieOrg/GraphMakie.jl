@@ -1,10 +1,8 @@
 using Test
 using GraphMakie
 using GraphMakie.Makie.GeometryBasics
-using GLMakie
 
-using GraphMakie: BezierPath, MoveTo, LineTo, CurveTo, interpolate, discretize, tangent
-
+using GraphMakie: BezierPath, MoveTo, LineTo, CurveTo, interpolate, discretize, tangent, waypoints
 
 @testset "interpolation and tangets" begin
     path = BezierPath([
@@ -35,12 +33,64 @@ end
 
     path = BezierPath(Point2f0(0.0,0.0),
                       Point2f0(0.0,1.0),
-                      Point2f0(0.2,1.0),
                       Point2f0(1.0,1.0))
     lines(discretize(path))
+    scatter!(waypoints(path))
 
     path = BezierPath(Point2f0(0.0,0.0),
-                      Point2f0(0.0,1.0),
+                      Point2f0(-0.5,1.0),
+                      Point2f0(0.5,1.0),
                       Point2f0(0.0,0.0))
+    lines(discretize(path))
+    scatter!(waypoints(path))
 
+    path = BezierPath(Point2f0(0.0,0.0),
+                      Point2f0(-0.5,1.0),
+                      Point2f0(1.5,1.0),
+                      Point2f0(2.0,0.0))
+    lines(discretize(path))
+    scatter!(waypoints(path))
+
+    path = BezierPath(Point2f0(0.0,0.0),
+                      Point2f0(-0.5,1.0),
+                      Point2f0(1.5,1.0),
+                      Point2f0(2.0,0.0);
+                      tangents=(Point2f0(-1,0),
+                                Point2f0(-1,0)))
+    lines(discretize(path))
+    scatter!(waypoints(path))
+end
+
+@testset "two points and tangets" begin
+    p1 = Point2f0(0,0)
+    t1 = Point2f0(0,1)
+    p2 = Point2f0(1,1)
+    t2 = Point2f0(0,1)
+    path = BezierPath(p1, p2; tangents=(t1, t2))
+    lines(discretize(path))
+    scatter!(waypoints(path))
+
+    p1 = Point2f0(0,0)
+    t1 = Point2f0(1,0)*10
+    p2 = Point2f0(1,1)
+    t2 = Point2f0(0,1)*5
+    path = BezierPath(p1, p2; tangents=(t1, t2))
+    lines(discretize(path))
+    scatter!(waypoints(path))
+
+    p1 = Point2f0(0,0)
+    t1 = Point2f0(-1,0)
+    p2 = Point2f0(1,1)
+    t2 = Point2f0(0,1)
+    path = BezierPath(p1, p2; tangents=(t1, t2))
+    lines(discretize(path))
+    scatter!(waypoints(path))
+
+    p1 = Point2f0(0,0)
+    t1 = Point2f0(-.5,.5)
+    p2 = Point2f0(0,0)
+    t2 = Point2f0(-.5,-.5)
+    path = BezierPath(p1, p2; tangents=(t1, t2))
+    lines(discretize(path))
+    scatter!(waypoints(path))
 end

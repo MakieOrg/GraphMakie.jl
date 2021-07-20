@@ -1,6 +1,6 @@
 using Makie.GeometryBasics
 using Makie.GeometryBasics.StaticArrays
-using LinearAlgebra: normalize
+using LinearAlgebra: normalize, ⋅
 
 ####
 #### Type definitions
@@ -62,7 +62,7 @@ discretize!(v::Vector{<:AbstractPoint}, c::Union{MoveTo, LineTo}) = push!(v, c.p
 function discretize!(v::Vector{<:AbstractPoint}, c::CurveTo)
     N0 = length(v)
     p0 = v[end]
-    N = 100
+    N = 60 # TODO: magic number for discrtization
     resize!(v, N0 + N)
     dt = 1.0/N
     for (i, t) in enumerate(dt:dt:1.0)
@@ -119,20 +119,40 @@ function tangent(p::BezierPath, t)
     return tangent(p.commands[seg+2], p0, tseg)
 end
 
+"""
+    waypoints(p::BezierPath)
+
+Returns all the characteristic points of the path. For debug reasons.
+"""
+function waypoints(p::BezierPath{PT}) where {PT}
+    v = PT[]
+    for c in p.commands
+        if c isa CurveTo
+            push!(v, c.c1)
+            push!(v, c.c2)
+        end
+        push!(v, c.p)
+    end
+    return v
+end
+
 
 ####
 #### Special constructors to create bezier pathes
 ####
 
 """
-    BezierPath(P::Vararg{PT, N}) where {PT<:AbstractPoint, N}
+    BezierPath(P::Vararg{PT, N}; tangents, tfactor=.5) where {PT<:AbstractPoint, N}
 
 Create a bezier path by natural cubic spline interpolation of the points `P`.
+If there are only to points and no tangents return a straight line.
+
+The `tangets` kw allows you pass two vectors as tangents for the first and the
+last point. The `tfactor` affects the curvature on the start and end given some
+tangents.
 """
-function BezierPath(P::Vararg{PT, N}) where {PT<:AbstractPoint, N}
-    if length(P) == 2
-        return BezierPath([MoveTo(P[1]), LineTo(P[2])])
-    end
+function BezierPath(P::Vararg{PT, N}; tangents=nothing, tfactor=.5) where {PT<:AbstractPoint, N}
+    @assert N>2
 
     # cubic_spline will work for each dimension separatly
     pxyz = cubic_spline(map(p -> p[1], P)) # get first dimension
@@ -141,21 +161,70 @@ function BezierPath(P::Vararg{PT, N}) where {PT<:AbstractPoint, N}
     end
 
     # create waypoints from waypoints in separat dementions
-    WP = SVector{length(P)-1}(PT(p) for p in eachrow(pxyz))
+    WP = SVector{length(P)-1, PT}(PT(p) for p in eachrow(pxyz))
 
     commands = Vector{PathCommand{PT}}(undef, N)
     commands[1] = MoveTo(P[1])
-    for i in 2:(N-1)
+
+    # first command, recalculate WP if tangent is given
+    first_wp = WP[1]
+    if tangents !== nothing
+        p1, p2, t = P[1], P[2], normalize(tangents[1])
+        dir = p2 - p1
+        d = tfactor * norm(dir ⋅ t)
+        first_wp = PT(p1+d*t)
+    end
+    commands[2] = CurveTo(first_wp,
+                          2*P[2] - WP[2],
+                          P[2])
+    # middle commands
+    for i in 3:(N-1)
         commands[i] = CurveTo(WP[i-1],
                               2*P[i] - WP[i],
                               P[i])
     end
+    # last command, recalculate last WP if tangent is given
+    last_wp = (P[N] + WP[N-1])/2
+    if tangents !== nothing
+        p1, p2, t = P[N-1], P[N], normalize(tangents[2])
+        dir = p2 - p1
+        d = tfactor * norm(dir ⋅ t)
+        last_wp = PT(p2-d*t)
+    end
     commands[N] = CurveTo(WP[N-1],
-                          (P[N] + WP[N-1])/2,
+                          last_wp,
                           P[N])
+
     BezierPath(commands)
 end
 
+function BezierPath(P::Vararg{PT, 2}; tangents=nothing, tfactor=.5) where {PT<:AbstractPoint}
+    p1, p2 = P
+    if tangents === nothing
+        return BezierPath([MoveTo(p1),
+                           LineTo(p2)])
+    else
+        t1, t2 = normalize(tangents[1]), normalize(tangents[2])
+        dir = p2 - p1
+        d1 = tfactor * norm(dir ⋅ t1)
+        d2 = tfactor * norm(dir ⋅ t2)
+        return BezierPath([MoveTo(p1),
+                           CurveTo(PT(p1+d1*t1),
+                                   PT(p2-d2*t2),
+                                   p2)])
+    end
+end
+
+"""
+    cubic_spline(p)
+
+Given a number of points in one dimension calculate waypoints between them.
+
+    cubic_spline(x1, x2, x3)
+
+Will return the x coordinates of the waypoints `wp1` and `wp2`.
+Those are the first waypoints between in the cubic bezier sense.
+"""
 function cubic_spline(p)
     N = length(p) - 1
 
