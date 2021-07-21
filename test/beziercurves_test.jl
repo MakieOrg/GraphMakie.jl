@@ -25,11 +25,11 @@ using GraphMakie: BezierPath, MoveTo, LineTo, CurveTo, interpolate, discretize, 
     arrows!(pos, tan; lengthscale=0.1)
 
     path = BezierPath([
-        MoveTo(Point2f0(0,0)),
-        LineTo(Point2f0(1,0)),
-        LineTo(Point2f0(1,1)),
-        LineTo(Point2f0(0,1)),
-        LineTo(Point2f0(0,0)),
+        MoveTo(Point2f0(0,0,0)),
+        LineTo(Point2f0(1,0,0)),
+        LineTo(Point2f0(1,1,1)),
+        LineTo(Point2f0(0,1,1)),
+        LineTo(Point2f0(0,0,1)),
                 ])
     ts = 0:0.1:1.0
     pos = map(t->interpolate(path,t), ts)

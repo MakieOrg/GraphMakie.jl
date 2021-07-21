@@ -135,9 +135,11 @@ function Makie.plot!(gp::GraphPlot)
         # project should transform to 2d point in px space
         (point) -> project(sc, point)
     end
-    # get angle in px space from tanget in data space
-    to_angle = @lift tangent -> begin
-        tpx = $to_px(tangent) - $to_px(zero(tangent))
+    # get angle in px space from path p at point t
+    to_angle = @lift (path, t) -> begin
+        p0 = interpolate(path, t)
+        p1 = p0 + tangent(path, t)
+        tpx = $to_px(p1) - $to_px(p0)
         atan(tpx[2], tpx[1])
     end
 
@@ -150,7 +152,7 @@ function Makie.plot!(gp::GraphPlot)
     # plott arrow heads
     arrow_pos = @lift broadcast((p, t) -> interpolate(p, t),
                                 $edge_paths, $(gp.arrow_shift))
-    arrow_rot = @lift Billboard(broadcast((p, t) -> $to_angle(tangent(p, t)),
+    arrow_rot = @lift Billboard(broadcast((p, t) -> $to_angle(p, t),
                                           $edge_paths, $(gp.arrow_shift)))
     arrow_show = @lift $(gp.arrow_show) === automatic ? $graph isa SimpleDiGraph : $(gp.arrow_show)
     arrow_heads = scatter!(gp,
@@ -205,7 +207,7 @@ function Makie.plot!(gp::GraphPlot)
                 rot = $(gp.elabels_rotation)
             else
                 # determine rotation for each position
-                rot = broadcast((p, t) -> $to_angle(tangent(p, t)),
+                rot = broadcast((p, t) -> $to_angle(p, t),
                                 $edge_paths, $(gp.elabels_shift))
 
                 for i in $(gp.elabels_opposite)
@@ -233,9 +235,10 @@ function Makie.plot!(gp::GraphPlot)
 
         # calculate the offset in pixels in normal direction to the edge
         offsets = @lift begin
-            tangent_px = broadcast($edge_paths, $(gp.elabels_shift)) do p, t
-                tan = tangent(p, t)
-                $to_px(tan) - $to_px(zero(tan))
+            tangent_px = broadcast($edge_paths, $(gp.elabels_shift)) do path, t
+                p0 = interpolate(path, t)
+                p1 = p0 + tangent(path, t)
+                tpx = $to_px(p1) - $to_px(p0)
             end
 
             offsets = map(p -> Point(-p.data[2], p.data[1])/norm(p), tangent_px)
