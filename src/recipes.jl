@@ -122,46 +122,46 @@ function Makie.plot!(gp::GraphPlot)
 
     node_pos = gp[:node_positions]
 
-    # create two arrays for src pos and dst pos triggered by node_pos changes
+    # create array of pathes triggered by node_pos changes
     # in case of a graph change the node_position will change anyway
-    edge_pos = @lift ([$node_pos[e.src] for e in edges(graph[])],
-                      [$node_pos[e.dst] for e in edges(graph[])])
-
-    # in case the edge_with is same as the number of edges
-    # create a new observable which doubles the values for compat with line segments
-    # https://github.com/JuliaPlots/Makie.jl/pull/992
-    if length(gp.edge_width[]) == ne(graph[])
-        lineseg_width = @lift repeat($(gp.edge_width), inner=2)
-    else
-        lineseg_width = gp.edge_width
-    end
+    # TODO: add selfloops, curves for bidirectional
+    edge_paths = @lift [BezierPath($node_pos[e.src], $node_pos[e.dst])
+                         for e in edges(graph[])]
 
     # calculate the vectors for each edge in pixel space
     sc = Makie.parent_scene(gp)
-    edge_vec_px = lift(edge_pos, sc.px_area, sc.camera.projectionview) do epos, pxa, pv
+    # to_px(point) = project(sc, point)
+    # function to_angle(tangent)
+    #     tpx = to_px(tangent)
+    #     atan(tpx[2], tpx[1])
+    # end
+    to_px = lift(sc.px_area, sc.camera.projectionview) do pxa, pv
         # project should transform to 2d point in px space
-        map((src, dst)->project(sc, dst) - project(sc, src), epos[1], epos[2])
+        (point) -> project(sc, point)
+    end
+    to_angle = @lift tangent -> begin
+        tpx = $to_px(tangent)
+        atan(tpx[2], tpx[1])
     end
 
-    # get rotation in px space (for arrow markers and edge_labels)
-    edge_rotations_px = @lift map(v -> atan(v.data[2], v.data[1]), $edge_vec_px)
-
     # plot edges
-    edge_segments = @lift vec(permutedims(hcat($edge_pos[1], $edge_pos[2])))
-    edge_plot = linesegments!(gp, edge_segments;
-                              color=gp.edge_color,
-                              linewidth=lineseg_width,
-                              gp.edge_attr...)
+    edge_plot = beziersegments!(gp, edge_paths;
+                                color=gp.edge_color,
+                                linewidth=gp.edge_width,
+                                gp.edge_attr...)
 
     # plott arrow heads
-    arrow_pos = @lift $edge_pos[1] .+ $(gp.arrow_shift) .* ($edge_pos[2] .- $edge_pos[1])
+    arrow_pos = @lift broadcast((p, t) -> interpolate(p, t),
+                                $edge_paths, $(gp.arrow_shift))
+    arrow_rot = @lift Billboard(broadcast((p, t) -> $to_angle(tangent(p, t)),
+                                          $edge_paths, $(gp.arrow_shift)))
     arrow_show = @lift $(gp.arrow_show) === automatic ? $graph isa SimpleDiGraph : $(gp.arrow_show)
     arrow_heads = scatter!(gp,
                            arrow_pos,
                            marker = '➤',
                            markersize = gp.arrow_size,
                            color = gp.edge_color,
-                           rotations = @lift(Billboard($edge_rotations_px)),
+                           rotations = arrow_rot,
                            strokewidth = 0.0,
                            markerspace = Pixel,
                            visible = arrow_show,
@@ -198,7 +198,7 @@ function Makie.plot!(gp::GraphPlot)
                              textsize=gp.nlabels_textsize,
                              gp.nlabels_attr...)
     end
-
+    #=
     # plot edge labels
     if gp.elabels[] !== nothing
         # rotations based on the edge_vec_px and opposite argument
@@ -251,6 +251,7 @@ function Makie.plot!(gp::GraphPlot)
                              textsize=gp.elabels_textsize,
                              gp.elabels_attr...)
     end
+    =#
 
     return gp
 end
@@ -273,4 +274,71 @@ function align_to_dir(align)
     end
     norm = x==y==0.0 ? 1 : sqrt(x^2 + y^2)
     return Point(x/norm, y/norm)
+end
+
+"""
+    beziersegments(paths::Vector{BezierPath})
+    beziersegments!(sc, paths::Vector{BezierPath})
+
+Recipe to draw bezier pathes. Each path will be descritized and ploted with a
+separate `lines` plot. Scalar attributes will be used for all subplots. If you
+provide vector attributs of same length als the pathes the i-th `lines` subplot
+will see the i-th attribute.
+"""
+@recipe(BezierSegments, paths) do scene
+    Attributes(default_theme(scene, Lines)...)
+end
+
+function Makie.plot!(p::BezierSegments)
+    N = length(p[:paths][])
+    PT = ptype(eltype(p[:paths][]))
+    attr = p.attributes
+
+    # every argument which is array of length N will be put into the individual attr.
+    # and the i-th lines plot gehts the i-th attribute
+    individual_attr = Attributes()
+    for (k, v) in attr
+        if k == :color && v[] isa AbstractArray{<:Number}
+            # in case of colors as numbers transfom those
+            # https://github.com/JuliaPlots/Makie.jl/blob/e59f4f0785a190146623ff235eeeacc56b04de6c/CairoMakie/src/utils.jl#L100-L113
+            numbers = attr[:color][]
+
+            colormap = get(attr, :colormap, nothing) |> to_value |> to_colormap
+            colorrange = get(attr, :colorrange, nothing) |> to_value
+
+            if colorrange === Makie.automatic
+                attr[:colorrange] = colorrange = extrema(numbers)
+            end
+
+            individual_attr[k] = Makie.interpolated_getindex.(Ref(colormap),
+                                                              Float64.(numbers), # ints don't work in interpolated_getindex
+                                                              Ref(colorrange))
+        elseif v[] isa AbstractArray && length(v[]) == N
+            individual_attr[k] = v
+        end
+    end
+
+    # array which holds observables for the discretized values
+    # this is needed so the `lines!` subplots will update
+    disc = [Observable{Vector{PT}}() for i in 1:N]
+    function update_discretized!(disc, pathes)
+        for (i, p) in enumerate(pathes)
+            disc[i][] = discretize(p)
+        end
+    end
+    update_discretized!(disc, p[:paths][]) # first call to initialize
+    on(p[:paths]) do paths # update if pathes change
+        update_discretized!(disc, paths)
+    end
+
+    # plot all the lines
+    for i in 1:N
+        specific_attr = Attributes()
+        for (k, v) in individual_attr
+            specific_attr[k] = @lift $v[i]
+        end
+        lines!(p, disc[i]; attr..., specific_attr...)
+    end
+
+    return p
 end

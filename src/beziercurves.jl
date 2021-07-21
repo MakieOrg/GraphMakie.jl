@@ -26,6 +26,8 @@ struct CurveTo{PT} <: PathCommand{PT}
     p::PT
 end
 
+ptype(::Union{BezierPath{PT}, Type{BezierPath{PT}}}) where {PT} = PT
+
 
 ####
 #### Helper functions to work with bezier pathes
