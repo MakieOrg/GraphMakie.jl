@@ -55,7 +55,7 @@ xs, ys, paths = solve_positions(Zarate(), g)
 nothing #hide
 
 #=
-In `GraphMakie` the layout allways needs to be function. So we're creating a dummy function...
+In `GraphMakie` the layout always needs to be function. So we're creating a dummy function...
 At the moment, `GraphMakie` can not make use of the nice `paths` property (which would add
 additional waypoints to the edges).
 =#
