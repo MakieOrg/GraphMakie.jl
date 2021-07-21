@@ -23,6 +23,19 @@ using GraphMakie: BezierPath, MoveTo, LineTo, CurveTo, interpolate, discretize, 
 
     scatter!(pos)
     arrows!(pos, tan; lengthscale=0.1)
+
+    path = BezierPath([
+        MoveTo(Point2f0(0,0)),
+        LineTo(Point2f0(1,0)),
+        LineTo(Point2f0(1,1)),
+        LineTo(Point2f0(0,1)),
+        LineTo(Point2f0(0,0)),
+                ])
+    ts = 0:0.1:1.0
+    pos = map(t->interpolate(path,t), ts)
+    tan = map(t->tangent(path,t), ts)
+    fig, ax, p = scatter(pos)
+    arrows!(pos, tan; lengthscale=0.1)
 end
 
 @testset "natural spline constructor" begin
@@ -57,7 +70,7 @@ end
                       Point2f0(2.0,0.0);
                       tangents=(Point2f0(-1,0),
                                 Point2f0(-1,0)))
-    lines(discretize(path))
+    lines(discretize(path), linewidth=10)
     scatter!(waypoints(path))
 end
 
@@ -93,4 +106,11 @@ end
     path = BezierPath(p1, p2; tangents=(t1, t2))
     lines(discretize(path))
     scatter!(waypoints(path))
+end
+
+@testset "test beziersegments recipe" begin
+    using GraphMakie: beziersegments
+    paths = [BezierPath(rand(Point2f0, 4)...) for _ in 1:4]
+    fig, ax, p = beziersegments(paths; linewidth=[2,4,6,8], color=[1,2,3,4])
+    p.attributes
 end

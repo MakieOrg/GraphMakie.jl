@@ -128,19 +128,16 @@ function Makie.plot!(gp::GraphPlot)
     edge_paths = @lift [BezierPath($node_pos[e.src], $node_pos[e.dst])
                          for e in edges(graph[])]
 
-    # calculate the vectors for each edge in pixel space
     sc = Makie.parent_scene(gp)
-    # to_px(point) = project(sc, point)
-    # function to_angle(tangent)
-    #     tpx = to_px(tangent)
-    #     atan(tpx[2], tpx[1])
-    # end
+
+    # function which projects the point in px space
     to_px = lift(sc.px_area, sc.camera.projectionview) do pxa, pv
         # project should transform to 2d point in px space
         (point) -> project(sc, point)
     end
+    # get angle in px space from tanget in data space
     to_angle = @lift tangent -> begin
-        tpx = $to_px(tangent)
+        tpx = $to_px(tangent) - $to_px(zero(tangent))
         atan(tpx[2], tpx[1])
     end
 
@@ -198,7 +195,7 @@ function Makie.plot!(gp::GraphPlot)
                              textsize=gp.nlabels_textsize,
                              gp.nlabels_attr...)
     end
-    #=
+
     # plot edge labels
     if gp.elabels[] !== nothing
         # rotations based on the edge_vec_px and opposite argument
@@ -207,8 +204,10 @@ function Makie.plot!(gp::GraphPlot)
                 # fix rotation to a single angle
                 rot = $(gp.elabels_rotation)
             else
-                # determine rotation by edge vector
-                rot = copy($edge_rotations_px)
+                # determine rotation for each position
+                rot = broadcast((p, t) -> $to_angle(tangent(p, t)),
+                                $edge_paths, $(gp.elabels_shift))
+
                 for i in $(gp.elabels_opposite)
                     rot[i] += π
                 end
@@ -224,7 +223,7 @@ function Makie.plot!(gp::GraphPlot)
 
         # positions: center point between nodes + offset + distance*normal + shift*edge direction
         positions = @lift begin
-            pos = $edge_pos[1] .+ $(gp.elabels_shift) .* ($edge_pos[2] .- $edge_pos[1])
+            pos = broadcast((p, t) -> interpolate(p, t), $edge_paths, $(gp.elabels_shift))
 
             if $(gp.elabels_offset) !== nothing
                 pos .= pos .+ $(gp.elabels_offset)
@@ -234,7 +233,12 @@ function Makie.plot!(gp::GraphPlot)
 
         # calculate the offset in pixels in normal direction to the edge
         offsets = @lift begin
-            offsets = map(p -> Point(-p.data[2], p.data[1])/norm(p), $edge_vec_px)
+            tangent_px = broadcast($edge_paths, $(gp.elabels_shift)) do p, t
+                tan = tangent(p, t)
+                $to_px(tan) - $to_px(zero(tan))
+            end
+
+            offsets = map(p -> Point(-p.data[2], p.data[1])/norm(p), tangent_px)
             offsets .= $(gp.elabels_distance) .* offsets
             for i in $(gp.elabels_opposite)
                 offsets[i] = -1.0 * offsets[i] # flip offset if in opposite
@@ -251,7 +255,6 @@ function Makie.plot!(gp::GraphPlot)
                              textsize=gp.elabels_textsize,
                              gp.elabels_attr...)
     end
-    =#
 
     return gp
 end
