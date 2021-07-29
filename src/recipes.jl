@@ -7,7 +7,7 @@ export GraphPlot, graphplot, graphplot!
 
 Creates a plot of the network `graph`. Consists of multiple steps:
 - Layout the nodes: see `layout` attribute. The node position is accesible from outside
-  the plot object `p` as an observable using `p[:node_positions]`.
+  the plot object `p` as an observable using `p[:node_pos]`.
 - plot edges as `linesegments`-plot
 - if `arrows_show` plot arrowheads as `scatter`-plot
 - plot nodes as `scatter`-plot
@@ -119,9 +119,9 @@ function Makie.plot!(gp::GraphPlot)
 
     # create initial vertex positions, will be updated on changes to graph or layout
     # make node_position-Observable available as named attribute from the outside
-    gp[:node_positions] = @lift [toF32(Point(p)) for p in ($(gp.layout))($graph)]
+    gp[:node_pos] = @lift [toF32(Point(p)) for p in ($(gp.layout))($graph)]
 
-    node_pos = gp[:node_positions]
+    node_pos = gp[:node_pos]
 
     # create array of pathes triggered by node_pos changes
     # in case of a graph change the node_position will change anyway

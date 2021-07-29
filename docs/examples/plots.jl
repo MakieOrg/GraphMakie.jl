@@ -84,7 +84,7 @@ f # hide
 
 # This is not very nice, lets change the offsets based on the `node_positions`
 
-offsets = 0.15 * (p[:node_positions][] .- p[:node_positions][][1])
+offsets = 0.15 * (p[:node_pos][] .- p[:node_pos][][1])
 offsets[1] = Point2f0(0, 0.3)
 p.nlabels_offset[] = offsets
 autolimits!(ax)

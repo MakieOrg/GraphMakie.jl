@@ -70,8 +70,8 @@ end
     register_interaction!(ax, :eclick, eclick)
 
     function node_drag_action(state, idx, event, axis)
-        p[:node_positions][][idx] = event.data
-        p[:node_positions][] = p[:node_positions][]
+        p[:node_pos][][idx] = event.data
+        p[:node_pos][] = p[:node_pos][]
     end
     ndrag = NodeDragHandler(node_drag_action)
     register_interaction!(ax, :ndrag, ndrag)
@@ -87,13 +87,13 @@ end
         if state == true
             if action.src===action.dst===action.init===nothing
                 action.init = event.data
-                action.src = p[:node_positions][][edge.src]
-                action.dst = p[:node_positions][][edge.dst]
+                action.src = p[:node_pos][][edge.src]
+                action.dst = p[:node_pos][][edge.dst]
             end
             offset = event.data - action.init
-            p[:node_positions][][edge.src] = action.src + offset
-            p[:node_positions][][edge.dst] = action.dst + offset
-            p[:node_positions][] = p[:node_positions][] # trigger change
+            p[:node_pos][][edge.src] = action.src + offset
+            p[:node_pos][][edge.dst] = action.dst + offset
+            p[:node_pos][] = p[:node_pos][] # trigger change
         elseif state == false
             action.src = action.dst = action.init =  nothing
         end

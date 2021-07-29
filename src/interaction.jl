@@ -253,8 +253,8 @@ julia> g = wheel_digraph(10)
 julia> f, ax, p = graphplot(g, node_size=20)
 julia> deregister_interaction!(ax, :rectanglezoom)
 julia> function action(state, idx, event, axis)
-           p[:node_positions][][idx] = event.data
-           p[:node_positions][] = p[:node_positions][]
+           p[:node_pos][][idx] = event.data
+           p[:node_pos][] = p[:node_positions][]
        end
 julia> register_interaction!(ax, :nodedrag, NodeDragHandler(action))
 ```
@@ -277,8 +277,8 @@ julia> register_interaction!(ax, :nodedrag, NodeDrag(p))
 """
 function NodeDrag(p)
     action = (state, idx, event, _) -> begin
-        p[:node_positions][][idx] = event.data
-        p[:node_positions][] = p[:node_positions][]
+        p[:node_pos][][idx] = event.data
+        p[:node_pos][] = p[:node_positions][]
     end
     return NodeDragHandler(action)
 end
@@ -330,13 +330,13 @@ function (action::EdgeDragAction)(state, idx, event, _)
     if state == true
         if action.src === action.dst === action.init === nothing
             action.init = event.data
-            action.src = action.p[:node_positions][][edge.src]
-            action.dst = action.p[:node_positions][][edge.dst]
+            action.src = action.p[:node_pos][][edge.src]
+            action.dst = action.p[:node_pos][][edge.dst]
         end
         offset = event.data - action.init
-        action.p[:node_positions][][edge.src] = action.src + offset
-        action.p[:node_positions][][edge.dst] = action.dst + offset
-        action.p[:node_positions][] = action.p[:node_positions][] # trigger change
+        action.p[:node_pos][][edge.src] = action.src + offset
+        action.p[:node_pos][][edge.dst] = action.dst + offset
+        action.p[:node_pos][] = action.p[:node_pos][] # trigger change
     elseif state == false
         action.src = action.dst = action.init = nothing
     end

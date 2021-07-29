@@ -83,8 +83,8 @@ for v in vertices(g)
     elseif isempty(outneighbors(g, v)) #leaf
         nlabels_align[v] = (:center,:top)
     else
-        self = p[:node_positions][][v]
-        parent = p[:node_positions][][inneighbors(g, v)[1]]
+        self = p[:node_pos][][v]
+        parent = p[:node_pos][][inneighbors(g, v)[1]]
         if self[1] < parent[1] # left branch
             nlabels_align[v] = (:right,:bottom)
         end
