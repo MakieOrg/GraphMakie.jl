@@ -125,9 +125,7 @@ function Makie.plot!(gp::GraphPlot)
 
     # create array of pathes triggered by node_pos changes
     # in case of a graph change the node_position will change anyway
-    # TODO: add selfloops, curves for bidirectional
-    edge_paths = @lift [BezierPath($node_pos[e.src], $node_pos[e.dst])
-                         for e in edges(graph[])]
+    edge_paths = @lift find_edge_paths(graph[], $node_pos)
 
     sc = Makie.parent_scene(gp)
 
@@ -284,6 +282,55 @@ function align_to_dir(align)
     end
     norm = x==y==0.0 ? 1 : sqrt(x^2 + y^2)
     return Point(x/norm, y/norm)
+end
+
+function find_edge_paths(g, pos::AbstractVector{PT}) where {PT}
+    paths = Vector{BezierPath{PT}}(undef, ne(g))
+    for (i, e) in enumerate(edges(g))
+        if e.src == e.dst
+            paths[i] = selfedge_path(g, pos, e.src)
+        else
+            paths[i] = BezierPath(pos[e.src], pos[e.dst])
+        end
+    end
+    return paths
+end
+
+function selfedge_path(g, pos::AbstractVector{Point2f0}, v)
+    vp = pos[v]
+    # get the vectors to all the neighbors
+    ndirs = [pos[n] - vp for n in neighbors(g, v) if n != v]
+
+    angles = SVector{length(ndirs)}(atan(p[2], p[1]) for p in ndirs)
+    angles = sort(angles)
+
+    # search biggest gap between neighbor edges
+    γ, Δ = 0.0, 0.0
+    for i in 1:length(angles)
+        α = angles[i]
+        β = get(angles, i+1, 2π + angles[1])
+        if β-α > Δ
+            Δ = (β-α) / 2
+            γ = (β+α) / 2
+        end
+    end
+
+    # set width of selfloop
+    Δ = min(.7*Δ, π/4)
+
+    # the size (max dis. to v) of loop
+    size = minimum(norm.(ndirs)) * 0.75
+    # the actual length of the tagent vectors, magic number from `CurveTo`
+    l = Float32( size/cos(Δ) * 1/0.75 )
+    t1 = vp + l * Point2f0(cos(γ-Δ), sin(γ-Δ))
+    t2 = vp + l * Point2f0(cos(γ+Δ), sin(γ+Δ))
+
+    return BezierPath([MoveTo(vp),
+                       CurveTo(t1, t2, vp)])
+end
+
+function selfedge_path(g, pos::AbstractVector{Point3f0}, v)
+    error("Self edges in 3D not yet supported")
 end
 
 """

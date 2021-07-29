@@ -25,12 +25,11 @@ using GraphMakie: BezierPath, MoveTo, LineTo, CurveTo, interpolate, discretize, 
     arrows!(pos, tan; lengthscale=0.1)
 
     path = BezierPath([
-        MoveTo(Point2f0(0,0,0)),
-        LineTo(Point2f0(1,0,0)),
-        LineTo(Point2f0(1,1,1)),
-        LineTo(Point2f0(0,1,1)),
-        LineTo(Point2f0(0,0,1)),
-                ])
+        MoveTo(Point3f0(0,0,0)),
+        LineTo(Point3f0(1,0,0)),
+        LineTo(Point3f0(1,1,1)),
+        LineTo(Point3f0(0,1,1)),
+        LineTo(Point3f0(0,0,1))])
     ts = 0:0.1:1.0
     pos = map(t->interpolate(path,t), ts)
     tan = map(t->tangent(path,t), ts)
@@ -113,4 +112,18 @@ end
     paths = [BezierPath(rand(Point2f0, 4)...) for _ in 1:4]
     fig, ax, p = beziersegments(paths; linewidth=[2,4,6,8], color=[1,2,3,4])
     p.attributes
+end
+
+@testset "selfloop test" begin
+    using CairoMakie
+    using LightGraphs, GraphMakie
+    g = star_graph(10)
+    add_edge!(g, 1, 1)
+    add_edge!(g, 2, 2)
+    fig, ax, p = graphplot(g)
+    ax.aspect = DataAspect()
+
+    g = star_graph(10)
+    add_edge!(g, 1, 1)
+    @test_throws ErrorException graphplot(g; layout=_->rand(Point3f0, 10))
 end
