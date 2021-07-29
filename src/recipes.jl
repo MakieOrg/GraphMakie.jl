@@ -29,8 +29,7 @@ underlying graph and therefore changing the number of Edges/Nodes.
 - `node_size=scatter_theme.markersize`
 - `node_marker=scatter_theme.marker`
 - `node_attr=(;)`: List of kw arguments which gets passed to the `scatter` command
-- `edge_color=lineseg_theme.color`: Pass a vector with 2 colors per edge to get
-  color gradients.
+- `edge_color=lineseg_theme.color`: Color for edges.
 - `edge_width=lineseg_theme.linewidth`: Pass a vector with 2 width per edge to
   get pointy edges.
 - `edge_attr=(;)`: List of kw arguments which gets passed to the `linesegments` command
@@ -69,6 +68,11 @@ the edge.
 - `elabels_color=labels_theme.color`
 - `elabels_textsize=labels_theme.textsize`
 - `elabels_attr=(;)`: List of kw arguments which gets passed to the `text` command
+
+### self edges
+- `selfedge_size=Makie.automatic()`: Size of self-edge-loop (dict/vector possible).
+- `selfedge_direction=Makie.automatic()`: Direction of self-edge-loop as `Point2` (dict/vector possible).
+- `selfedge_width=Makie.automatic()`: Opening of selfloop in rad (dict/vector possible).
 
 """
 @recipe(GraphPlot, graph) do scene
@@ -111,6 +115,10 @@ the edge.
         elabels_color = labels_theme.color,
         elabels_textsize = labels_theme.textsize,
         elabels_attr = (;),
+        # self edge attributes
+        selfedge_size = automatic,
+        selfedge_direction = automatic,
+        selfedge_width = automatic,
     )
 end
 
@@ -125,7 +133,10 @@ function Makie.plot!(gp::GraphPlot)
 
     # create array of pathes triggered by node_pos changes
     # in case of a graph change the node_position will change anyway
-    edge_paths = @lift find_edge_paths(graph[], $node_pos)
+    edge_paths = lift(node_pos, gp.selfedge_size,
+                      gp.selfedge_direction, gp.selfedge_width) do pos, s, d, w
+        find_edge_paths(graph[], gp.attributes, pos)
+    end
 
     sc = Makie.parent_scene(gp)
 
@@ -284,11 +295,14 @@ function align_to_dir(align)
     return Point(x/norm, y/norm)
 end
 
-function find_edge_paths(g, pos::AbstractVector{PT}) where {PT}
+function find_edge_paths(g, attr, pos::AbstractVector{PT}) where {PT}
     paths = Vector{BezierPath{PT}}(undef, ne(g))
     for (i, e) in enumerate(edges(g))
         if e.src == e.dst
-            paths[i] = selfedge_path(g, pos, e.src)
+            size = getattr(attr.selfedge_size, i)
+            direction = getattr(attr.selfedge_direction, i)
+            width = getattr(attr.selfedge_width, i)
+            paths[i] = selfedge_path(g, pos, e.src, size, direction, width)
         else
             paths[i] = BezierPath(pos[e.src], pos[e.dst])
         end
@@ -296,34 +310,46 @@ function find_edge_paths(g, pos::AbstractVector{PT}) where {PT}
     return paths
 end
 
-function selfedge_path(g, pos::AbstractVector{Point2f0}, v)
+function selfedge_path(g, pos::AbstractVector{Point2f0}, v, size, direction, width)
     vp = pos[v]
     # get the vectors to all the neighbors
     ndirs = [pos[n] - vp for n in neighbors(g, v) if n != v]
 
-    angles = SVector{length(ndirs)}(atan(p[2], p[1]) for p in ndirs)
-    angles = sort(angles)
-
-    # search biggest gap between neighbor edges
+    # angle and maximum width of loop
     γ, Δ = 0.0, 0.0
-    for i in 1:length(angles)
-        α = angles[i]
-        β = get(angles, i+1, 2π + angles[1])
-        if β-α > Δ
-            Δ = (β-α) / 2
-            γ = (β+α) / 2
+
+    if direction === automatic
+        angles = SVector{length(ndirs)}(atan(p[2], p[1]) for p in ndirs)
+        angles = sort(angles)
+
+        for i in 1:length(angles)
+            α = angles[i]
+            β = get(angles, i+1, 2π + angles[1])
+            if β-α > Δ
+                Δ = β-α
+                γ = (β+α) / 2
+            end
         end
+
+        # set width of selfloop
+        Δ = min(.7*Δ, π/2)
+    else
+        @assert direction isa Point2 "Direction of selfedge should be 2 dim vector ($direction)"
+        γ = atan(direction[2], direction[1])
+        Δ = π/2
     end
 
-    # set width of selfloop
-    Δ = min(.7*Δ, π/4)
+    if width !== automatic
+        Δ = width
+    end
 
     # the size (max dis. to v) of loop
-    size = minimum(norm.(ndirs)) * 0.75
+    size = size===automatic ? minimum(norm.(ndirs)) * 0.5 : size
+
     # the actual length of the tagent vectors, magic number from `CurveTo`
-    l = Float32( size/cos(Δ) * 1/0.75 )
-    t1 = vp + l * Point2f0(cos(γ-Δ), sin(γ-Δ))
-    t2 = vp + l * Point2f0(cos(γ+Δ), sin(γ+Δ))
+    l = Float32( size/(cos(Δ/2) * 2*0.375) )
+    t1 = vp + l * Point2f0(cos(γ-Δ/2), sin(γ-Δ/2))
+    t2 = vp + l * Point2f0(cos(γ+Δ/2), sin(γ+Δ/2))
 
     return BezierPath([MoveTo(vp),
                        CurveTo(t1, t2, vp)])

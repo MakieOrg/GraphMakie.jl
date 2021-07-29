@@ -150,6 +150,31 @@ hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()
 f # hide
 
 #=
+## Self Edges
+
+A self edge in a graph will be displayed as a loop.
+
+!!! note
+    Selfe edges are not possible in 3D plots yet.
+=#
+g = complete_graph(3)
+add_edge!(g, 1, 1)
+add_edge!(g, 2, 2)
+add_edge!(g, 3, 3)
+f, ax, p = graphplot(g)
+
+hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()
+f # hide
+
+# It is possible to change the appearance using the `selfedge_` attributes:
+p.selfedge_size = Dict(1=>Makie.automatic, 4=>3.6, 6=>0.5) #idx as in edges(g)
+p.selfedge_direction = Point2f0(0.3, 1)
+p.selfedge_width = Any[Makie.automatic for i in 1:ne(g)]
+p.selfedge_width[][4] = 0.6*π; notify(p.selfedge_width)
+autolimits!(ax)
+f # hide
+
+#=
 ## Plot Graphs in 3D
 If the layout returns points in 3 dimensions, the plot will be in 3D. However this is a bit
 experimental. Feel free to file an issue if there are any problems.

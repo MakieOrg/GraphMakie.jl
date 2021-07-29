@@ -33,3 +33,17 @@ function _get_label_plot(gp::GraphPlot, labels)
         error("Could not determine plot $ps")
     end
 end
+
+"""
+    getattr(o::Observable, idx)
+
+If observable wraps an AbstractVector or AbstractDict return
+the value at idx. Else return the one and only element.
+"""
+function getattr(o::Observable, idx)
+    if o[] isa AbstractVector && !isa(o[], Point) || o[] isa AbstractDict
+        return o[][idx]
+    else
+        return o[]
+    end
+end
