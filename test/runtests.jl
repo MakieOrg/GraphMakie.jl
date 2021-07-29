@@ -124,3 +124,26 @@ end
     # graphplot(g; nlabels, nlabels_align, nlabels_distance=20)
 end
 
+@testset "test plot accessors" begin
+    g = complete_graph(10)
+    nlabels = repr.(1:nv(g))
+    elabels = repr.(1:ne(g))
+    fig, ax, p = graphplot(g)
+    @test get_edge_plot(p) isa BezierSegments
+    @test get_node_plot(p)[1][] == p[:node_pos][]
+    @test get_arrow_plot(p).visible[] == false
+    @test get_nlabel_plot(p) === nothing
+    @test get_elabel_plot(p) === nothing
+
+    fig, ax, p = graphplot(g; nlabels)
+    @test get_nlabel_plot(p)[1][] == nlabels
+    @test get_elabel_plot(p) === nothing
+
+    fig, ax, p = graphplot(g; elabels)
+    @test get_nlabel_plot(p) === nothing
+    @test get_elabel_plot(p)[1][] == elabels
+
+    fig, ax, p = graphplot(g; elabels, nlabels)
+    @test get_nlabel_plot(p)[1][] == nlabels
+    @test get_elabel_plot(p)[1][] == elabels
+end

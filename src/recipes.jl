@@ -27,7 +27,7 @@ underlying graph and therefore changing the number of Edges/Nodes.
 - `layout=Spring()`: function `AbstractGraph->Vector{Point}` determines the base layout
 - `node_color=scatter_theme.color`
 - `node_size=scatter_theme.markersize`
-- `node_marker=scatter_theme.marker`k
+- `node_marker=scatter_theme.marker`
 - `node_attr=(;)`: List of kw arguments which gets passed to the `scatter` command
 - `edge_color=lineseg_theme.color`: Pass a vector with 2 colors per edge to get
   color gradients.
@@ -332,6 +332,7 @@ end
 function selfedge_path(g, pos::AbstractVector{Point3f0}, v)
     error("Self edges in 3D not yet supported")
 end
+
 
 """
     beziersegments(paths::Vector{BezierPath})
