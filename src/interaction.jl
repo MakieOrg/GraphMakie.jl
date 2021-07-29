@@ -8,14 +8,20 @@ export NodeDragHandler, EdgeDragHandler
 export NodeDrag, EdgeDrag
 
 """
-    convert_selection(element, idx) = (element, idx)
-    convert_selection(element::LineSegments, idx) = (element, Int(idx/2))
+    convert_selection(element, idx)
 
-In case of `LineSegements` the reported `idx` by `pick` is allways two
-times the edge index (since LineSegments have 2 points per Line).
+`mouse_selection` returns the basic plot type. In case of `Lines` check if it is
+part of a `BezierSegments` and convert selection accordingly.
 """
 convert_selection(element, idx) = (element, idx)
-convert_selection(element::LineSegments, idx) = (element, Int(idx / 2))
+function convert_selection(element::Lines, idx)
+    if element.parent isa BezierSegments
+        bezier = element.parent
+        idx = findfirst(isequal(element), bezier.plots)
+        return (bezier, idx)
+    end
+    return (element, idx)
+end
 
 """
     abstract type GraphInteraction
@@ -32,15 +38,12 @@ set_edgeplot!(::GraphInteraction, plot) = nothing
 function registration_setup!(parent, inter::GraphInteraction)
     # in case of multiple graph plots in one axis this won't work
     gplots = filter(p -> p isa GraphPlot, parent.scene.plots)
-    @assert length(gplots) == 1 "There has to be exactly one GraphPlot in Axis!"
-
-    # in case of multiple plots of type Scatter/Linesegments in GraphPlot this won't work
-    scatter = filter(p -> p isa Scatter, gplots[1].plots)
-    set_nodeplot!(inter, scatter[end]) # assume that the node scatter is the last scatter in recipe
-
-    lines = filter(p -> p isa LineSegments, gplots[1].plots)
-    @assert length(lines) == 1 "There has to be exactly one LineSegments-Plot in GraphPlot!"
-    return set_edgeplot!(inter, lines[1])
+    if length(gplots) !== 1
+        @warn "There are multiple GraphPlots, register interaction to first!"
+    end
+    gplot = gplots[1]
+    set_nodeplot!(inter, get_node_plot(gplot))
+    set_edgeplot!(inter, get_edge_plot(gplot))
 end
 
 ####
@@ -50,7 +53,7 @@ end
 """
     mutable struct HoverHandler{P<:ScenePlot, F} <: GraphInteraction
 
-Object to handle hovers on `plot::P`.
+Object to handle hovers on `plot::P`. Calls `fun` on hover.
 """
 mutable struct HoverHandler{P<:ScenePlot,F} <: GraphInteraction
     idx::Union{Nothing,Int}
@@ -58,7 +61,7 @@ mutable struct HoverHandler{P<:ScenePlot,F} <: GraphInteraction
     fun::F
 end
 set_nodeplot!(h::HoverHandler{Scatter}, plot) = h.plot = plot
-set_edgeplot!(h::HoverHandler{LineSegments}, plot) = h.plot = plot
+set_edgeplot!(h::HoverHandler{BezierSegments}, plot) = h.plot = plot
 
 function process_interaction(handler::HoverHandler, event::MouseEvent, axis)
     if event.type === MouseEventTypes.over
@@ -144,7 +147,7 @@ julia> function action(state, idx, event, axis)
 julia> register_interaction!(ax, :edgehover, EdgeHoverHandler(action))
 ```
 """
-EdgeHoverHandler(fun::F) where {F} = HoverHandler{LineSegments,F}(nothing, nothing, fun)
+EdgeHoverHandler(fun::F) where {F} = HoverHandler{BezierSegments,F}(nothing, nothing, fun)
 
 """
     EdgeHoverHeighlight(p::GraphPlot, factor=2)
@@ -211,7 +214,7 @@ mutable struct DragHandler{P<:ScenePlot,F} <: GraphInteraction
     fun::F
 end
 set_nodeplot!(h::DragHandler{Scatter}, plot) = h.plot = plot
-set_edgeplot!(h::DragHandler{LineSegments}, plot) = h.plot = plot
+set_edgeplot!(h::DragHandler{BezierSegments}, plot) = h.plot = plot
 
 function process_interaction(handler::DragHandler, event::MouseEvent, axis)
     if handler.dragstate == false # not in drag state
@@ -254,7 +257,7 @@ julia> f, ax, p = graphplot(g, node_size=20)
 julia> deregister_interaction!(ax, :rectanglezoom)
 julia> function action(state, idx, event, axis)
            p[:node_pos][][idx] = event.data
-           p[:node_pos][] = p[:node_positions][]
+           p[:node_pos][] = p[:node_pos][]
        end
 julia> register_interaction!(ax, :nodedrag, NodeDragHandler(action))
 ```
@@ -278,7 +281,7 @@ julia> register_interaction!(ax, :nodedrag, NodeDrag(p))
 function NodeDrag(p)
     action = (state, idx, event, _) -> begin
         p[:node_pos][][idx] = event.data
-        p[:node_pos][] = p[:node_positions][]
+        p[:node_pos][] = p[:node_pos][]
     end
     return NodeDragHandler(action)
 end
@@ -296,7 +299,7 @@ the last time `fun` is triggered. `idx` is the edge index.
 See [`EdgeDrag`](@ref) for a concrete implementation.
 ```
 """
-EdgeDragHandler(fun::F) where {F} = DragHandler{LineSegments,F}(false, 0, nothing, fun)
+EdgeDragHandler(fun::F) where {F} = DragHandler{BezierSegments,F}(false, 0, nothing, fun)
 
 """
     EdgeDrag(p::GraphPlot)
@@ -356,7 +359,7 @@ mutable struct ClickHandler{P<:ScenePlot,F} <: GraphInteraction
     fun::F
 end
 set_nodeplot!(h::ClickHandler{Scatter}, plot) = h.plot = plot
-set_edgeplot!(h::ClickHandler{LineSegments}, plot) = h.plot = plot
+set_edgeplot!(h::ClickHandler{BezierSegments}, plot) = h.plot = plot
 
 function process_interaction(handler::ClickHandler, event::MouseEvent, axis)
     if event.type === MouseEventTypes.leftclick
@@ -413,4 +416,4 @@ julia> function action(idx, event, axis)
 julia> register_interaction!(ax, :edgeclick, EdgeClickHandler(action))
 ```
 """
-EdgeClickHandler(fun::F) where {F} = ClickHandler{LineSegments,F}(nothing, fun)
+EdgeClickHandler(fun::F) where {F} = ClickHandler{BezierSegments,F}(nothing, fun)

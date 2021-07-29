@@ -34,6 +34,7 @@ end
 
 @testset "Hover, click and drag Interaction" begin
     g = wheel_graph(10)
+    add_edge!(g, 1, 1)
     f, ax, p = graphplot(g,
                          edge_width = [3.0 for i in 1:ne(g)],
                          edge_color = [colorant"black" for i in 1:ne(g)],
