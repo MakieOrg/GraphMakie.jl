@@ -378,27 +378,13 @@ function Makie.plot!(p::BezierSegments)
     PT = ptype(eltype(p[:paths][]))
     attr = p.attributes
 
-    # every argument which is array of length N will be put into the individual attr.
-    # and the i-th lines plot gehts the i-th attribute
-    individual_attr = Attributes()
-    for (k, v) in attr
-        if k == :color && v[] isa AbstractArray{<:Number}
-            # in case of colors as numbers transfom those
-            # https://github.com/JuliaPlots/Makie.jl/blob/e59f4f0785a190146623ff235eeeacc56b04de6c/CairoMakie/src/utils.jl#L100-L113
-            numbers = attr[:color][]
+    # set colorange automaticially if needed
+    if attr[:color][] isa AbstractArray{<:Number}
+        numbers = attr[:color][]
+        colorrange = get(attr, :colorrange, nothing) |> to_value
 
-            colormap = get(attr, :colormap, nothing) |> to_value |> to_colormap
-            colorrange = get(attr, :colorrange, nothing) |> to_value
-
-            if colorrange === Makie.automatic
-                attr[:colorrange] = colorrange = extrema(numbers)
-            end
-
-            individual_attr[k] = Makie.interpolated_getindex.(Ref(colormap),
-                                                              Float64.(numbers), # ints don't work in interpolated_getindex
-                                                              Ref(colorrange))
-        elseif v[] isa AbstractArray && length(v[]) == N
-            individual_attr[k] = v
+        if colorrange === Makie.automatic
+            attr[:colorrange] = extrema(numbers)
         end
     end
 
@@ -417,11 +403,23 @@ function Makie.plot!(p::BezierSegments)
 
     # plot all the lines
     for i in 1:N
+        # each subplot will pick its specic arguments if there are vectors
         specific_attr = Attributes()
-        for (k, v) in individual_attr
-            specific_attr[k] = @lift $v[i]
+
+        for (k, v) in attr
+            if k === :color && v[] isa AbstractVector{<:Number} && length(v[]) == N
+                colormap = attr[:colormap][] |> to_colormap
+                colorrange = attr[:colorrange][]
+                specific_attr[k] = @lift Makie.interpolated_getindex(colormap,
+                                                                     Float64($v[i]),
+                                                                     colorrange)
+            elseif v[] isa AbstractVector && length(v[]) == N
+                specific_attr[k] = @lift $v[i]
+            else
+                specific_attr[k] = v
+            end
         end
-        lines!(p, disc[i]; attr..., specific_attr...)
+        lines!(p, disc[i]; specific_attr...)
     end
 
     return p
