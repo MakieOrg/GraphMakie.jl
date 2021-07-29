@@ -1,3 +1,4 @@
+using LinearAlgebra: normalize, ⋅, norm
 export GraphPlot, graphplot, graphplot!
 
 """
@@ -118,7 +119,7 @@ function Makie.plot!(gp::GraphPlot)
 
     # create initial vertex positions, will be updated on changes to graph or layout
     # make node_position-Observable available as named attribute from the outside
-    gp[:node_positions] = @lift [Point(p) for p in ($(gp.layout))($graph)]
+    gp[:node_positions] = @lift [toF32(Point(p)) for p in ($(gp.layout))($graph)]
 
     node_pos = gp[:node_positions]
 
@@ -261,6 +262,9 @@ function Makie.plot!(gp::GraphPlot)
 
     return gp
 end
+
+toF32(p::Point{2, T}) where T = Point2f0(p)
+toF32(p::Point{3, T}) where T = Point3f0(p)
 
 function align_to_dir(align)
     halign, valign = align
