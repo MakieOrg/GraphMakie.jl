@@ -406,13 +406,7 @@ function Makie.plot!(p::EdgePlot)
         N = length(p[:paths][])
         PT = ptype(eltype(p[:paths][]))
         segs = Observable(Vector{PT}(undef, 2*N))
-        function update_segments!(segs, paths)
-            for (i, p) in enumerate(paths)
-                segs[][2*i - 1] = interpolate(p, 0.0)
-                segs[][2*i]     = interpolate(p, 1.0)
-            end
-            notify(segs)
-        end
+
         update_segments!(segs, p[:paths][]) # first call to initialize
         on(p[:paths]) do paths # update if pathes change
             update_segments!(segs, paths)
@@ -427,6 +421,18 @@ function Makie.plot!(p::EdgePlot)
     return p
 end
 
+function update_segments!(segs, paths)
+    N = length(paths)
+    if length(segs[]) != 2*N
+        resize!(segs[], 2*N)
+    end
+    for (i, p) in enumerate(paths)
+        segs[][2*i - 1] = interpolate(p, 0.0)
+        segs[][2*i]     = interpolate(p, 1.0)
+    end
+    notify(segs)
+end
+
 
 """
     beziersegments(paths::Vector{BezierPath})
@@ -436,6 +442,8 @@ Recipe to draw bezier pathes. Each path will be descritized and ploted with a
 separate `lines` plot. Scalar attributes will be used for all subplots. If you
 provide vector attributs of same length als the pathes the i-th `lines` subplot
 will see the i-th attribute.
+
+TODO: Beziersegments plot won't work if the number of pathes changes.
 """
 @recipe(BezierSegments, paths) do scene
     Attributes(default_theme(scene, LineSegments)...)
@@ -459,11 +467,7 @@ function Makie.plot!(p::BezierSegments)
     # array which holds observables for the discretized values
     # this is needed so the `lines!` subplots will update
     disc = [Observable{Vector{PT}}() for i in 1:N]
-    function update_discretized!(disc, pathes)
-        for (i, p) in enumerate(pathes)
-            disc[i][] = discretize(p)
-        end
-    end
+
     update_discretized!(disc, p[:paths][]) # first call to initialize
     on(p[:paths]) do paths # update if pathes change
         update_discretized!(disc, paths)
@@ -491,4 +495,10 @@ function Makie.plot!(p::BezierSegments)
     end
 
     return p
+end
+
+function update_discretized!(disc, pathes)
+    for (i, p) in enumerate(pathes)
+        disc[i][] = discretize(p)
+    end
 end
