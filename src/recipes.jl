@@ -127,7 +127,7 @@ function Makie.plot!(gp::GraphPlot)
 
     # create initial vertex positions, will be updated on changes to graph or layout
     # make node_position-Observable available as named attribute from the outside
-    gp[:node_pos] = @lift [toF32(Point(p)) for p in ($(gp.layout))($graph)]
+    gp[:node_pos] = @lift [Pointf0(p) for p in ($(gp.layout))($graph)]
 
     node_pos = gp[:node_pos]
 
@@ -272,8 +272,13 @@ function Makie.plot!(gp::GraphPlot)
     return gp
 end
 
-toF32(p::Point{2, T}) where T = Point2f0(p)
-toF32(p::Point{3, T}) where T = Point3f0(p)
+"""
+    Pointf0(p::Point{N, T})
+
+Convert Point{N, T} or NTuple{N, T} to Point{N, Float32}.
+"""
+Pointf0(p::Union{Point{N,T}, NTuple{N,T}}) where {N,T} = Point{N, Float32}(p)
+Pointf0(p::Vararg{T,N}) where {N,T} = Point{N, Float32}(p)
 
 function align_to_dir(align)
     halign, valign = align

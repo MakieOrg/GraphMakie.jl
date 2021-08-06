@@ -148,3 +148,25 @@ end
     @test get_nlabel_plot(p)[1][] == nlabels
     @test get_elabel_plot(p)[1][] == elabels
 end
+
+@testset "test Pointf0" begin
+    using GraphMakie: Pointf0
+
+    p = Point(0.0, 0.0)
+    @test typeof(Pointf0(p)) == Point2f0
+    @test Pointf0(p) == Point2f0(p)
+
+    p = Point(1, 0)
+    @test typeof(Pointf0(p)) == Point2f0
+    @test Pointf0(p) == Point2f0(p)
+
+    p = Point(0.0, 1.0, 2.0)
+    @test typeof(Pointf0(p)) == Point3f0
+    @test Pointf0(p) == Point3f0(p)
+
+    @test Pointf0(0.0, 0.0, 0.0) isa Point3f0
+    @test Pointf0(1.0, 1.0) isa Point2f0
+
+    @test Pointf0((0.0, 0.0, 0.0 )) isa Point3f0
+    @test Pointf0((1.0, 1.0)) isa  Point2f0
+end
