@@ -2,7 +2,7 @@ export get_edge_plot, get_arrow_plot, get_node_plot, get_nlabel_plot, get_elabel
 
 function get_edge_plot(gp::GraphPlot)
     p = gp.plots[1]
-    @assert p isa BezierSegments
+    @assert p isa EdgePlot
     return p
 end
 
