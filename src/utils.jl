@@ -43,11 +43,14 @@ end
     getattr(o::Observable, idx)
 
 If observable wraps an AbstractVector or AbstractDict return
-the value at idx. Else return the one and only element.
+the value at idx. If dict has no key idx rerturn nothing.
+Else return the one and only element.
 """
 function getattr(o::Observable, idx)
-    if o[] isa AbstractVector && !isa(o[], Point) || o[] isa AbstractDict
+    if o[] isa AbstractVector && !isa(o[], Point)
         return o[][idx]
+    elseif o[] isa AbstractDict
+        return get(o[], idx, nothing)
     else
         return o[]
     end
@@ -85,4 +88,23 @@ function align_to_dir(align::Tuple{Symbol, Symbol})
     end
     norm = x==y==0.0 ? 1 : sqrt(x^2 + y^2)
     return Point2f0(x/norm, y/norm)
+end
+
+function plot_controlpoints!(ax::Axis, gp::GraphPlot)
+    ep = get_edge_plot(gp)
+    ep.plots[1] isa BezierSegments || return
+    ep = ep.plots[1]
+    paths = ep[:paths][]
+
+    for (i, p) in enumerate(paths)
+        p isa Line && continue
+        color = getattr(gp.edge_color, i)
+        for (j, c) in enumerate(p.commands)
+            if c isa CurveTo
+                segs = [p.commands[j-1].p, c.c1, c.p, c.c2]
+                linesegments!(ax, segs; color, linestyle=:dot)
+                scatter!(ax, [c.c1, c.c2]; color)
+            end
+        end
+    end
 end

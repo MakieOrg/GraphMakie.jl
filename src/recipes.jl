@@ -75,6 +75,16 @@ the edge.
 - `selfedge_size=Makie.automatic()`: Size of self-edge-loop (dict/vector possible).
 - `selfedge_direction=Makie.automatic()`: Direction of self-edge-loop as `Point2` (dict/vector possible).
 - `selfedge_width=Makie.automatic()`: Opening of selfloop in rad (dict/vector possible).
+- `tangents=nothing`:
+
+    Specify a pair of tangent vectors per edge (for src and dst). If `nothing`
+    (or edge idx not in dict) draw a straight line.
+
+- `tfactor=0.6`:
+
+    Factor is used to calculate the bezier waypoints from the (normalized) tangets.
+    Higher factor means bigger radius. Can be tuple per edge to specify different
+    factor for src and dst.
 
 """
 @recipe(GraphPlot, graph) do scene
@@ -122,6 +132,8 @@ the edge.
         selfedge_size = automatic,
         selfedge_direction = automatic,
         selfedge_width = automatic,
+        tangents=nothing,
+        tfactor=0.6
     )
 end
 
@@ -287,7 +299,9 @@ function find_edge_paths(g, attr, pos::AbstractVector{PT}) where {PT}
             width = getattr(attr.selfedge_width, i)
             paths[i] = selfedge_path(g, pos, e.src, size, direction, width)
         else
-            paths[i] = Path(pos[e.src], pos[e.dst])
+            tangents = getattr(attr.tangents, i)
+            tfactor = getattr(attr.tfactor, i)
+            paths[i] = Path(pos[e.src], pos[e.dst]; tangents, tfactor)
         end
     end
 

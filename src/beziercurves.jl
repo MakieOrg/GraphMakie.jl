@@ -226,17 +226,22 @@ end
 
 # same function as above but for just 2 points specificially
 function Path(P::Vararg{PT, 2}; tangents=nothing, tfactor=.5) where {PT<:AbstractPoint}
+    if tfactor isa NTuple{2, <:Number}
+        tf1, tf2 = tfactor
+    else
+        tf1 = tf2 = tfactor
+    end
+
     p1, p2 = P
     if tangents === nothing
         return Line(p1, p2)
     else
-        t1, t2 = normalize(tangents[1]), normalize(tangents[2])
-        dir = p2 - p1
-        d1 = tfactor * norm(dir ⋅ t1)
-        d2 = tfactor * norm(dir ⋅ t2)
+        t1 = normalize(Pointf0(tangents[1]))
+        t2 = normalize(Pointf0(tangents[2]))
+        len = norm(p2 - p1)
         return BezierPath([MoveTo(p1),
-                           CurveTo(PT(p1+d1*t1),
-                                   PT(p2-d2*t2),
+                           CurveTo(PT(p1+len*tf1*t1),
+                                   PT(p2-len*tf2*t2),
                                    p2)])
     end
 end

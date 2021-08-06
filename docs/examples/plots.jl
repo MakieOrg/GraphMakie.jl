@@ -150,7 +150,7 @@ hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()
 f # hide
 
 #=
-## Self Edges
+## Self edges
 
 A self edge in a graph will be displayed as a loop.
 
@@ -172,6 +172,28 @@ p.selfedge_direction = Point2f0(0.3, 1)
 p.selfedge_width = Any[Makie.automatic for i in 1:ne(g)]
 p.selfedge_width[][4] = 0.6*π; notify(p.selfedge_width)
 autolimits!(ax)
+f # hide
+
+#=
+## Curvy edges
+
+Curvy edges are possible using the low level interface of passing tangent
+vectors and a `tfactor`. The tangent vectors can be `nothing` (straight line) or
+two vectors per edge (one for src vertex, one for dst vertex). The `tfactor`
+scales the distance of the bezier control point relative to the distance of src
+and dst nodes. For real world usage see the [AST of a Julia function](@ref) example.
+=#
+using GraphMakie: plot_controlpoints!
+g = complete_graph(3)
+tangents = Dict(1 => ((1,1),(0,-1)),
+                2 => ((0,1),(0,-1)),
+                3 => ((0,-1),(1,0)))
+tfactor = [0.5, 0.75, (0.5, 0.25)]
+f, ax, p = graphplot(g; layout=SquareGrid(cols=3), tangents, tfactor,
+                     arrow_size=20, arrow_show=true, edge_color=[:red, :green, :blue],
+                     elabels="Edge ".*repr.(1:ne(g)), elabels_distance=10)
+hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()
+plot_controlpoints!(ax, p)
 f # hide
 
 #=
