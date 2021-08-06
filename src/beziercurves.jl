@@ -45,61 +45,7 @@ ptype(::Union{AbstractPath{PT}, Type{<:AbstractPath{PT}}}) where {PT} = PT
 ####
 
 """
-    interpolate(c::PathCommand, p0, t)
-
-Returns positions along the path `c` starting from `p0` in range `t ∈ [0, 1]`.
-"""
-interpolate(c::LineTo{PT}, p0, t) where {PT} = p0 + t*(c.p - p0) |> PT
-function interpolate(c::CurveTo{PT}, p0, t) where {PT}
-    p1, p2, p3 = c.c1, c.c2, c.p
-    (1 - t)^3 * p0 + 3(t - 2t^2 + t^3) * p1 + 3(t^2 -t^3) * p2 + t^3 * p3 |> PT
-end
-
-"""
-    tangent(c::PathCommand, p0, t)
-
-Returns tanget vector along the path `c` starting from `p0` in range `t ∈ [0, 1]`.
-"""
-tangent(c::LineTo, p0, _) = normalize(c.p - p0)
-function tangent(c::CurveTo{PT}, p0, t) where PT
-    p1, p2, p3 = c.c1, c.c2, c.p
-    normalize(-3(1 - t)^2 * p0 + 3(1 - 4t + 3t^2) * p1 + 3(2t -3t^2) * p2 + 3t^2 * p3) |> PT
-end
-
-"""
-    discretize!(v::Vector{AbstractPint}, c::PathCommand)
-
-Append interpolated points of path `c` to pos vector `v`
-"""
-discretize!(v::Vector{<:AbstractPoint}, c::Union{MoveTo, LineTo}) = push!(v, c.p)
-function discretize!(v::Vector{<:AbstractPoint}, c::CurveTo)
-    N0 = length(v)
-    p0 = v[end]
-    N = 60 # TODO: magic number for discrtization
-    resize!(v, N0 + N)
-    dt = 1.0/N
-    for (i, t) in enumerate(dt:dt:1.0)
-        v[N0 + i] = interpolate(c, p0, t)
-    end
-end
-
-"""
-    discretize(path::AbstractPath)
-
-Return vector of points which represent the given `path`.
-"""
-function discretize(path::BezierPath{T}) where {T}
-    v = Vector{T}()
-    for c in path.commands
-        discretize!(v, c)
-    end
-    return v
-end
-
-discretize(l::Line) = [l.p0, l.p]
-
-"""
-    interpolate(p::BezierPath, t)
+    interpolate(p::AbstractPath, t)
 
 Parametrize path `p` from `t ∈ [0, 1]`. Return postion at `t`.
 
@@ -114,13 +60,13 @@ function interpolate(p::BezierPath{PT}, t) where PT
     tseg = tn - seg
 
     p0 = p.commands[seg+1].p
-    return interpolate(p.commands[seg+2], p0, tseg)
+    return _interpolate(p.commands[seg+2], p0, tseg)
 end
 
 interpolate(l::Line{PT}, t) where PT = l.p0 + t*(l.p - l.p0) |> PT
 
 """
-    tangent(p::BezierPath, t)
+    tangent(p::AbstractPath, t)
 
 Parametrize path `p` from `t ∈ [0, 1]`. Return tangent at `t`.
 """
@@ -133,10 +79,63 @@ function tangent(p::BezierPath, t)
     tseg = tn - seg
 
     p0 = p.commands[seg+1].p
-    return tangent(p.commands[seg+2], p0, tseg)
+    return _tangent(p.commands[seg+2], p0, tseg)
+end
+tangent(l::Line, _) = normalize(l.p - l.p0)
+
+"""
+    discretize(path::AbstractPath)
+
+Return vector of points which represent the given `path`.
+"""
+function discretize(path::BezierPath{T}) where {T}
+    v = Vector{T}()
+    for c in path.commands
+        _discretize!(v, c)
+    end
+    return v
 end
 
-tangent(l::Line, _) = normalize(l.p - l.p0)
+discretize(l::Line) = [l.p0, l.p]
+
+"""
+    _interpolate(c::PathCommand, p0, t)
+
+Returns positions along the path `c` starting from `p0` in range `t ∈ [0, 1]`.
+"""
+_interpolate(c::LineTo{PT}, p0, t) where {PT} = p0 + t*(c.p - p0) |> PT
+function _interpolate(c::CurveTo{PT}, p0, t) where {PT}
+    p1, p2, p3 = c.c1, c.c2, c.p
+    (1 - t)^3 * p0 + 3(t - 2t^2 + t^3) * p1 + 3(t^2 -t^3) * p2 + t^3 * p3 |> PT
+end
+
+"""
+    _tangent(c::PathCommand, p0, t)
+
+Returns tangent vector along the path `c` starting from `p0` in range `t ∈ [0, 1]`.
+"""
+_tangent(c::LineTo, p0, _) = normalize(c.p - p0)
+function _tangent(c::CurveTo{PT}, p0, t) where PT
+    p1, p2, p3 = c.c1, c.c2, c.p
+    normalize(-3(1 - t)^2 * p0 + 3(1 - 4t + 3t^2) * p1 + 3(2t -3t^2) * p2 + 3t^2 * p3) |> PT
+end
+
+"""
+    _discretize!(v::Vector{AbstractPint}, c::PathCommand)
+
+Append interpolated points of path `c` to pos vector `v`
+"""
+_discretize!(v::Vector{<:AbstractPoint}, c::Union{MoveTo, LineTo}) = push!(v, c.p)
+function _discretize!(v::Vector{<:AbstractPoint}, c::CurveTo)
+    N0 = length(v)
+    p0 = v[end]
+    N = 60 # TODO: magic number of points for discrtization
+    resize!(v, N0 + N)
+    dt = 1.0/N
+    for (i, t) in enumerate(dt:dt:1.0)
+        v[N0 + i] = _interpolate(c, p0, t)
+    end
+end
 
 """
     waypoints(p::BezierPath)
@@ -165,7 +164,7 @@ isline(p::BezierPath) = length(p.commands)==2 && p.commands[1] isa MoveTo && p.c
 
 
 ####
-#### Special constructors to create bezier pathes
+#### Special constructors to create abstract pathes
 ####
 
 """
@@ -182,9 +181,9 @@ function Path(P::Vararg{PT, N}; tangents=nothing, tfactor=.5) where {PT<:Abstrac
     @assert N>2
 
     # cubic_spline will work for each dimension separatly
-    pxyz = cubic_spline(map(p -> p[1], P)) # get first dimension
+    pxyz = _cubic_spline(map(p -> p[1], P)) # get first dimension
     for i in 2:length(PT) # append all other dims
-        pxyz = hcat(pxyz, cubic_spline(map(p -> p[i], P)))
+        pxyz = hcat(pxyz, _cubic_spline(map(p -> p[i], P)))
     end
 
     # create waypoints from waypoints in separat dementions
@@ -225,6 +224,7 @@ function Path(P::Vararg{PT, N}; tangents=nothing, tfactor=.5) where {PT<:Abstrac
     BezierPath(commands)
 end
 
+# same function as above but for just 2 points specificially
 function Path(P::Vararg{PT, 2}; tangents=nothing, tfactor=.5) where {PT<:AbstractPoint}
     p1, p2 = P
     if tangents === nothing
@@ -242,16 +242,16 @@ function Path(P::Vararg{PT, 2}; tangents=nothing, tfactor=.5) where {PT<:Abstrac
 end
 
 """
-    cubic_spline(p)
+    _cubic_spline(p)
 
 Given a number of points in one dimension calculate waypoints between them.
 
-    cubic_spline(x1, x2, x3)
+    _cubic_spline([x1, x2, x3])
 
 Will return the x coordinates of the waypoints `wp1` and `wp2`.
 Those are the first waypoints between in the cubic bezier sense.
 """
-function cubic_spline(p)
+function _cubic_spline(p)
     N = length(p) - 1
 
     M = SMatrix{N,N}(if i==j # diagonal
