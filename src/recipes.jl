@@ -272,39 +272,10 @@ function Makie.plot!(gp::GraphPlot)
     return gp
 end
 
-"""
-    Pointf0(p::Point{N, T})
-
-Convert Point{N, T} or NTuple{N, T} to Point{N, Float32}.
-"""
-Pointf0(p::Union{Point{N,T}, NTuple{N,T}}) where {N,T} = Point{N, Float32}(p)
-Pointf0(p::Vararg{T,N}) where {N,T} = Point{N, Float32}(p)
 
 """
-    align_to_dir(align::Tuple{Symbol, Symbol})
 
-Given a tuple of alignment (i.e. `(:left, :bottom)`) return a normalized
-2d vector which points in the direction of the offset.
 """
-function align_to_dir(align::Tuple{Symbol, Symbol})
-    halign, valign = align
-
-    x = 0.0
-    if halign === :left
-        x = 1.0
-    elseif halign === :right
-        x = -1.0
-    end
-
-    y = 0.0
-    if valign === :top
-        y = -1.0
-    elseif valign === :bottom
-        y = 1.0
-    end
-    norm = x==y==0.0 ? 1 : sqrt(x^2 + y^2)
-    return Point2f0(x/norm, y/norm)
-end
 
 function find_edge_paths(g, attr, pos::AbstractVector{PT}) where {PT}
     paths = Vector{BezierPath{PT}}(undef, ne(g))

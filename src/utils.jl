@@ -1,11 +1,13 @@
 export get_edge_plot, get_arrow_plot, get_node_plot, get_nlabel_plot, get_elabel_plot
 
+"Get the `EdgePlot` subplot from a `GraphPlot`."
 function get_edge_plot(gp::GraphPlot)
     p = gp.plots[1]
     @assert p isa EdgePlot
     return p
 end
 
+"Get the scatter plot of the arrow heads from a `GraphPlot`."
 function get_arrow_plot(gp::GraphPlot)
     p = gp.plots[2]
     @assert p isa Scatter
@@ -13,6 +15,7 @@ function get_arrow_plot(gp::GraphPlot)
     return p
 end
 
+"Get the scatter plot of the nodes from a `GraphPlot`."
 function get_node_plot(gp::GraphPlot)
     p = gp.plots[3]
     @assert p isa Scatter
@@ -20,7 +23,9 @@ function get_node_plot(gp::GraphPlot)
     return p
 end
 
+"Get the text plot of the node labels from a `GraphPlot`."
 get_nlabel_plot(gp::GraphPlot) = _get_label_plot(gp, gp.nlabels[])
+"Get the text plot of the edge labels from a `GraphPlot`."
 get_elabel_plot(gp::GraphPlot) = _get_label_plot(gp, gp.elabels[])
 
 function _get_label_plot(gp::GraphPlot, labels)
@@ -46,4 +51,38 @@ function getattr(o::Observable, idx)
     else
         return o[]
     end
+end
+
+"""
+    Pointf0(p::Point{N, T})
+
+Convert Point{N, T} or NTuple{N, T} to Point{N, Float32}.
+"""
+Pointf0(p::Union{Point{N,T}, NTuple{N,T}}) where {N,T} = Point{N, Float32}(p)
+Pointf0(p::Vararg{T,N}) where {N,T} = Point{N, Float32}(p)
+
+"""
+    align_to_dir(align::Tuple{Symbol, Symbol})
+
+Given a tuple of alignment (i.e. `(:left, :bottom)`) return a normalized
+2d vector which points in the direction of the offset.
+"""
+function align_to_dir(align::Tuple{Symbol, Symbol})
+    halign, valign = align
+
+    x = 0.0
+    if halign === :left
+        x = 1.0
+    elseif halign === :right
+        x = -1.0
+    end
+
+    y = 0.0
+    if valign === :top
+        y = -1.0
+    elseif valign === :bottom
+        y = 1.0
+    end
+    norm = x==y==0.0 ? 1 : sqrt(x^2 + y^2)
+    return Point2f0(x/norm, y/norm)
 end
