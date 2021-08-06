@@ -388,6 +388,8 @@ Recipe to draw the edges. Attribute `plottype` can be either
 end
 
 function Makie.plot!(p::EdgePlot)
+    N = length(p[:paths][])
+    # remove plottype from attributes, otherwise attributs can't be passed on
     plottype = pop!(p.attributes, :plottype)[]
     if plottype === automatic
         justlines = true
@@ -399,11 +401,20 @@ function Makie.plot!(p::EdgePlot)
                 break
             end
         end
-        plottype = justlines ? :linesegments : :beziersegments
+        if justlines
+            plottype = :linesegments
+        elseif N > 500
+            @warn "Since there are a lot of edges ($N), they will be drawn as straight lines "*
+                "even though they contain curvy edges. If you realy wan't to plot them as "*
+                "bezier curves pass `edge_plottype=:beziersegments` explicitly. This will have "*
+                "much worse performance!"
+            plottype = :linesegments
+        else
+            plottype = :beziersegments
+        end
     end
 
     if plottype === :linesegments
-        N = length(p[:paths][])
         PT = ptype(eltype(p[:paths][]))
         segs = Observable(Vector{PT}(undef, 2*N))
 
