@@ -274,11 +274,12 @@ end
 
 
 """
+    find_edge_paths(g, attr, pos::AbstractVector{PT}) where {PT}
 
+Returns an `AbstractPath` for each edge in the graph.
 """
-
 function find_edge_paths(g, attr, pos::AbstractVector{PT}) where {PT}
-    paths = Vector{BezierPath{PT}}(undef, ne(g))
+    paths = Vector{AbstractPath{PT}}(undef, ne(g))
     for (i, e) in enumerate(edges(g))
         if e.src == e.dst
             size = getattr(attr.selfedge_size, i)
@@ -286,13 +287,21 @@ function find_edge_paths(g, attr, pos::AbstractVector{PT}) where {PT}
             width = getattr(attr.selfedge_width, i)
             paths[i] = selfedge_path(g, pos, e.src, size, direction, width)
         else
-            paths[i] = BezierPath(pos[e.src], pos[e.dst])
+            paths[i] = Path(pos[e.src], pos[e.dst])
         end
     end
-    return paths
+
+    # try to narrow down the typ, i.e. just `Line`s
+    T = mapreduce(typeof, promote_type, paths)
+    return convert(Vector{T}, paths)
 end
 
-function selfedge_path(g, pos::AbstractVector{Point2f0}, v, size, direction, width)
+"""
+    selfedge_path(g, pos, v, size, direction, width)
+
+Return a Path for the
+"""
+function selfedge_path(g, pos::AbstractVector{<:Point2}, v, size, direction, width)
     vp = pos[v]
     # get the vectors to all the neighbors
     ndirs = [pos[n] - vp for n in neighbors(g, v) if n != v]
@@ -337,13 +346,13 @@ function selfedge_path(g, pos::AbstractVector{Point2f0}, v, size, direction, wid
                        CurveTo(t1, t2, vp)])
 end
 
-function selfedge_path(g, pos::AbstractVector{Point3f0}, v)
+function selfedge_path(g, pos::AbstractVector{<:Point3}, v, size, direction, width)
     error("Self edges in 3D not yet supported")
 end
 
 """
-    edgeplot(paths::Vector{BezierPath})
-    edgeplot!(sc, paths::Vector{BezierPath})
+    edgeplot(paths::Vector{AbstractPath})
+    edgeplot!(sc, paths::Vector{AbstractPath})
 
 Recipe to draw the edges. Attribute `plottype` can be either
 
@@ -363,15 +372,8 @@ function Makie.plot!(p::EdgePlot)
     # remove plottype from attributes, otherwise attributs can't be passed on
     plottype = pop!(p.attributes, :plottype)[]
     if plottype === automatic
-        justlines = true
-        for path in p[:paths][]
-            if length(path.commands) !== 2  ||
-                !isa(path.commands[1], MoveTo) ||
-                !isa(path.commands[2], LineTo)
-                justlines = false
-                break
-            end
-        end
+        justlines = all(isline, p[:paths][])
+
         if justlines
             plottype = :linesegments
         elseif N > 500
@@ -417,8 +419,8 @@ end
 
 
 """
-    beziersegments(paths::Vector{BezierPath})
-    beziersegments!(sc, paths::Vector{BezierPath})
+    beziersegments(paths::Vector{AbstractPath})
+    beziersegments!(sc, paths::Vector{AbstractPath})
 
 Recipe to draw bezier pathes. Each path will be descritized and ploted with a
 separate `lines` plot. Scalar attributes will be used for all subplots. If you

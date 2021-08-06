@@ -6,9 +6,20 @@ using LinearAlgebra: normalize, ⋅
 #### Type definitions
 ####
 
+# type defs from Julius Krumbiegels PR
+# https://github.com/JuliaPlots/Makie.jl/pull/979
+abstract type AbstractPath{PT<:AbstractPoint} end
+
+# simple lines get there own type. This helps with type stability
+# for graphs without curvy edges and improves performance
+struct Line{PT} <: AbstractPath{PT}
+    p0::PT
+    p::PT
+end
+
 abstract type PathCommand{PT<:AbstractPoint} end
 
-struct BezierPath{PT}
+struct BezierPath{PT} <: AbstractPath{PT}
     commands::Vector{PathCommand{PT}}
 end
 
@@ -26,7 +37,7 @@ struct CurveTo{PT} <: PathCommand{PT}
     p::PT
 end
 
-ptype(::Union{BezierPath{PT}, Type{BezierPath{PT}}}) where {PT} = PT
+ptype(::Union{AbstractPath{PT}, Type{<:AbstractPath{PT}}}) where {PT} = PT
 
 
 ####
@@ -73,7 +84,7 @@ function discretize!(v::Vector{<:AbstractPoint}, c::CurveTo)
 end
 
 """
-    discretize(path::BezierPath)
+    discretize(path::AbstractPath)
 
 Return vector of points which represent the given `path`.
 """
@@ -84,6 +95,8 @@ function discretize(path::BezierPath{T}) where {T}
     end
     return v
 end
+
+discretize(l::Line) = [l.p0, l.p]
 
 """
     interpolate(p::BezierPath, t)
@@ -104,6 +117,8 @@ function interpolate(p::BezierPath{PT}, t) where PT
     return interpolate(p.commands[seg+2], p0, tseg)
 end
 
+interpolate(l::Line{PT}, t) where PT = l.p0 + t*(l.p - l.p0) |> PT
+
 """
     tangent(p::BezierPath, t)
 
@@ -120,6 +135,8 @@ function tangent(p::BezierPath, t)
     p0 = p.commands[seg+1].p
     return tangent(p.commands[seg+2], p0, tseg)
 end
+
+tangent(l::Line, _) = normalize(l.p - l.p0)
 
 """
     waypoints(p::BezierPath)
@@ -138,22 +155,30 @@ function waypoints(p::BezierPath{PT}) where {PT}
     return v
 end
 
+"""
+    isline(p::AbstractPath)
+
+True if the AbstractPath just represents a straight line.
+"""
+isline(p::Line) = true
+isline(p::BezierPath) = length(p.commands)==2 && p.commands[1] isa MoveTo && p.commands[2] isa LineTo
+
 
 ####
 #### Special constructors to create bezier pathes
 ####
 
 """
-    BezierPath(P::Vararg{PT, N}; tangents, tfactor=.5) where {PT<:AbstractPoint, N}
+    Path(P::Vararg{PT, N}; tangents, tfactor=.5) where {PT<:AbstractPoint, N}
 
 Create a bezier path by natural cubic spline interpolation of the points `P`.
-If there are only to points and no tangents return a straight line.
+If there are only two points and no tangents return a straight line.
 
 The `tangets` kw allows you pass two vectors as tangents for the first and the
 last point. The `tfactor` affects the curvature on the start and end given some
 tangents.
 """
-function BezierPath(P::Vararg{PT, N}; tangents=nothing, tfactor=.5) where {PT<:AbstractPoint, N}
+function Path(P::Vararg{PT, N}; tangents=nothing, tfactor=.5) where {PT<:AbstractPoint, N}
     @assert N>2
 
     # cubic_spline will work for each dimension separatly
@@ -200,11 +225,10 @@ function BezierPath(P::Vararg{PT, N}; tangents=nothing, tfactor=.5) where {PT<:A
     BezierPath(commands)
 end
 
-function BezierPath(P::Vararg{PT, 2}; tangents=nothing, tfactor=.5) where {PT<:AbstractPoint}
+function Path(P::Vararg{PT, 2}; tangents=nothing, tfactor=.5) where {PT<:AbstractPoint}
     p1, p2 = P
     if tangents === nothing
-        return BezierPath([MoveTo(p1),
-                           LineTo(p2)])
+        return Line(p1, p2)
     else
         t1, t2 = normalize(tangents[1]), normalize(tangents[2])
         dir = p2 - p1

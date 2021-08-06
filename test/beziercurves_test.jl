@@ -2,7 +2,7 @@ using Test
 using GraphMakie
 using GraphMakie.Makie.GeometryBasics
 
-using GraphMakie: BezierPath, MoveTo, LineTo, CurveTo, interpolate, discretize, tangent, waypoints
+using GraphMakie: BezierPath, MoveTo, LineTo, CurveTo, interpolate, discretize, tangent, waypoints, Path, Line
 
 @testset "interpolation and tangets" begin
     path = BezierPath([
@@ -38,37 +38,35 @@ using GraphMakie: BezierPath, MoveTo, LineTo, CurveTo, interpolate, discretize, 
 end
 
 @testset "natural spline constructor" begin
-    path = BezierPath(Point2f0(0.0,0.0), Point2f0(0.0,1.0))
-    @test length(path.commands) == 2
-    @test path.commands[1] isa MoveTo
-    @test path.commands[2] isa LineTo
+    path = Path(Point2f0(0.0,0.0), Point2f0(0.0,1.0))
+    @test path isa GraphMakie.Line
 
-    path = BezierPath(Point2f0(0.0,0.0),
-                      Point2f0(0.0,1.0),
-                      Point2f0(1.0,1.0))
+    path = Path(Point2f0(0.0,0.0),
+                Point2f0(0.0,1.0),
+                Point2f0(1.0,1.0))
     lines(discretize(path))
     scatter!(waypoints(path))
 
-    path = BezierPath(Point2f0(0.0,0.0),
-                      Point2f0(-0.5,1.0),
-                      Point2f0(0.5,1.0),
-                      Point2f0(0.0,0.0))
+    path = Path(Point2f0(0.0,0.0),
+                Point2f0(-0.5,1.0),
+                Point2f0(0.5,1.0),
+                Point2f0(0.0,0.0))
     lines(discretize(path))
     scatter!(waypoints(path))
 
-    path = BezierPath(Point2f0(0.0,0.0),
-                      Point2f0(-0.5,1.0),
-                      Point2f0(1.5,1.0),
-                      Point2f0(2.0,0.0))
+    path = Path(Point2f0(0.0,0.0),
+                Point2f0(-0.5,1.0),
+                Point2f0(1.5,1.0),
+                Point2f0(2.0,0.0))
     lines(discretize(path))
     scatter!(waypoints(path))
 
-    path = BezierPath(Point2f0(0.0,0.0),
-                      Point2f0(-0.5,1.0),
-                      Point2f0(1.5,1.0),
-                      Point2f0(2.0,0.0);
-                      tangents=(Point2f0(-1,0),
-                                Point2f0(-1,0)))
+    path = Path(Point2f0(0.0,0.0),
+                Point2f0(-0.5,1.0),
+                Point2f0(1.5,1.0),
+                Point2f0(2.0,0.0);
+                tangents=(Point2f0(-1,0),
+                          Point2f0(-1,0)))
     lines(discretize(path), linewidth=10)
     scatter!(waypoints(path))
 end
@@ -78,7 +76,7 @@ end
     t1 = Point2f0(0,1)
     p2 = Point2f0(1,1)
     t2 = Point2f0(0,1)
-    path = BezierPath(p1, p2; tangents=(t1, t2))
+    path = Path(p1, p2; tangents=(t1, t2))
     lines(discretize(path))
     scatter!(waypoints(path))
 
@@ -86,7 +84,7 @@ end
     t1 = Point2f0(1,0)*10
     p2 = Point2f0(1,1)
     t2 = Point2f0(0,1)*5
-    path = BezierPath(p1, p2; tangents=(t1, t2))
+    path = Path(p1, p2; tangents=(t1, t2))
     lines(discretize(path))
     scatter!(waypoints(path))
 
@@ -94,7 +92,7 @@ end
     t1 = Point2f0(-1,0)
     p2 = Point2f0(1,1)
     t2 = Point2f0(0,1)
-    path = BezierPath(p1, p2; tangents=(t1, t2))
+    path = Path(p1, p2; tangents=(t1, t2))
     lines(discretize(path))
     scatter!(waypoints(path))
 
@@ -102,14 +100,14 @@ end
     t1 = Point2f0(-.5,.5)
     p2 = Point2f0(0,0)
     t2 = Point2f0(-.5,-.5)
-    path = BezierPath(p1, p2; tangents=(t1, t2))
+    path = Path(p1, p2; tangents=(t1, t2))
     lines(discretize(path))
     scatter!(waypoints(path))
 end
 
 @testset "test beziersegments recipe" begin
     using GraphMakie: beziersegments
-    paths = [BezierPath(rand(Point2f0, 4)...) for _ in 1:4]
+    paths = [Path(rand(Point2f0, 4)...) for _ in 1:4]
     fig, ax, p = beziersegments(paths; linewidth=[2,4,6,8], color=[1,2,3,4])
     p.attributes
 end
