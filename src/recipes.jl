@@ -69,7 +69,9 @@ the edge.
 - `elabels_textsize=labels_theme.textsize`
 - `elabels_attr=(;)`: List of kw arguments which gets passed to the `text` command
 
-### self edges
+### self edges & curvy edges
+- `edge_plottype=Makie.automatic()`: Either `automatic`, `:linesegments` or
+  `:beziersegments`. `:beziersegments` are much slower for big graphs!
 - `selfedge_size=Makie.automatic()`: Size of self-edge-loop (dict/vector possible).
 - `selfedge_direction=Makie.automatic()`: Direction of self-edge-loop as `Point2` (dict/vector possible).
 - `selfedge_width=Makie.automatic()`: Opening of selfloop in rad (dict/vector possible).
@@ -116,6 +118,7 @@ the edge.
         elabels_textsize = labels_theme.textsize,
         elabels_attr = (;),
         # self edge attributes
+        edge_plottype = automatic,
         selfedge_size = automatic,
         selfedge_direction = automatic,
         selfedge_width = automatic,
@@ -154,10 +157,11 @@ function Makie.plot!(gp::GraphPlot)
     end
 
     # plot edges
-    edge_plot = beziersegments!(gp, edge_paths;
-                                color=gp.edge_color,
-                                linewidth=gp.edge_width,
-                                gp.edge_attr...)
+    edge_plot = edgeplot!(gp, edge_paths;
+                          plottype=gp.edge_plottype,
+                          color=gp.edge_color,
+                          linewidth=gp.edge_width,
+                          gp.edge_attr...)
 
     # plott arrow heads
     arrow_pos = @lift broadcast((p, t) -> interpolate(p, t),
@@ -362,6 +366,63 @@ end
 
 function selfedge_path(g, pos::AbstractVector{Point3f0}, v)
     error("Self edges in 3D not yet supported")
+end
+
+"""
+    edgeplot(paths::Vector{BezierPath})
+    edgeplot!(sc, paths::Vector{BezierPath})
+
+Recipe to draw the edges. Attribute `plottype` can be either
+
+- `:linesegments`: Draw edges as `linesegments` (just straight lines)
+- `:beziersegments`: Draw edges as `beziersegments` (separate `lines` plot for
+  each edge. Much slower than `linesegments`!)
+- `Makie.automatic()`: Only use `beziersegements` if there is at least one curvy line.
+"""
+@recipe(EdgePlot, paths) do scene
+    Attributes(
+        plottype = automatic
+    )
+end
+
+function Makie.plot!(p::EdgePlot)
+    plottype = pop!(p.attributes, :plottype)[]
+    if plottype === automatic
+        justlines = true
+        for path in p[:paths][]
+            if length(path.commands) !== 2  ||
+                !isa(path.commands[1], MoveTo) ||
+                !isa(path.commands[2], LineTo)
+                justlines = false
+                break
+            end
+        end
+        plottype = justlines ? :linesegments : :beziersegments
+    end
+
+    if plottype === :linesegments
+        N = length(p[:paths][])
+        PT = ptype(eltype(p[:paths][]))
+        segs = Observable(Vector{PT}(undef, 2*N))
+        function update_segments!(segs, paths)
+            for (i, p) in enumerate(paths)
+                segs[][2*i - 1] = interpolate(p, 0.0)
+                segs[][2*i]     = interpolate(p, 1.0)
+            end
+            notify(segs)
+        end
+        update_segments!(segs, p[:paths][]) # first call to initialize
+        on(p[:paths]) do paths # update if pathes change
+            update_segments!(segs, paths)
+        end
+        linesegments!(p, segs; p.attributes...)
+    elseif plottype === :beziersegments
+        beziersegments!(p, p[:paths]; p.attributes...)
+    else
+        error("Unknown plottype $(repr(plottype)) for edge plot")
+    end
+
+    return p
 end
 
 

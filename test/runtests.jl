@@ -130,7 +130,7 @@ end
     nlabels = repr.(1:nv(g))
     elabels = repr.(1:ne(g))
     fig, ax, p = graphplot(g)
-    @test get_edge_plot(p) isa BezierSegments
+    @test get_edge_plot(p) isa EdgePlot
     @test get_node_plot(p)[1][] == p[:node_pos][]
     @test get_arrow_plot(p).visible[] == false
     @test get_nlabel_plot(p) === nothing
