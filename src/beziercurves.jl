@@ -90,7 +90,7 @@ end
 
 Parametrize path `p` from `t ∈ [0, 1]`. Return postion at `t`.
 
-TODO: Points are necessarily evenly spaced!
+TODO: Points are not necessarily evenly spaced!
 """
 function interpolate(p::BezierPath{PT}, t) where PT
     @assert p.commands[begin] isa MoveTo

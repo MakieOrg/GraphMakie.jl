@@ -149,8 +149,8 @@ function Makie.plot!(gp::GraphPlot)
         (point) -> project(sc, point)
     end
     # get angle in px space from path p at point t
-    to_angle = @lift (path, t) -> begin
-        p0 = interpolate(path, t)
+    to_angle = @lift (path, p0, t) -> begin
+        # TODO: maybe shorter tangent? For some perspectives this might give wrong angles in 3d
         p1 = p0 + tangent(path, t)
         tpx = $to_px(p1) - $to_px(p0)
         atan(tpx[2], tpx[1])
@@ -164,10 +164,8 @@ function Makie.plot!(gp::GraphPlot)
                           gp.edge_attr...)
 
     # plott arrow heads
-    arrow_pos = @lift broadcast((p, t) -> interpolate(p, t),
-                                $edge_paths, $(gp.arrow_shift))
-    arrow_rot = @lift Billboard(broadcast((p, t) -> $to_angle(p, t),
-                                          $edge_paths, $(gp.arrow_shift)))
+    arrow_pos = @lift broadcast(interpolate, $edge_paths, $(gp.arrow_shift))
+    arrow_rot = @lift Billboard(broadcast($to_angle, edge_paths[], $arrow_pos, gp.arrow_shift[]))
     arrow_show = @lift $(gp.arrow_show) === automatic ? $graph isa SimpleDiGraph : $(gp.arrow_show)
     arrow_heads = scatter!(gp,
                            arrow_pos,
@@ -214,6 +212,16 @@ function Makie.plot!(gp::GraphPlot)
 
     # plot edge labels
     if gp.elabels[] !== nothing
+        # positions: center point between nodes + offset + distance*normal + shift*edge direction
+        positions = @lift begin
+            pos = broadcast(interpolate, $edge_paths, $(gp.elabels_shift))
+
+            if $(gp.elabels_offset) !== nothing
+                pos .= pos .+ $(gp.elabels_offset)
+            end
+            pos
+        end
+
         # rotations based on the edge_vec_px and opposite argument
         rotation = @lift begin
             if $(gp.elabels_rotation) isa Real
@@ -221,8 +229,7 @@ function Makie.plot!(gp::GraphPlot)
                 rot = $(gp.elabels_rotation)
             else
                 # determine rotation for each position
-                rot = broadcast((p, t) -> $to_angle(p, t),
-                                $edge_paths, $(gp.elabels_shift))
+                rot = broadcast($to_angle, edge_paths[], $positions, gp.elabels_shift[])
 
                 for i in $(gp.elabels_opposite)
                     rot[i] += π
@@ -237,22 +244,11 @@ function Makie.plot!(gp::GraphPlot)
             return rot
         end
 
-        # positions: center point between nodes + offset + distance*normal + shift*edge direction
-        positions = @lift begin
-            pos = broadcast((p, t) -> interpolate(p, t), $edge_paths, $(gp.elabels_shift))
-
-            if $(gp.elabels_offset) !== nothing
-                pos .= pos .+ $(gp.elabels_offset)
-            end
-            pos
-        end
-
         # calculate the offset in pixels in normal direction to the edge
         offsets = @lift begin
-            tangent_px = broadcast($edge_paths, $(gp.elabels_shift)) do path, t
-                p0 = interpolate(path, t)
+            tangent_px = broadcast(edge_paths[], $positions, gp.elabels_shift[]) do path, p0, t
                 p1 = p0 + tangent(path, t)
-                tpx = $to_px(p1) - $to_px(p0)
+                $to_px(p1) - $to_px(p0)
             end
 
             offsets = map(p -> Point(-p.data[2], p.data[1])/norm(p), tangent_px)
@@ -284,7 +280,13 @@ Convert Point{N, T} or NTuple{N, T} to Point{N, Float32}.
 Pointf0(p::Union{Point{N,T}, NTuple{N,T}}) where {N,T} = Point{N, Float32}(p)
 Pointf0(p::Vararg{T,N}) where {N,T} = Point{N, Float32}(p)
 
-function align_to_dir(align)
+"""
+    align_to_dir(align::Tuple{Symbol, Symbol})
+
+Given a tuple of alignment (i.e. `(:left, :bottom)`) return a normalized
+2d vector which points in the direction of the offset.
+"""
+function align_to_dir(align::Tuple{Symbol, Symbol})
     halign, valign = align
 
     x = 0.0
@@ -301,7 +303,7 @@ function align_to_dir(align)
         y = 1.0
     end
     norm = x==y==0.0 ? 1 : sqrt(x^2 + y^2)
-    return Point(x/norm, y/norm)
+    return Point2f0(x/norm, y/norm)
 end
 
 function find_edge_paths(g, attr, pos::AbstractVector{PT}) where {PT}
@@ -436,7 +438,7 @@ provide vector attributs of same length als the pathes the i-th `lines` subplot
 will see the i-th attribute.
 """
 @recipe(BezierSegments, paths) do scene
-    Attributes(default_theme(scene, Lines)...)
+    Attributes(default_theme(scene, LineSegments)...)
 end
 
 function Makie.plot!(p::BezierSegments)
