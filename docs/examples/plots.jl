@@ -193,7 +193,20 @@ f, ax, p = graphplot(g; layout=SquareGrid(cols=3), tangents, tfactor,
                      arrow_size=20, arrow_show=true, edge_color=[:red, :green, :blue],
                      elabels="Edge ".*repr.(1:ne(g)), elabels_distance=10)
 hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()
-plot_controlpoints!(ax, p)
+plot_controlpoints!(ax, p) # show control points for demonstration
+f # hide
+
+#=
+## Edge waypoints
+It is possible to specify waypoints per edge which needs to be crossed. See the
+[Dependency Graph of a Package](@ref) example.
+The waypoints may or may not include the src/dst positions. The points will be
+connected using natural cubic splines.
+=#
+g = complete_graph(2)
+wp = Dict(1 => [(0.75, 0.5), (0.25, -0.5)])
+f, ax, p = graphplot(g; layout=SquareGrid(), waypoints=wp)
+plot_controlpoints!(ax, p) # show control points for demonstration
 f # hide
 
 #=

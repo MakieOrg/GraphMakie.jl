@@ -40,19 +40,19 @@ function _get_label_plot(gp::GraphPlot, labels)
 end
 
 """
-    getattr(o::Observable, idx)
+    getattr(o::Observable, idx, default=nothing)
 
 If observable wraps an AbstractVector or AbstractDict return
-the value at idx. If dict has no key idx rerturn nothing.
+the value at idx. If dict has no key idx rerturn default.
 Else return the one and only element.
 """
-function getattr(o::Observable, idx)
+function getattr(o::Observable, idx, default=nothing)
     if o[] isa AbstractVector && !isa(o[], Point)
         return o[][idx]
     elseif o[] isa AbstractDict
-        return get(o[], idx, nothing)
+        return get(o[], idx, default)
     else
-        return o[]
+        return o[] === nothing ? default : o[]
     end
 end
 

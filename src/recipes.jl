@@ -8,14 +8,14 @@ export GraphPlot, graphplot, graphplot!
 Creates a plot of the network `graph`. Consists of multiple steps:
 - Layout the nodes: see `layout` attribute. The node position is accesible from outside
   the plot object `p` as an observable using `p[:node_pos]`.
-- plot edges as `linesegments`-plot
+- plot edges as `edgeplot`-plot
 - if `arrows_show` plot arrowheads as `scatter`-plot
 - plot nodes as `scatter`-plot
 - if `nlabels!=nothing` plot node labels as `text`-plot
 - if `elabels!=nothing` plot edge labels as `text`-plot
 
 The main attributes for the subplots are exposed as attributes for `graphplot`.
-Additional attributes for the `scatter`, `linesegments` and `text` plots can be provided
+Additional attributes for the `scatter`, `edgeplot` and `text` plots can be provided
 as a named tuples to `node_attr`, `edge_attr`, `nlabels_attr` and `elabels_attr`.
 
 Most of the arguments can be either given as a vector of length of the
@@ -86,6 +86,12 @@ the edge.
     Higher factor means bigger radius. Can be tuple per edge to specify different
     factor for src and dst.
 
+- `waypoints=nothing`
+
+    Specify waypoints for edges. This parameter should be given as a vector or
+    dict. Waypoints will be crossed using natural cubic splines. The waypoints may
+    or may not include the src/dst positions.
+
 """
 @recipe(GraphPlot, graph) do scene
     # TODO: figure out this whole theme business
@@ -133,7 +139,8 @@ the edge.
         selfedge_direction = automatic,
         selfedge_width = automatic,
         tangents=nothing,
-        tfactor=0.6
+        tfactor=0.6,
+        waypoints=nothing,
     )
 end
 
@@ -301,7 +308,14 @@ function find_edge_paths(g, attr, pos::AbstractVector{PT}) where {PT}
         else
             tangents = getattr(attr.tangents, i)
             tfactor = getattr(attr.tfactor, i)
-            paths[i] = Path(pos[e.src], pos[e.dst]; tangents, tfactor)
+            points::Vector{PT} = getattr(attr.waypoints, i, PT[])
+            # prepend by src and append by dst
+            prepend!(points, Ref(pos[e.src]))
+            append!(points, Ref(pos[e.dst]))
+            # the waypoints may already include the endpoints, therefore unique
+            unique!(points)
+
+            paths[i] = Path(points...; tangents, tfactor)
         end
     end
 
