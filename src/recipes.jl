@@ -127,15 +127,6 @@ function Makie.plot!(gp::GraphPlot)
     edge_pos = @lift ([$node_pos[e.src] for e in edges(graph[])],
                       [$node_pos[e.dst] for e in edges(graph[])])
 
-    # in case the edge_with is same as the number of edges
-    # create a new observable which doubles the values for compat with line segments
-    # https://github.com/JuliaPlots/Makie.jl/pull/992
-    if length(gp.edge_width[]) == ne(graph[])
-        lineseg_width = @lift repeat($(gp.edge_width), inner=2)
-    else
-        lineseg_width = gp.edge_width
-    end
-
     # calculate the vectors for each edge in pixel space
     sc = Makie.parent_scene(gp)
     edge_vec_px = lift(edge_pos, sc.px_area, sc.camera.projectionview) do epos, pxa, pv
@@ -150,7 +141,7 @@ function Makie.plot!(gp::GraphPlot)
     edge_segments = @lift vec(permutedims(hcat($edge_pos[1], $edge_pos[2])))
     edge_plot = linesegments!(gp, edge_segments;
                               color=gp.edge_color,
-                              linewidth=lineseg_width,
+                              linewidth=gp.edge_width,
                               gp.edge_attr...)
 
     # plott arrow heads
