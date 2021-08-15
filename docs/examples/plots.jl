@@ -200,13 +200,43 @@ f # hide
 ## Edge waypoints
 It is possible to specify waypoints per edge which needs to be crossed. See the
 [Dependency Graph of a Package](@ref) example.
-The waypoints may or may not include the src/dst positions. The points will be
-connected using natural cubic splines.
+
+If the attribute `waypoint_radius` is `nothing` or `:spline` the waypoints will be crossed
+using natural cubic spline interpolation. If the supply a radius the waypoints won't be reached,
+instead they will be connected with straight lines which bend in the given radius around the
+waypoints.
 =#
-g = complete_graph(2)
-wp = Dict(1 => [(0.75, 0.5), (0.25, -0.5)])
-f, ax, p = graphplot(g; layout=SquareGrid(), waypoints=wp)
-plot_controlpoints!(ax, p) # show control points for demonstration
+set_theme!(resolution=(800, 800)) #hide
+g = SimpleGraph(8); add_edge!(g, 1, 2); add_edge!(g, 3, 4); add_edge!(g, 5, 6); add_edge!(g, 7, 8)
+
+waypoints = Dict(1 => [(.25,  0.25), (.75, -0.25)],
+                 2 => [(.25, -0.25), (.75, -0.75)],
+                 3 => [(.25, -0.75), (.75, -1.25)],
+                 4 => [(.25, -1.25), (.75, -1.75)])
+waypoint_radius = Dict(1 => nothing,
+                       2 => 0,
+                       3 => 0.05,
+                       4 => 0.15)
+
+f = Figure(); f[1,1] = ax = Axis(f)
+using Makie.Colors # hide
+for i in 3:4 #hide
+    poly!(ax, Circle(Point2f0(waypoints[i][1]), waypoint_radius[i]), color=RGBA(0.0,0.44705883,0.69803923,0.2)) #hide
+    poly!(ax, Circle(Point2f0(waypoints[i][2]), waypoint_radius[i]), color=RGBA(0.0,0.44705883,0.69803923,0.2)) #hide
+end #hide
+
+p = graphplot!(ax, g; layout=SquareGrid(cols=2, dy=-0.5),
+               waypoints, waypoint_radius,
+               nlabels=["","r = nothing (equals :spline)",
+                        "","r = 0 (straight lines)",
+                        "","r = 0.05 (in data space)",
+                        "","r = 0.1"],
+               nlabels_distance=30, nlabels_align=(:left,:center))
+
+for i in 1:4 #hide
+    scatter!(ax, waypoints[i], color=RGBA(0.0,0.44705883,0.69803923,1.0)) #hide
+end #hide
+xlims!(ax, (-0.1, 2.25)), hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()
 f # hide
 
 #=

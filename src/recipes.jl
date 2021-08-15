@@ -82,7 +82,7 @@ the edge.
 
 - `tfactor=0.6`:
 
-    Factor is used to calculate the bezier waypoints from the (normalized) tangets.
+    Factor is used to calculate the bezier waypoints from the (normalized) tangents.
     Higher factor means bigger radius. Can be tuple per edge to specify different
     factor for src and dst.
 
@@ -92,6 +92,7 @@ the edge.
     dict. Waypoints will be crossed using natural cubic splines. The waypoints may
     or may not include the src/dst positions.
 
+- `waypoint_radius=nothing`: If number (dict/vector possible) bent lines within radius of waypoints.
 """
 @recipe(GraphPlot, graph) do scene
     # TODO: figure out this whole theme business
@@ -141,6 +142,7 @@ the edge.
         tangents=nothing,
         tfactor=0.6,
         waypoints=nothing,
+        waypoint_radius=nothing,
     )
 end
 
@@ -306,16 +308,27 @@ function find_edge_paths(g, attr, pos::AbstractVector{PT}) where {PT}
             width = getattr(attr.selfedge_width, i)
             paths[i] = selfedge_path(g, pos, e.src, size, direction, width)
         else
+            p1, p2 = pos[e.src], pos[e.dst]
             tangents = getattr(attr.tangents, i)
             tfactor = getattr(attr.tfactor, i)
-            points::Vector{PT} = getattr(attr.waypoints, i, PT[])
-            # prepend by src and append by dst
-            prepend!(points, Ref(pos[e.src]))
-            append!(points, Ref(pos[e.dst]))
-            # the waypoints may already include the endpoints, therefore unique
-            unique!(points)
+            waypoints::Vector{PT} = getattr(attr.waypoints, i, PT[])
+            if isnothing(waypoints) || isempty(waypoints)
+                paths[i] = Path(p1, p2; tangents, tfactor)
+            else
+                # the waypoints may already include the endpoints
+                waypoints[begin] == p1 && popfirst!(waypoints)
+                waypoints[end] == p2 && pop!(waypoints)
 
-            paths[i] = Path(points...; tangents, tfactor)
+                radius = getattr(attr.waypoint_radius, i, nothing)
+
+                if isempty(waypoints) || radius === nothing || radius === :spline
+                    paths[i] = Path(p1, waypoints..., p2; tangents, tfactor)
+                elseif radius isa Real
+                    paths[i] = Path(radius, p1, waypoints..., p2)
+                else
+                    throw(ArgumentError("Invalid radius $radius for edge $i!"))
+                end
+            end
         end
     end
 

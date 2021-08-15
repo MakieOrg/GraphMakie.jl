@@ -52,6 +52,10 @@ dependency tree.
 (packages, g) = depgraph("Revise")
 N = length(packages)
 xs, ys, paths = solve_positions(Zarate(), g)
+
+## we scale the y coordinates so the plot looks nice in `DataAspect()`
+ys .= 0.3 .* ys
+foreach(v -> v[2] .= 0.3 .* v[2], values(paths))
 nothing #hide
 
 #=
@@ -84,10 +88,11 @@ f, ax, p = graphplot(g; layout=lay,
                      nlabels_offset=offset,
                      node_size=[9.0 for i in 1:N],
                      edge_width=[3 for i in 1:ne(g)],
-                     waypoints=wp)
+                     waypoints=wp,
+                     waypoint_radius=0.5)
 ax.title = "Dependency Graph of Revise.jl"
 xlims!(ax, -0.6, 5.6)
-hidedecorations!(ax); hidespines!(ax)
+hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()
 f #hide
 
 #=

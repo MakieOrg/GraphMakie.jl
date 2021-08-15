@@ -103,6 +103,27 @@ end
     path = Path(p1, p2; tangents=(t1, t2))
     lines(discretize(path))
     scatter!(waypoints(path))
+
+    p1 = Point2f0(0,0)
+    p2 = Point2f0(1,0)
+    midp = Point2f0[]
+    path = Path(p1, midp..., p2)
+    lines(discretize(path))
+end
+
+@testset "straight lines with radi" begin
+    using GraphMakie: plot_controlpoints!
+    p1 = Point2f0(0,0)
+    p2 = Point2f0(1,-.5)
+    p3 = Point2f0(2,.5)
+    p4 = Point2f0(3,0)
+    path = Path(0.5, p1, p2, p3, p4)
+    fig, ax, p = lines(discretize(path))
+    plot_controlpoints!(ax, path)
+    scatter!(ax, [p1,p2,p3,p4])
+
+    path = Path(0.0, p1, p2, p3, p4)
+    fig, ax, p = lines(discretize(path))
 end
 
 @testset "test beziersegments recipe" begin

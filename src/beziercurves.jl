@@ -247,6 +247,46 @@ function Path(P::Vararg{PT, 2}; tangents=nothing, tfactor=.5) where {PT<:Abstrac
 end
 
 """
+    Path(radius::Real, p::Vararg{PT, N}) where {PT<:AbstractPoint,N}
+
+Draw straight lines through the points `p`. Within `radius` of each
+point the line will be smoothly connected.
+"""
+function Path(radius::Real, p::Vararg{PT, N}) where {PT<:AbstractPoint,N}
+    if iszero(radius)
+        commands = PathCommand{PT}[MoveTo(PT(p[1]))]
+        for pos in p[2:end]
+            push!(commands, LineTo(PT(pos)))
+        end
+        return BezierPath(commands)
+    else
+        points = collect(reverse(p))
+        pos = pop!(points)
+        commands = PathCommand{PT}[MoveTo(PT(pos))]
+
+        while length(points) > 1
+            mid = pop!(points)
+            dst = points[end] # due to reverse...
+            dir1 = normalize(mid - pos)
+            dir2 = normalize(dst - mid)
+            r1 = mid - radius * dir1
+            r2 = mid + radius * dir2
+            c1 = mid - .25 * radius * dir1
+            c2 = mid + .25 * radius * dir2
+            push!(commands, LineTo(PT(r1)))
+            push!(commands, CurveTo(PT(c1),
+                                    PT(c2),
+                                    PT(r2)))
+            pos = r2
+        end
+
+        push!(commands, LineTo(points[end]))
+        return BezierPath(commands)
+    end
+end
+
+
+"""
     _cubic_spline(p)
 
 Given a number of points in one dimension calculate waypoints between them.

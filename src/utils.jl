@@ -90,6 +90,13 @@ function align_to_dir(align::Tuple{Symbol, Symbol})
     return Point2f0(x/norm, y/norm)
 end
 
+"""
+    plot_controlpoints!(ax::Axis, gp::GraphPlot)
+    plot_controlpoints!(ax::Axis, path::BezierPath)
+
+Add all the bezier controlpoints of graph plot or a single
+path to the axis `ax`.
+"""
 function plot_controlpoints!(ax::Axis, gp::GraphPlot)
     ep = get_edge_plot(gp)
     ep.plots[1] isa BezierSegments || return
@@ -99,12 +106,16 @@ function plot_controlpoints!(ax::Axis, gp::GraphPlot)
     for (i, p) in enumerate(paths)
         p isa Line && continue
         color = getattr(gp.edge_color, i)
-        for (j, c) in enumerate(p.commands)
-            if c isa CurveTo
-                segs = [p.commands[j-1].p, c.c1, c.p, c.c2]
-                linesegments!(ax, segs; color, linestyle=:dot)
-                scatter!(ax, [c.c1, c.c2]; color)
-            end
+        plot_controlpoints!(ax, p; color)
+    end
+end
+
+function plot_controlpoints!(ax::Axis, p::BezierPath; color=:black)
+    for (j, c) in enumerate(p.commands)
+        if c isa CurveTo
+            segs = [p.commands[j-1].p, c.c1, c.p, c.c2]
+            linesegments!(ax, segs; color, linestyle=:dot)
+            scatter!(ax, [c.c1, c.c2]; color)
         end
     end
 end
