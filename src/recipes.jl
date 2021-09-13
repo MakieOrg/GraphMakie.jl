@@ -151,7 +151,7 @@ function Makie.plot!(gp::GraphPlot)
 
     # create initial vertex positions, will be updated on changes to graph or layout
     # make node_position-Observable available as named attribute from the outside
-    gp[:node_pos] = @lift [Pointf0(p) for p in ($(gp.layout))($graph)]
+    gp[:node_pos] = @lift [Pointf(p) for p in ($(gp.layout))($graph)]
 
     node_pos = gp[:node_pos]
 
@@ -393,8 +393,8 @@ function selfedge_path(g, pos::AbstractVector{<:Point2}, v, size, direction, wid
 
     # the actual length of the tagent vectors, magic number from `CurveTo`
     l = Float32( size/(cos(Δ/2) * 2*0.375) )
-    t1 = vp + l * Point2f0(cos(γ-Δ/2), sin(γ-Δ/2))
-    t2 = vp + l * Point2f0(cos(γ+Δ/2), sin(γ+Δ/2))
+    t1 = vp + l * Point2f(cos(γ-Δ/2), sin(γ-Δ/2))
+    t2 = vp + l * Point2f(cos(γ+Δ/2), sin(γ+Δ/2))
 
     return BezierPath([MoveTo(vp),
                        CurveTo(t1, t2, vp)])

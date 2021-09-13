@@ -236,8 +236,8 @@ function Path(P::Vararg{PT, 2}; tangents=nothing, tfactor=.5) where {PT<:Abstrac
     if tangents === nothing
         return Line(p1, p2)
     else
-        t1 = normalize(Pointf0(tangents[1]))
-        t2 = normalize(Pointf0(tangents[2]))
+        t1 = normalize(Pointf(tangents[1]))
+        t2 = normalize(Pointf(tangents[2]))
         len = norm(p2 - p1)
         return BezierPath([MoveTo(p1),
                            CurveTo(PT(p1+len*tf1*t1),
