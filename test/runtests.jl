@@ -32,8 +32,15 @@ include("beziercurves_test.jl")
     f, ax, p = graphplot(g, node_color=[rand([:blue,:red,:green]) for i in 1:nv(g[])])
 end
 
-@testset "self loop" begin
+@testset "graph without edges" begin
     g = SimpleDiGraph(10)
+    @test_broken graphplot(g)
+    g = SimpleGraph(10)
+    @test_broken graphplot(g)
+end
+
+@testset "selfedge without neighbors" begin
+    g = SimpleGraph(10)
     add_edge!(g, 1, 1)
     graphplot(g)
 end

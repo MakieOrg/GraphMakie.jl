@@ -350,7 +350,7 @@ function selfedge_path(g, pos::AbstractVector{<:Point2}, v, size, direction, wid
     # angle and maximum width of loop
     γ, Δ = 0.0, 0.0
 
-    if direction === automatic
+    if direction === automatic && !isempty(ndirs)
         angles = SVector{length(ndirs)}(atan(p[2], p[1]) for p in ndirs)
         angles = sort(angles)
 
@@ -365,6 +365,9 @@ function selfedge_path(g, pos::AbstractVector{<:Point2}, v, size, direction, wid
 
         # set width of selfloop
         Δ = min(.7*Δ, π/2)
+    elseif direction === automatic && isempty(ndirs)
+        γ = π/2
+        Δ = π/2
     else
         @assert direction isa Point2 "Direction of selfedge should be 2 dim vector ($direction)"
         γ = atan(direction[2], direction[1])
@@ -375,8 +378,11 @@ function selfedge_path(g, pos::AbstractVector{<:Point2}, v, size, direction, wid
         Δ = width
     end
 
-    # the size (max dis. to v) of loop
-    size = size===automatic ? minimum(norm.(ndirs)) * 0.5 : size
+    # the size (max distance to v) of loop
+    # if there are no neighbors set to 0.5. Else half dist to nearest neighbor
+    if size === automatic
+        size = isempty(ndirs) ? 0.5 : minimum(norm.(ndirs)) * 0.5
+    end
 
     # the actual length of the tagent vectors, magic number from `CurveTo`
     l = Float32( size/(cos(Δ/2) * 2*0.375) )

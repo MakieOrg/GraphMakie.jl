@@ -134,7 +134,6 @@ end
 end
 
 @testset "selfloop test" begin
-    using CairoMakie
     using LightGraphs, GraphMakie
     g = star_graph(10)
     add_edge!(g, 1, 1)
