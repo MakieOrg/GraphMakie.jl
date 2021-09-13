@@ -49,7 +49,7 @@ function set_cursor!(p) #hide
     direction = Point2f0(-0.1, 0.2) #hide
     arrows!([p-direction], [direction], linewidth=3, arrowsize=20, lengthscale=0.8) #hide
 end #hide
-nodepos = copy(p[:node_positions][]) #hide
+nodepos = copy(p[:node_pos][]) #hide
 set_cursor!(nodepos[5] + Point2f0(0.05, 0)) #hide
 p.node_size[][5] = 20; p.node_size[] = p.node_size[] #hide
 f #hide
@@ -99,15 +99,15 @@ f #hide
 pop!(ax.scene.plots) #hide
 p.edge_width[][3] = 2.0; p.edge_width[] = p.edge_width[] #hide
 function node_drag_action(state, idx, event, axis)
-    p[:node_positions][][idx] = event.data
-    p[:node_positions][] = p[:node_positions][]
+    p[:node_pos][][idx] = event.data
+    p[:node_pos][] = p[:node_pos][]
 end
 ndrag = NodeDragHandler(node_drag_action)
 register_interaction!(ax, :ndrag, ndrag)
 
-p[:node_positions][][1] = nodepos[1] + Point2f0(1.0,0.5) #hide
-p[:node_positions][] = p[:node_positions][] #hide
-set_cursor!(p[:node_positions][][1] + Point2f0(0.05, 0)) #hide
+p[:node_pos][][1] = nodepos[1] + Point2f0(1.0,0.5) #hide
+p[:node_pos][] = p[:node_pos][] #hide
+set_cursor!(p[:node_pos][][1] + Point2f0(0.05, 0)) #hide
 p.node_size[][1] = 20; p.node_size[] = p.node_size[] #hide
 f # hide
 
@@ -127,13 +127,13 @@ function (action::EdgeDragAction)(state, idx, event, axis)
     if state == true
         if action.src===action.dst===action.init===nothing
             action.init = event.data
-            action.src = p[:node_positions][][edge.src]
-            action.dst = p[:node_positions][][edge.dst]
+            action.src = p[:node_pos][][edge.src]
+            action.dst = p[:node_pos][][edge.dst]
         end
         offset = event.data - action.init
-        p[:node_positions][][edge.src] = action.src + offset
-        p[:node_positions][][edge.dst] = action.dst + offset
-        p[:node_positions][] = p[:node_positions][] # trigger change
+        p[:node_pos][][edge.src] = action.src + offset
+        p[:node_pos][][edge.dst] = action.dst + offset
+        p[:node_pos][] = p[:node_pos][] # trigger change
     elseif state == false
         action.src = action.dst = action.init =  nothing
     end
@@ -141,10 +141,10 @@ end
 edrag = EdgeDragHandler(EdgeDragAction())
 register_interaction!(ax, :edrag, edrag)
 
-p[:node_positions][][9] = nodepos[9] + Point2f0(0.9,1.0) #hide
-p[:node_positions][][10] = nodepos[10] + Point2f0(0.9,1.0) #hide
-p[:node_positions][] = p[:node_positions][] #hide
-pm = (p[:node_positions][][9] + p[:node_positions][][10])/2 #hide
+p[:node_pos][][9] = nodepos[9] + Point2f0(0.9,1.0) #hide
+p[:node_pos][][10] = nodepos[10] + Point2f0(0.9,1.0) #hide
+p[:node_pos][] = p[:node_pos][] #hide
+pm = (p[:node_pos][][9] + p[:node_pos][][10])/2 #hide
 set_cursor!(pm) #hide
 p.edge_width[][18] = 5.0; p.edge_width[] = p.edge_width[] #hide
 f # hide

@@ -161,7 +161,7 @@ p = graphplot!(ax, g;
                edge_color=[0.0 for i in 1:ne(g)],
                edge_attr=(colorrange=(fmin,fmax),
                           colormap=:diverging_bkr_55_10_c35_n256))
-hidespines!(ax); hidedecorations!(ax); p[:node_positions][]=to_pos(u0); ax.aspect = DataAspect()
+hidespines!(ax); hidedecorations!(ax); p[:node_pos][]=to_pos(u0); ax.aspect = DataAspect()
 limits!(ax, -0.1, pos0[end][1]+0.3, pos0[end][2]-0.5, 1.15)
 
 ## draw colorbar
@@ -172,7 +172,7 @@ fps = 30
 trange = range(0.0, sol.t[end], length=Int(T * fps))
 record(fig, "truss.mp4", trange; framerate=fps) do t
     title.text = @sprintf "Stress on truss (t = %.2f )" t
-    p[:node_positions][] = to_pos(sol(t))
+    p[:node_pos][] = to_pos(sol(t))
     load = get_load(sol(t), para)
     p.elabels = [@sprintf("%.0f", l) for l in load]
     p.edge_color[] = load

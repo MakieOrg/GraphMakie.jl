@@ -52,25 +52,31 @@ dependency tree.
 (packages, g) = depgraph("Revise")
 N = length(packages)
 xs, ys, paths = solve_positions(Zarate(), g)
+
+## we scale the y coordinates so the plot looks nice in `DataAspect()`
+ys .= 0.3 .* ys
+foreach(v -> v[2] .= 0.3 .* v[2], values(paths))
 nothing #hide
 
 #=
 In `GraphMakie` the layout always needs to be function. So we're creating a dummy function...
-At the moment, `GraphMakie` can not make use of the nice `paths` property (which would add
-additional waypoints to the edges).
+We will use the [Edge waypoints](@ref) attribute to get the graph with the least crossings.
 =#
 lay = _ -> Point.(zip(xs,ys))
+## create a vector of Point2f0 per edge
+wp = [Point2f0.(zip(paths[e]...)) for e in edges(g)]
 
 ## manually tweak some of the lable aligns
 align = [(:right, :center) for i in 1:N]
-align[1] = (:left, :center)
-align[3] = align[13] = (:left, :top)
-align[6] = (:center, :bottom)
-align[10] = (:right, :top)
+align[1]  = (:left, :center)  # Revise
+align[3]  = (:right, :top)    # LoweredCodeUtils
+align[6]  = (:left, :bottom)  # CodeTracking
+align[10] = (:left, :bottom)  # JuliaInterpreter
+align[13] = (:left, :bottom)  # Requires
 
-## shift "CodeTracking" node in data space
+## shift "JuliaInterpreter" node in data space
 offset = [Point2f0(0,0) for i in 1:N]
-offset[6] = Point(0.0, 0.4)
+offset[10] = Point(-0.1, 0.1)
 
 f, ax, p = graphplot(g; layout=lay,
                      arrow_size=15,
@@ -78,12 +84,15 @@ f, ax, p = graphplot(g; layout=lay,
                      nlabels=packages,
                      nlabels_align=align,
                      nlabels_distance=10,
+                     nlabels_textsize=15,
                      nlabels_offset=offset,
                      node_size=[9.0 for i in 1:N],
-                     edge_width=[3 for i in 1:ne(g)])
+                     edge_width=[3 for i in 1:ne(g)],
+                     waypoints=wp,
+                     waypoint_radius=0.5)
 ax.title = "Dependency Graph of Revise.jl"
 xlims!(ax, -0.6, 5.6)
-hidedecorations!(ax); hidespines!(ax)
+hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()
 f #hide
 
 #=

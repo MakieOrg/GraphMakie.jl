@@ -1,5 +1,5 @@
 #=
-# AST of a Julia function definition
+# AST of a Julia function
 
 In this example we are going to plot an abstract syntax tree of a Julia function using the
 Bucheim Layout from [`NetworkLayout.jl`](https://github.com/JuliaGraphs/NetworkLayout.jl).
@@ -72,7 +72,8 @@ nlabels_align = [(:left, :bottom) for v in vertices(g)]
 fig, ax, p = graphplot(g; layout=Buchheim(),
                        nlabels=repr.(labels),
                        nlabels_distance=5,
-                       nlabels_align)
+                       nlabels_align,
+                       tangents=((0,-1),(0,-1)))
 hidedecorations!(ax); hidespines!(ax)
 fig #hide
 
@@ -83,8 +84,8 @@ for v in vertices(g)
     elseif isempty(outneighbors(g, v)) #leaf
         nlabels_align[v] = (:center,:top)
     else
-        self = p[:node_positions][][v]
-        parent = p[:node_positions][][inneighbors(g, v)[1]]
+        self = p[:node_pos][][v]
+        parent = p[:node_pos][][inneighbors(g, v)[1]]
         if self[1] < parent[1] # left branch
             nlabels_align[v] = (:right,:bottom)
         end

@@ -84,7 +84,7 @@ f # hide
 
 # This is not very nice, lets change the offsets based on the `node_positions`
 
-offsets = 0.15 * (p[:node_positions][] .- p[:node_positions][][1])
+offsets = 0.15 * (p[:node_pos][] .- p[:node_pos][][1])
 offsets[1] = Point2f0(0, 0.3)
 p.nlabels_offset[] = offsets
 autolimits!(ax)
@@ -147,6 +147,96 @@ arrow_size = [10+i for i in 1:ne(g)]
 arrow_shift = range(0.1, 0.8, length=ne(g))
 f, ax, p = graphplot(g; arrow_size, arrow_shift)
 hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()
+f # hide
+
+#=
+## Self edges
+
+A self edge in a graph will be displayed as a loop.
+
+!!! note
+    Selfe edges are not possible in 3D plots yet.
+=#
+g = complete_graph(3)
+add_edge!(g, 1, 1)
+add_edge!(g, 2, 2)
+add_edge!(g, 3, 3)
+f, ax, p = graphplot(g)
+
+hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()
+f # hide
+
+# It is possible to change the appearance using the `selfedge_` attributes:
+p.selfedge_size = Dict(1=>Makie.automatic, 4=>3.6, 6=>0.5) #idx as in edges(g)
+p.selfedge_direction = Point2f0(0.3, 1)
+p.selfedge_width = Any[Makie.automatic for i in 1:ne(g)]
+p.selfedge_width[][4] = 0.6*π; notify(p.selfedge_width)
+autolimits!(ax)
+f # hide
+
+#=
+## Curvy edges
+
+Curvy edges are possible using the low level interface of passing tangent
+vectors and a `tfactor`. The tangent vectors can be `nothing` (straight line) or
+two vectors per edge (one for src vertex, one for dst vertex). The `tfactor`
+scales the distance of the bezier control point relative to the distance of src
+and dst nodes. For real world usage see the [AST of a Julia function](@ref) example.
+=#
+using GraphMakie: plot_controlpoints!
+g = complete_graph(3)
+tangents = Dict(1 => ((1,1),(0,-1)),
+                2 => ((0,1),(0,-1)),
+                3 => ((0,-1),(1,0)))
+tfactor = [0.5, 0.75, (0.5, 0.25)]
+f, ax, p = graphplot(g; layout=SquareGrid(cols=3), tangents, tfactor,
+                     arrow_size=20, arrow_show=true, edge_color=[:red, :green, :blue],
+                     elabels="Edge ".*repr.(1:ne(g)), elabels_distance=10)
+hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()
+plot_controlpoints!(ax, p) # show control points for demonstration
+f # hide
+
+#=
+## Edge waypoints
+It is possible to specify waypoints per edge which needs to be crossed. See the
+[Dependency Graph of a Package](@ref) example.
+
+If the attribute `waypoint_radius` is `nothing` or `:spline` the waypoints will be crossed
+using natural cubic spline interpolation. If the supply a radius the waypoints won't be reached,
+instead they will be connected with straight lines which bend in the given radius around the
+waypoints.
+=#
+set_theme!(resolution=(800, 800)) #hide
+g = SimpleGraph(8); add_edge!(g, 1, 2); add_edge!(g, 3, 4); add_edge!(g, 5, 6); add_edge!(g, 7, 8)
+
+waypoints = Dict(1 => [(.25,  0.25), (.75, -0.25)],
+                 2 => [(.25, -0.25), (.75, -0.75)],
+                 3 => [(.25, -0.75), (.75, -1.25)],
+                 4 => [(.25, -1.25), (.75, -1.75)])
+waypoint_radius = Dict(1 => nothing,
+                       2 => 0,
+                       3 => 0.05,
+                       4 => 0.15)
+
+f = Figure(); f[1,1] = ax = Axis(f)
+using Makie.Colors # hide
+for i in 3:4 #hide
+    poly!(ax, Circle(Point2f0(waypoints[i][1]), waypoint_radius[i]), color=RGBA(0.0,0.44705883,0.69803923,0.2)) #hide
+    poly!(ax, Circle(Point2f0(waypoints[i][2]), waypoint_radius[i]), color=RGBA(0.0,0.44705883,0.69803923,0.2)) #hide
+end #hide
+
+p = graphplot!(ax, g; layout=SquareGrid(cols=2, dy=-0.5),
+               waypoints, waypoint_radius,
+               nlabels=["","r = nothing (equals :spline)",
+                        "","r = 0 (straight lines)",
+                        "","r = 0.05 (in data space)",
+                        "","r = 0.1"],
+               nlabels_distance=30, nlabels_align=(:left,:center))
+
+for i in 1:4 #hide
+    scatter!(ax, waypoints[i], color=RGBA(0.0,0.44705883,0.69803923,1.0)) #hide
+end #hide
+xlims!(ax, (-0.1, 2.25)), hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()
 f # hide
 
 #=
