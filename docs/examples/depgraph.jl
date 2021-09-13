@@ -63,8 +63,8 @@ In `GraphMakie` the layout always needs to be function. So we're creating a dumm
 We will use the [Edge waypoints](@ref) attribute to get the graph with the least crossings.
 =#
 lay = _ -> Point.(zip(xs,ys))
-## create a vector of Point2f0 per edge
-wp = [Point2f0.(zip(paths[e]...)) for e in edges(g)]
+## create a vector of Point2f per edge
+wp = [Point2f.(zip(paths[e]...)) for e in edges(g)]
 
 ## manually tweak some of the lable aligns
 align = [(:right, :center) for i in 1:N]
@@ -75,7 +75,7 @@ align[10] = (:left, :bottom)  # JuliaInterpreter
 align[13] = (:left, :bottom)  # Requires
 
 ## shift "JuliaInterpreter" node in data space
-offset = [Point2f0(0,0) for i in 1:N]
+offset = [Point2f(0,0) for i in 1:N]
 offset[10] = Point(-0.1, 0.1)
 
 f, ax, p = graphplot(g; layout=lay,

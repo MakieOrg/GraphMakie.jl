@@ -46,11 +46,11 @@ nhover = NodeHoverHandler(node_hover_action)
 register_interaction!(ax, :nhover, nhover)
 
 function set_cursor!(p) #hide
-    direction = Point2f0(-0.1, 0.2) #hide
+    direction = Point2f(-0.1, 0.2) #hide
     arrows!([p-direction], [direction], linewidth=3, arrowsize=20, lengthscale=0.8) #hide
 end #hide
 nodepos = copy(p[:node_pos][]) #hide
-set_cursor!(nodepos[5] + Point2f0(0.05, 0)) #hide
+set_cursor!(nodepos[5] + Point2f(0.05, 0)) #hide
 p.node_size[][5] = 20; p.node_size[] = p.node_size[] #hide
 f #hide
 
@@ -105,9 +105,9 @@ end
 ndrag = NodeDragHandler(node_drag_action)
 register_interaction!(ax, :ndrag, ndrag)
 
-p[:node_pos][][1] = nodepos[1] + Point2f0(1.0,0.5) #hide
+p[:node_pos][][1] = nodepos[1] + Point2f(1.0,0.5) #hide
 p[:node_pos][] = p[:node_pos][] #hide
-set_cursor!(p[:node_pos][][1] + Point2f0(0.05, 0)) #hide
+set_cursor!(p[:node_pos][][1] + Point2f(0.05, 0)) #hide
 p.node_size[][1] = 20; p.node_size[] = p.node_size[] #hide
 f # hide
 
@@ -117,9 +117,9 @@ f # hide
 pop!(ax.scene.plots) #hide
 p.node_size[][1] = 10; p.node_size[] = p.node_size[] #hide
 mutable struct EdgeDragAction
-    init::Union{Nothing, Point2f0} # save click position
-    src::Union{Nothing, Point2f0}  # save src vertex position
-    dst::Union{Nothing, Point2f0}  # save dst vertex position
+    init::Union{Nothing, Point2f} # save click position
+    src::Union{Nothing, Point2f}  # save src vertex position
+    dst::Union{Nothing, Point2f}  # save dst vertex position
     EdgeDragAction() = new(nothing, nothing, nothing)
 end
 function (action::EdgeDragAction)(state, idx, event, axis)
@@ -141,8 +141,8 @@ end
 edrag = EdgeDragHandler(EdgeDragAction())
 register_interaction!(ax, :edrag, edrag)
 
-p[:node_pos][][9] = nodepos[9] + Point2f0(0.9,1.0) #hide
-p[:node_pos][][10] = nodepos[10] + Point2f0(0.9,1.0) #hide
+p[:node_pos][][9] = nodepos[9] + Point2f(0.9,1.0) #hide
+p[:node_pos][][10] = nodepos[10] + Point2f(0.9,1.0) #hide
 p[:node_pos][] = p[:node_pos][] #hide
 pm = (p[:node_pos][][9] + p[:node_pos][][10])/2 #hide
 set_cursor!(pm) #hide

@@ -54,7 +54,7 @@ for i in 1:N
     end
 end
 add_edge!(g, 2N, 2N+1)
-pos0 = zeros(Point2f0, 2N + 1)
+pos0 = zeros(Point2f, 2N + 1)
 pos0[1:N] = [Point((i-1)dx,0) for i in 1:N]
 pos0[N+1:2*N] = [Point(i*dx + shift, 1) for i in 1:N]
 pos0[2N+1] = Point(N*dx + 1, -1)
@@ -85,7 +85,7 @@ end
 
 "Extract vector of Points from dgl state `u`"
 function to_pos(u)
-    pos = Vector{Point2f0}(undef, nv(g))
+    pos = Vector{Point2f}(undef, nv(g))
     for (i, idx) in enumerate(x_idxs)
         pos[i] = Point(u[idx], u[idx+1])
     end

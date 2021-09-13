@@ -329,9 +329,9 @@ end
 
 mutable struct EdgeDragAction{PT<:GraphPlot}
     p::PT
-    init::Union{Nothing,Point2f0} # save click position
-    src::Union{Nothing,Point2f0}  # save src vertex position
-    dst::Union{Nothing,Point2f0}  # save dst vertex position
+    init::Union{Nothing,Point2f} # save click position
+    src::Union{Nothing,Point2f}  # save src vertex position
+    dst::Union{Nothing,Point2f}  # save dst vertex position
     EdgeDragAction(p::T) where {T} = new{T}(p, nothing, nothing, nothing)
 end
 

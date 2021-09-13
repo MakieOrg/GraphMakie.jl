@@ -107,9 +107,9 @@ end
     register_interaction!(ax, :ndrag, ndrag)
 
     mutable struct EdgeDragAction
-        init::Union{Nothing, Point2f0} # save click position
-        src::Union{Nothing, Point2f0}  # save src vertex position
-        dst::Union{Nothing, Point2f0}  # save dst vertex position
+        init::Union{Nothing, Point2f} # save click position
+        src::Union{Nothing, Point2f}  # save src vertex position
+        dst::Union{Nothing, Point2f}  # save dst vertex position
         EdgeDragAction() = new(nothing, nothing, nothing)
     end
     function (action::EdgeDragAction)(state, idx, event, axis)
@@ -178,24 +178,24 @@ end
     @test get_elabel_plot(p)[1][] == elabels
 end
 
-@testset "test Pointf0" begin
-    using GraphMakie: Pointf0
+@testset "test Pointf" begin
+    using GraphMakie: Pointf
 
     p = Point(0.0, 0.0)
-    @test typeof(Pointf0(p)) == Point2f0
-    @test Pointf0(p) == Point2f0(p)
+    @test typeof(Pointf(p)) == Point2f
+    @test Pointf(p) == Point2f(p)
 
     p = Point(1, 0)
-    @test typeof(Pointf0(p)) == Point2f0
-    @test Pointf0(p) == Point2f0(p)
+    @test typeof(Pointf(p)) == Point2f
+    @test Pointf(p) == Point2f(p)
 
     p = Point(0.0, 1.0, 2.0)
-    @test typeof(Pointf0(p)) == Point3f0
-    @test Pointf0(p) == Point3f0(p)
+    @test typeof(Pointf(p)) == Point3f
+    @test Pointf(p) == Point3f(p)
 
-    @test Pointf0(0.0, 0.0, 0.0) isa Point3f0
-    @test Pointf0(1.0, 1.0) isa Point2f0
+    @test Pointf(0.0, 0.0, 0.0) isa Point3f
+    @test Pointf(1.0, 1.0) isa Point2f
 
-    @test Pointf0((0.0, 0.0, 0.0 )) isa Point3f0
-    @test Pointf0((1.0, 1.0)) isa  Point2f0
+    @test Pointf((0.0, 0.0, 0.0 )) isa Point3f
+    @test Pointf((1.0, 1.0)) isa  Point2f
 end

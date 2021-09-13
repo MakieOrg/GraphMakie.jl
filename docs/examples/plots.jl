@@ -85,7 +85,7 @@ f # hide
 # This is not very nice, lets change the offsets based on the `node_positions`
 
 offsets = 0.15 * (p[:node_pos][] .- p[:node_pos][][1])
-offsets[1] = Point2f0(0, 0.3)
+offsets[1] = Point2f(0, 0.3)
 p.nlabels_offset[] = offsets
 autolimits!(ax)
 f # hide
@@ -120,8 +120,8 @@ in pixels using the `elabels_distance` argument.
 =#
 p.elabels_opposite[] = [1,2,8,6]
 
-p.elabels_offset[] = [Point2f0(0.0, 0.0) for i in 1:ne(g)]
-p.elabels_offset[][5] = Point2f0(-0.4,0)
+p.elabels_offset[] = [Point2f(0.0, 0.0) for i in 1:ne(g)]
+p.elabels_offset[][5] = Point2f(-0.4,0)
 p.elabels_offset[] = p.elabels_offset[]
 
 p.elabels_shift[] = [0.5 for i in 1:ne(g)]
@@ -168,7 +168,7 @@ f # hide
 
 # It is possible to change the appearance using the `selfedge_` attributes:
 p.selfedge_size = Dict(1=>Makie.automatic, 4=>3.6, 6=>0.5) #idx as in edges(g)
-p.selfedge_direction = Point2f0(0.3, 1)
+p.selfedge_direction = Point2f(0.3, 1)
 p.selfedge_width = Any[Makie.automatic for i in 1:ne(g)]
 p.selfedge_width[][4] = 0.6*π; notify(p.selfedge_width)
 autolimits!(ax)
@@ -221,8 +221,8 @@ waypoint_radius = Dict(1 => nothing,
 f = Figure(); f[1,1] = ax = Axis(f)
 using Makie.Colors # hide
 for i in 3:4 #hide
-    poly!(ax, Circle(Point2f0(waypoints[i][1]), waypoint_radius[i]), color=RGBA(0.0,0.44705883,0.69803923,0.2)) #hide
-    poly!(ax, Circle(Point2f0(waypoints[i][2]), waypoint_radius[i]), color=RGBA(0.0,0.44705883,0.69803923,0.2)) #hide
+    poly!(ax, Circle(Point2f(waypoints[i][1]), waypoint_radius[i]), color=RGBA(0.0,0.44705883,0.69803923,0.2)) #hide
+    poly!(ax, Circle(Point2f(waypoints[i][2]), waypoint_radius[i]), color=RGBA(0.0,0.44705883,0.69803923,0.2)) #hide
 end #hide
 
 p = graphplot!(ax, g; layout=SquareGrid(cols=2, dy=-0.5),
