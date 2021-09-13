@@ -1,6 +1,6 @@
 using Test
 using GraphMakie
-using GraphMakie.Makie.GeometryBasics
+using GeometryBasics
 
 using GraphMakie: BezierPath, MoveTo, LineTo, CurveTo, interpolate, discretize, tangent, waypoints, Path, Line
 

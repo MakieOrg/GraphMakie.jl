@@ -1,5 +1,5 @@
-using Makie.GeometryBasics
-using Makie.GeometryBasics.StaticArrays
+using GeometryBasics
+using StaticArrays
 using LinearAlgebra: normalize, ⋅
 
 ####
