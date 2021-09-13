@@ -34,9 +34,9 @@ end
 
 @testset "graph without edges" begin
     g = SimpleDiGraph(10)
-    @test_broken graphplot(g)
+    graphplot(g)
     g = SimpleGraph(10)
-    @test_broken graphplot(g)
+    graphplot(g)
 end
 
 @testset "selfedge without neighbors" begin

@@ -185,7 +185,11 @@ function Makie.plot!(gp::GraphPlot)
                           gp.edge_attr...)
 
     # plott arrow heads
-    arrow_pos = @lift broadcast(interpolate, $edge_paths, $(gp.arrow_shift))
+    arrow_pos = @lift if !isempty($edge_paths)
+        broadcast(interpolate, $edge_paths, $(gp.arrow_shift))
+    else # if no edges return (empty) vector of points, broadcast yields Vector{Any} which can't be plotted
+        Vector{eltype(node_pos[])}()
+    end
     arrow_rot = @lift Billboard(broadcast($to_angle, edge_paths[], $arrow_pos, gp.arrow_shift[]))
     arrow_show = @lift $(gp.arrow_show) === automatic ? $graph isa SimpleDiGraph : $(gp.arrow_show)
     arrow_heads = scatter!(gp,
@@ -301,6 +305,9 @@ Returns an `AbstractPath` for each edge in the graph.
 """
 function find_edge_paths(g, attr, pos::AbstractVector{PT}) where {PT}
     paths = Vector{AbstractPath{PT}}(undef, ne(g))
+
+    ne(g) == 0 && return paths
+
     for (i, e) in enumerate(edges(g))
         if e.src == e.dst
             size = getattr(attr.selfedge_size, i)
