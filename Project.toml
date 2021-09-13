@@ -1,7 +1,7 @@
 name = "GraphMakie"
 uuid = "1ecd5474-83a3-4783-bb4f-06765db800d2"
 authors = ["Simon Danisch", "Hans Würfel"]
-version = "0.2.1"
+version = "0.2.2"
 
 [deps]
 LightGraphs = "093fc24a-ae57-5d10-9952-331d41423f4d"
@@ -11,7 +11,7 @@ NetworkLayout = "46757867-2c16-5918-afeb-47bfcb05e46a"
 
 [compat]
 LightGraphs = "1.3"
-Makie = "0.14, 0.15"
+Makie = "0.15"
 NetworkLayout = "0.4"
 julia = "1"
 

@@ -32,6 +32,28 @@ include("beziercurves_test.jl")
     f, ax, p = graphplot(g, node_color=[rand([:blue,:red,:green]) for i in 1:nv(g[])])
 end
 
+@testset "self loop" begin
+    g = SimpleDiGraph(10)
+    add_edge!(g, 1, 1)
+    graphplot(g)
+end
+
+@testset "small graphs" begin
+    g = SimpleGraph(1)
+    fig, ax, p = graphplot(g)
+
+    g = complete_graph(2)
+    graphplot(g)
+end
+
+@testset "single line width per edge" begin
+    g = complete_graph(3)
+    graphplot(g)
+    graphplot(g; edge_width=10)
+    graphplot(g; edge_width=[5, 10, 15])
+    graphplot(g; edge_width=[5, 10, 5, 10, 5, 10])
+end
+
 @testset "Hover, click and drag Interaction" begin
     g = wheel_graph(10)
     add_edge!(g, 1, 1)
