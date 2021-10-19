@@ -13,6 +13,8 @@ This package is just a plotting recipe, you still need to use one of the Makie b
 contribution such as suggesting features, raising issues and opening PRs are
 welcome!
 
+Starting from v0.3 `GraphMakie.jl` switches from `LightGraphs.jl` to `Graphs.jl` for the graph representation. See this [discourse post](https://discourse.julialang.org/t/lightgraphs-jl-transition/69526/17) for more information. If you want to use `LightGraphs.jl` please specifically `] add GraphMakie@0.2`!
+
 ## Installation
 ``` julia
 pkg> add GraphMakie

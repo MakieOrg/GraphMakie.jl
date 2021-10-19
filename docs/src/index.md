@@ -9,6 +9,9 @@ This Package consists of two parts: a plot recipe for graphs types from
 [Graphs.jl](https://github.com/JuliaGraphs/Graphs.jl) and some helper
 functions to add interactions to those plots.
 
+!!! note "about Graphs.jl and LightGraphs.jl"
+    Starting from v0.3 `GraphMakie.jl` switches from `LightGraphs.jl` to `Graphs.jl` as the for the underlying graph package. See this [discourse post](https://discourse.julialang.org/t/lightgraphs-jl-transition/69526/17) for more information. If you want to use `LightGraphs.jl` please specifically `] add GraphMakie@0.2`!
+
 There are also [plot examples](generated/plots.md) and [interaction examples](generated/interactions.md) pages.
 
 ## The `graphplot` Recipe
