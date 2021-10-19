@@ -8,7 +8,7 @@ using CairoMakie
 CairoMakie.activate!(type="png") #hide
 CairoMakie.inline!(true) #hide
 set_theme!(resolution=(800, 600)) #hide
-using LightGraphs
+using Graphs
 using GraphMakie
 using NetworkLayout
 using CairoMakie

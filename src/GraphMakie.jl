@@ -1,7 +1,7 @@
 module GraphMakie
 
 using NetworkLayout
-using LightGraphs
+using Graphs
 using Makie
 using LinearAlgebra
 

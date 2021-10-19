@@ -22,7 +22,7 @@ pkg> add GraphMakie
 ```julia
 using GLMakie
 using GraphMakie
-using LightGraphs
+using Graphs
 g = complete_graph(10)
 graphplot(g)
 ```
