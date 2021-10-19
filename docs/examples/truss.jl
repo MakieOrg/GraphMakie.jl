@@ -1,4 +1,8 @@
 #=
+!!! warning "example broken :("
+    This example is currently broken due to the `LightGraphs.jl`->`Graphs.jl` transition. Will be fixed soon...
+    In the mean time consult the [old docs](http://juliaplots.org/GraphMakie.jl/v0.2/generated/truss/).
+
 # Stress on Truss
 In this example we'll plot an animation of the stress on some truss structure
 using `GaphMakie.jl` and [`NetworkDynamics.jl`](https://github.com/PIK-ICoN/NetworkDynamics.jl)
@@ -7,7 +11,7 @@ using `GaphMakie.jl` and [`NetworkDynamics.jl`](https://github.com/PIK-ICoN/Netw
 =#
 using NetworkDynamics
 using OrdinaryDiffEq
-using LightGraphs
+using Graphs
 using GraphMakie
 using LinearAlgebra: norm, ⋅
 using Printf

@@ -14,7 +14,7 @@ CairoMakie.activate!(type="png") # hide
 set_theme!(resolution=(800, 400)) #hide
 CairoMakie.inline!(true) # hide
 using GraphMakie
-using LightGraphs
+using Graphs
 using CairoMakie.Colors
 
 import Random; Random.seed!(2) # hide

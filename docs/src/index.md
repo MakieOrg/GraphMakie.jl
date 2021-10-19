@@ -6,8 +6,11 @@ CurrentModule = GraphMakie
 This is the Documentation for [GraphMakie](https://github.com/JuliaPlots/GraphMakie.jl).
 
 This Package consists of two parts: a plot recipe for graphs types from
-[LightGraphs.jl](https://juliagraphs.org/LightGraphs.jl/latest/) and some helper
+[Graphs.jl](https://github.com/JuliaGraphs/Graphs.jl) and some helper
 functions to add interactions to those plots.
+
+!!! note "about Graphs.jl and LightGraphs.jl"
+    Starting from v0.3 `GraphMakie.jl` switches from `LightGraphs.jl` to `Graphs.jl` as the for the underlying graph package. See this [discourse post](https://discourse.julialang.org/t/lightgraphs-jl-transition/69526/17) for more information. If you want to use `LightGraphs.jl` please specifically `] add GraphMakie@0.2`!
 
 There are also [plot examples](generated/plots.md) and [interaction examples](generated/interactions.md) pages.
 
@@ -38,7 +41,7 @@ To try them all use the following code in a `GLMakie` environment.
 ```julia
 using GLMakie
 using GraphMakie
-using LightGraphs
+using Graphs
 g = wheel_graph(10)
 f, ax, p = graphplot(g, edge_width=[3 for i in 1:ne(g)],
                      node_size=[10 for i in 1:nv(g)])

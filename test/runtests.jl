@@ -1,6 +1,6 @@
 using CairoMakie
 using GraphMakie
-using GraphMakie.LightGraphs
+using GraphMakie.Graphs
 using GraphMakie.NetworkLayout
 using Makie.Colors
 # using GLMakie

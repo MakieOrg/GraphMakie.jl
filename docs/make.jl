@@ -7,7 +7,7 @@ using CairoMakie
 using JSServe
 using NetworkDynamics
 using LayeredLayouts
-using LightGraphs
+using Graphs
 using PkgDeps
 
 DocMeta.setdocmeta!(GraphMakie, :DocTestSetup, :(using GraphMakie); recursive=true)

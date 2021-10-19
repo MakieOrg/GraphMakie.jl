@@ -1,7 +1,7 @@
 #=
 # Plotting Graphs with `GraphMakie.jl`
 ## The `graphplot` Command
-Plotting your first `AbstractGraph` from [`LightGraphs.jl`](https://juliagraphs.org/LightGraphs.jl/latest/)
+Plotting your first `AbstractGraph` from [`Graphs.jl`](https://github.com/JuliaGraphs/Graphs.jl)
 is as simple as
 =#
 using CairoMakie
@@ -9,7 +9,7 @@ CairoMakie.activate!(type="png") # hide
 set_theme!(resolution=(800, 400)) #hide
 CairoMakie.inline!(true) # hide
 using GraphMakie
-using LightGraphs
+using Graphs
 import Random; Random.seed!(2) # hide
 
 g = wheel_graph(10)
