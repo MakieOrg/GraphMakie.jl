@@ -1,8 +1,4 @@
 #=
-!!! warning "example broken :("
-    This example is currently broken due to the `LightGraphs.jl`->`Graphs.jl` transition. Will be fixed soon...
-    In the mean time consult the [old docs](http://juliaplots.org/GraphMakie.jl/v0.2/generated/depgraph/).
-
 # Dependency Graph of a Package
 In this example we'll plot a dependency graph of a package using
 [`PkgDeps.jl`](https://github.com/JuliaEcosystem/PkgDeps.jl) and

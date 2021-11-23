@@ -1,8 +1,4 @@
 #=
-!!! warning "example broken :("
-    This example is currently broken due to the `LightGraphs.jl`->`Graphs.jl` transition. Will be fixed soon...
-    In the mean time consult the [old docs](http://juliaplots.org/GraphMakie.jl/v0.2/generated/truss/).
-
 # Stress on Truss
 In this example we'll plot an animation of the stress on some truss structure
 using `GaphMakie.jl` and [`NetworkDynamics.jl`](https://github.com/PIK-ICoN/NetworkDynamics.jl)
@@ -39,9 +35,9 @@ function vertex_fixed!(du, u, edges, _, _)
     du[1:2] .= 0.0
 end
 
-edge = StaticEdge(f! = edge_f!, dim=2, coupling=:antisymmetric)
-vertex_free = ODEVertex(f! = vertex_free!, dim=4, sym=[:x, :y, :v, :w])
-vertex_fix  = ODEVertex(f! = vertex_fixed!, dim=2, sym=[:x, :y, :v, :w])
+edge = StaticEdge(f = edge_f!, dim=2, coupling=:antisymmetric)
+vertex_free = ODEVertex(f = vertex_free!, dim=4, sym=[:x, :y, :v, :w])
+vertex_fix  = ODEVertex(f = vertex_fixed!, dim=2, sym=[:x, :y, :v, :w])
 nothing #hide
 
 #=
