@@ -177,7 +177,19 @@ f # hide
 #=
 ## Curvy edges
 
-Curvy edges are possible using the low level interface of passing tangent
+The easiest way to enable curvy edges is to use the `curve_distance` parameter which lets
+you add a "distance" parameter (for all edges or on a per edge basis as array or dict).
+The parameter changes the maximum distance of the bent line to a straight line.
+=#
+g = complete_digraph(3)
+distances = collect(0.05:0.05:ne(g)*0.05)
+elabels = "d = ".* repr.(round.(distances, digits=2))
+f, ax, p = graphplot(g; curve_distance=distances, elabels, arrow_size=20)
+hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()
+f # hide
+
+#=
+Curvy edges are also possible using the low level interface of passing tangent
 vectors and a `tfactor`. The tangent vectors can be `nothing` (straight line) or
 two vectors per edge (one for src vertex, one for dst vertex). The `tfactor`
 scales the distance of the bezier control point relative to the distance of src
