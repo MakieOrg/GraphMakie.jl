@@ -193,7 +193,7 @@ function Makie.plot!(gp::GraphPlot)
     arrow_rot = @lift Billboard(broadcast($to_angle, edge_paths[], $arrow_pos, gp.arrow_shift[]))
     arrow_show = @lift $(gp.arrow_show) === automatic ? $graph isa SimpleDiGraph : $(gp.arrow_show)
     arrow_heads = scatter!(gp,
-                           arrow_pos,
+                           arrow_pos;
                            marker = '➤',
                            markersize = gp.arrow_size,
                            color = gp.edge_color,
