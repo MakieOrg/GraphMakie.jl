@@ -9,7 +9,7 @@ using Test
 include("beziercurves_test.jl")
 
 @testset "GraphMakie.jl" begin
-    g = Node(wheel_digraph(10))
+    g = Observable(wheel_digraph(10))
     f, ax, p = graphplot(g)
     f, ax, p = graphplot(g, node_attr=Attributes(visible=false))
     f, ax, p = graphplot(g, node_attr=(;visible=true))
