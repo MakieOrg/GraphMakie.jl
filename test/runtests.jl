@@ -3,6 +3,7 @@ using GraphMakie
 using GraphMakie.Graphs
 using GraphMakie.NetworkLayout
 using Makie.Colors
+using StaticArrays
 # using GLMakie
 using Test
 
@@ -198,6 +199,29 @@ end
 
     @test Pointf((0.0, 0.0, 0.0 )) isa Point3f
     @test Pointf((1.0, 1.0)) isa  Point2f
+
+    @test Pointf([0.0, 0.0, 0.0]) isa Point3f
+    @test Pointf([1.0, 1.0]) isa  Point2f
+
+    @test Pointf(SA[0.0, 0.0, 0.0]) isa Point3f
+    @test Pointf(SA[1.0, 1.0]) isa  Point2f
+
+    g = complete_graph(3)
+    pos1 = [(0,0),
+            (1,1),
+            (0,1)]
+    pos2 = [[0,0],
+            [1,1],
+            [0,1]]
+    pos3 = [SA[0,0],
+            SA[1,1],
+            SA[0,1]]
+    @test isconcretetype(typeof(Pointf.(pos1)))
+    @test isconcretetype(typeof(Pointf.(pos2)))
+    @test isconcretetype(typeof(Pointf.(pos3)))
+    graphplot(g; layout=(x)->pos1)
+    graphplot(g; layout=(x)->pos2)
+    graphplot(g; layout=(x)->pos3)
 end
 
 @testset "test edges distance parameters" begin
