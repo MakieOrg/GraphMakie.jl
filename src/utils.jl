@@ -62,7 +62,9 @@ end
 Convert Point{N, T} or NTuple{N, T} to Point{N, Float32}.
 """
 Pointf(p::Union{Point{N,T}, NTuple{N,T}}) where {N,T} = Point{N, Float32}(p)
+Pointf(p::StaticVector{N, T}) where {N,T} = Point{N, Float32}(p)
 Pointf(p::Vararg{T,N}) where {N,T} = Point{N, Float32}(p)
+Pointf(p::Vector{T}) where {T} = Point{length(p), Float32}(p)
 
 """
     align_to_dir(align::Tuple{Symbol, Symbol})
