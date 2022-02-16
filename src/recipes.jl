@@ -69,16 +69,30 @@ the edge.
 - `elabels_textsize=labels_theme.textsize`
 - `elabels_attr=(;)`: List of kw arguments which gets passed to the `text` command
 
-### self edges & curvy edges
+### Curvy edges & self edges/loops
 - `edge_plottype=Makie.automatic()`: Either `automatic`, `:linesegments` or
   `:beziersegments`. `:beziersegments` are much slower for big graphs!
+
+Self edges / loops:
+
 - `selfedge_size=Makie.automatic()`: Size of self-edge-loop (dict/vector possible).
 - `selfedge_direction=Makie.automatic()`: Direction of self-edge-loop as `Point2` (dict/vector possible).
 - `selfedge_width=Makie.automatic()`: Opening of selfloop in rad (dict/vector possible).
-- `curve_distance=0.0`:
 
-    Specify a distance of the (now curved) line to the straight line. Can be single value, array or Dict.
-    User proivded `tangents` or `waypoints` will overrule this property.
+High level interface for curvy edges:
+
+- `curve_distance=0.1`:
+
+    Specify a distance of the (now curved) line to the straight line *in data
+    space*. Can be single value, array or dict. User proivded `tangents` or
+    `waypoints` will overrule this property.
+
+- `curve_distance_usage=Makie.automatic()`:
+
+    If `Makie.automatic()`, only plot double edges in a curvy way. Other options
+    are `true` and `false`.
+
+Tangents interface for curvy edges:
 
 - `tangents=nothing`:
 
@@ -91,6 +105,7 @@ the edge.
     Higher factor means bigger radius. Can be tuple per edge to specify different
     factor for src and dst.
 
+Waypoints along edges:
 - `waypoints=nothing`
 
     Specify waypoints for edges. This parameter should be given as a vector or
@@ -144,7 +159,8 @@ the edge.
         selfedge_size = automatic,
         selfedge_direction = automatic,
         selfedge_width = automatic,
-        curve_distance = 0.0,
+        curve_distance = 0.1,
+        curve_distance_usage = automatic,
         tangents=nothing,
         tfactor=0.6,
         waypoints=nothing,
@@ -325,7 +341,20 @@ function find_edge_paths(g, attr, pos::AbstractVector{PT}) where {PT}
             tangents = getattr(attr.tangents, i)
             tfactor = getattr(attr.tfactor, i)
             waypoints::Vector{PT} = getattr(attr.waypoints, i, PT[])
-            curve_distance = getattr(attr.curve_distance, i, 0.0)
+
+            cdu = getattr(attr.curve_distance_usage, i)
+            if cdu === true
+                curve_distance = getattr(attr.curve_distance, i, 0.0)
+            elseif cdu === false
+                curve_distance = 0.0
+            elseif cdu === automatic
+                if is_directed(g) && has_edge(g, e.dst, e.src)
+                    println("directed and has ege")
+                    curve_distance = getattr(attr.curve_distance, i, 0.0)
+                else
+                    curve_distance = 0.0
+                end
+            end
 
             if !isnothing(waypoints) && !isempty(waypoints) #there are waypoints
                 # the waypoints may already include the endpoints
