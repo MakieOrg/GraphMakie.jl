@@ -199,3 +199,21 @@ end
     @test Pointf((0.0, 0.0, 0.0 )) isa Point3f
     @test Pointf((1.0, 1.0)) isa  Point2f
 end
+
+@testset "test edges distance parameters" begin
+    g = SimpleDiGraph(3)
+    add_edge!(g, 1, 2)
+    add_edge!(g, 2, 3)
+    add_edge!(g, 3, 1)
+
+    graphplot(g)
+
+    add_edge!(g, 1, 3)
+
+    graphplot(g; curve_distance=0.2)
+    graphplot(g; curve_distance=0.2, curve_distance_usage=false)
+    graphplot(g; curve_distance=0.2, curve_distance_usage=true)
+
+    graphplot(g; curve_distance=collect(0.1:0.1:0.5))
+    graphplot(g; curve_distance=collect(0.1:0.1:0.5), curve_distance_usage=true)
+end

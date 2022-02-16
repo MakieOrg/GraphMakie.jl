@@ -4,7 +4,7 @@ using GeometryBasics
 
 using GraphMakie: BezierPath, MoveTo, LineTo, CurveTo, interpolate, discretize, tangent, waypoints, Path, Line
 
-@testset "interpolation and tangets" begin
+@testset "interpolation and tangents" begin
     path = BezierPath([
         MoveTo(Point2f(0,0)),
         LineTo(Point2f(0.5,0.5)),
@@ -71,7 +71,7 @@ end
     scatter!(waypoints(path))
 end
 
-@testset "two points and tangets" begin
+@testset "two points and tangents" begin
     p1 = Point2f(0,0)
     t1 = Point2f(0,1)
     p2 = Point2f(1,1)

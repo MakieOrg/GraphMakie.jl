@@ -176,8 +176,43 @@ f # hide
 
 #=
 ## Curvy edges
+### `curve_distance` interface
 
-Curvy edges are possible using the low level interface of passing tangent
+The easiest way to enable curvy edges is to use the `curve_distance` parameter
+which lets you add a "distance" parameter. The parameter changes the maximum
+distance of the bent line to a straight line. Per default, only two way edges will
+be drawn as a curve:
+=#
+g = SimpleDiGraph(3); add_edge!(g, 1, 2); add_edge!(g, 2, 3); add_edge!(g, 3, 1); add_edge!(g, 1, 3)
+
+f, ax, p = graphplot(g)
+hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()
+f #hide
+
+#=
+This behaviour may be changed by using the `curve_distance_usage=Makie.automatic` parameter.
+ - `Makie.automatic`: Only apply `curve_distance` to double edges.
+ - `true`: Use on all edges.
+ - `false`: Don't use.
+=#
+f, ax, p = graphplot(g; curve_distance=-.5, curve_distance_usage=true)
+hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()
+f #hide
+
+#=
+It is also possible to specify the distance on a per edge base:
+=#
+g = complete_digraph(3)
+distances = collect(0.05:0.05:ne(g)*0.05)
+elabels = "d = ".* repr.(round.(distances, digits=2))
+f, ax, p = graphplot(g; curve_distance=distances, elabels, arrow_size=20)
+hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()
+f # hide
+
+#=
+### `tangents` interface
+
+Curvy edges are also possible using the low level interface of passing tangent
 vectors and a `tfactor`. The tangent vectors can be `nothing` (straight line) or
 two vectors per edge (one for src vertex, one for dst vertex). The `tfactor`
 scales the distance of the bezier control point relative to the distance of src

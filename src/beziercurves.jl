@@ -173,7 +173,7 @@ isline(p::BezierPath) = length(p.commands)==2 && p.commands[1] isa MoveTo && p.c
 Create a bezier path by natural cubic spline interpolation of the points `P`.
 If there are only two points and no tangents return a straight line.
 
-The `tangets` kw allows you pass two vectors as tangents for the first and the
+The `tangents` kw allows you pass two vectors as tangents for the first and the
 last point. The `tfactor` affects the curvature on the start and end given some
 tangents.
 """
