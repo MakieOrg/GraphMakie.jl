@@ -352,7 +352,7 @@ Return a Path for the
 function selfedge_path(g, pos::AbstractVector{<:Point2}, v, size, direction, width)
     vp = pos[v]
     # get the vectors to all the neighbors
-    ndirs = [pos[n] - vp for n in neighbors(g, v) if n != v]
+    ndirs = [pos[n] - vp for n in all_neighbors(g, v) if n != v]
 
     # angle and maximum width of loop
     γ, Δ = 0.0, 0.0
