@@ -9,7 +9,7 @@ Creates a plot of the network `graph`. Consists of multiple steps:
 - Layout the nodes: see `layout` attribute. The node position is accessible from outside
   the plot object `p` as an observable using `p[:node_pos]`.
 - plot edges as `edgeplot`-plot
-- if `arrows_show` plot arrowheads as `scatter`-plot
+- if `arrow_show` plot arrowheads as `scatter`-plot
 - plot nodes as `scatter`-plot
 - if `nlabels!=nothing` plot node labels as `text`-plot
 - if `elabels!=nothing` plot edge labels as `text`-plot
