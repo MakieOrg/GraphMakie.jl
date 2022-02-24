@@ -34,7 +34,7 @@ underlying graph and therefore changing the number of Edges/Nodes.
   get pointy edges.
 - `edge_attr=(;)`: List of kw arguments which gets passed to the `linesegments` command
 - `arrow_show=Makie.automatic`: `Bool`, indicate edge directions with arrowheads?
-  Defaults to `true` for `SimpleDiGraph` and `false` otherwise.
+  Defaults to `Graphs.is_directed(graph)`.
 - `arrow_size=scatter_theme.markersize`: Size of arrowheads.
 - `arrow_shift=0.5`: Shift arrow position from source (0) to dest (1) node.
 - `arrow_attr=(;)`: List of kw arguments which gets passed to the `scatter` command
@@ -213,7 +213,7 @@ function Makie.plot!(gp::GraphPlot)
         Vector{eltype(node_pos[])}()
     end
     arrow_rot = @lift Billboard(broadcast($to_angle, edge_paths[], $arrow_pos, gp.arrow_shift[]))
-    arrow_show = @lift $(gp.arrow_show) === automatic ? $graph isa SimpleDiGraph : $(gp.arrow_show)
+    arrow_show = @lift $(gp.arrow_show) === automatic ? Graphs.is_directed($graph) : $(gp.arrow_show)
     arrow_heads = scatter!(gp,
                            arrow_pos;
                            marker = '➤',
