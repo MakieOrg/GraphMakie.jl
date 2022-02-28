@@ -349,7 +349,6 @@ function find_edge_paths(g, attr, pos::AbstractVector{PT}) where {PT}
                 curve_distance = 0.0
             elseif cdu === automatic
                 if is_directed(g) && has_edge(g, e.dst, e.src)
-                    println("directed and has ege")
                     curve_distance = getattr(attr.curve_distance, i, 0.0)
                 else
                     curve_distance = 0.0
