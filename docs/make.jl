@@ -13,19 +13,14 @@ using PkgDeps
 DocMeta.setdocmeta!(GraphMakie, :DocTestSetup, :(using GraphMakie); recursive=true)
 
 # generate examples
-examples = [
-    joinpath(@__DIR__, "examples", "plots.jl"),
-    joinpath(@__DIR__, "examples", "interactions.jl"),
-    joinpath(@__DIR__, "examples", "depgraph.jl"),
-    joinpath(@__DIR__, "examples", "truss.jl"),
-    joinpath(@__DIR__, "examples", "syntaxtree.jl"),
-]
-OUTPUT = joinpath(@__DIR__, "src", "generated")
-isdir(OUTPUT) && rm(OUTPUT, recursive=true)
-mkpath(OUTPUT)
+example_dir = joinpath(@__DIR__, "examples")
+outdir = joinpath(@__DIR__, "src", "generated")
+isdir(outdir) && rm(outdir, recursive=true)
+mkpath(outdir)
 
-for ex in examples
-    Literate.markdown(ex, OUTPUT)
+for example in filter(contains(r".jl$"), readdir(example_dir, join=true))
+    Literate.markdown(example, outdir;
+                      preprocess=c->replace(c, "@save_reference " => ""))
 end
 
 makedocs(; modules=[GraphMakie], authors="Simon Danisch, Hans Würfel",
@@ -40,6 +35,7 @@ makedocs(; modules=[GraphMakie], authors="Simon Danisch, Hans Würfel",
                     "Dependency Graph" => "generated/depgraph.md",
                     "Stress on Truss" => "generated/truss.md",
                     "Julia AST" => "generated/syntaxtree.md",
+                    "Testplots" => "generated/reftests.md",
                 ]
                 ])
 

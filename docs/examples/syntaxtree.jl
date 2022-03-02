@@ -75,7 +75,7 @@ fig, ax, p = graphplot(g; layout=Buchheim(),
                        nlabels_align,
                        tangents=((0,-1),(0,-1)))
 hidedecorations!(ax); hidespines!(ax)
-fig #hide
+@save_reference fig #hide
 
 # This does not look nice yet! Lets tweak the `align` parameter of the nodes labels...
 for v in vertices(g)
@@ -92,4 +92,4 @@ for v in vertices(g)
     end
 end
 p.nlabels_align = nlabels_align
-fig # hide
+@save_reference fig #hide

@@ -16,7 +16,7 @@ g = wheel_graph(10)
 f, ax, p = graphplot(g)
 hidedecorations!(ax); hidespines!(ax)
 ax.aspect = DataAspect()
-f # hide
+@save_reference f #hide
 
 #=
 The `graphplot` command is a recipe which wraps several steps
@@ -51,7 +51,7 @@ f, ax, p = graphplot(g, layout=Shell(),
 
 hidedecorations!(ax); hidespines!(ax)
 ax.aspect = DataAspect()
-f #hide
+@save_reference f #hide
 
 #=
 We can interactively change the attributes as usual with Makie.
@@ -64,7 +64,7 @@ p.layout = fixed_layout; autolimits!(ax)
 p.edge_width = 5.0
 p.edge_color[][3] = :green;
 p.edge_color = p.edge_color[] # trigger observable
-f #hide
+@save_reference f #hide
 
 #=
 ## Adding Node Labels
@@ -80,7 +80,7 @@ f, ax, p = graphplot(g,
                      nlabels_color=colors,
                      nlabels_align=(:center,:center))
 hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()
-f # hide
+@save_reference f #hide
 
 # This is not very nice, lets change the offsets based on the `node_positions`
 
@@ -88,7 +88,7 @@ offsets = 0.15 * (p[:node_pos][] .- p[:node_pos][][1])
 offsets[1] = Point2f(0, 0.3)
 p.nlabels_offset[] = offsets
 autolimits!(ax)
-f # hide
+@save_reference f #hide
 
 # ## Adding Edge Labels
 Random.seed!(42)
@@ -100,7 +100,7 @@ f, ax, p = graphplot(g, elabels=labels,
                      elabels_color=[:black for i in 1:ne(g)],
                      edge_color=[:black for i in 1:ne(g)])
 hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()
-f # hide
+@save_reference f #hide
 
 #=
 The position of the edge labels is determined by several plot arguments.
@@ -133,7 +133,7 @@ p.elabels_distance[] = zeros(ne(g))
 p.elabels_distance[][8] = 15
 p.elabels_distance[] = p.elabels_distance[]
 
-f # hide
+@save_reference f #hide
 
 #=
 ## Indicate Edge Direction
@@ -147,7 +147,7 @@ arrow_size = [10+i for i in 1:ne(g)]
 arrow_shift = range(0.1, 0.8, length=ne(g))
 f, ax, p = graphplot(g; arrow_size, arrow_shift)
 hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()
-f # hide
+@save_reference f #hide
 
 #=
 ## Self edges
@@ -164,7 +164,7 @@ add_edge!(g, 3, 3)
 f, ax, p = graphplot(g)
 
 hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()
-f # hide
+@save_reference f #hide
 
 # It is possible to change the appearance using the `selfedge_` attributes:
 p.selfedge_size = Dict(1=>Makie.automatic, 4=>3.6, 6=>0.5) #idx as in edges(g)
@@ -172,7 +172,7 @@ p.selfedge_direction = Point2f(0.3, 1)
 p.selfedge_width = Any[Makie.automatic for i in 1:ne(g)]
 p.selfedge_width[][4] = 0.6*π; notify(p.selfedge_width)
 autolimits!(ax)
-f # hide
+@save_reference f #hide
 
 #=
 ## Curvy edges
@@ -187,7 +187,7 @@ g = SimpleDiGraph(3); add_edge!(g, 1, 2); add_edge!(g, 2, 3); add_edge!(g, 3, 1)
 
 f, ax, p = graphplot(g)
 hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()
-f #hide
+@save_reference f #hide
 
 #=
 This behaviour may be changed by using the `curve_distance_usage=Makie.automatic` parameter.
@@ -197,7 +197,7 @@ This behaviour may be changed by using the `curve_distance_usage=Makie.automatic
 =#
 f, ax, p = graphplot(g; curve_distance=-.5, curve_distance_usage=true)
 hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()
-f #hide
+@save_reference f #hide
 
 #=
 It is also possible to specify the distance on a per edge base:
@@ -207,7 +207,7 @@ distances = collect(0.05:0.05:ne(g)*0.05)
 elabels = "d = ".* repr.(round.(distances, digits=2))
 f, ax, p = graphplot(g; curve_distance=distances, elabels, arrow_size=20)
 hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()
-f # hide
+@save_reference f #hide
 
 #=
 ### `tangents` interface
@@ -229,7 +229,7 @@ f, ax, p = graphplot(g; layout=SquareGrid(cols=3), tangents, tfactor,
                      elabels="Edge ".*repr.(1:ne(g)), elabels_distance=10)
 hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()
 plot_controlpoints!(ax, p) # show control points for demonstration
-f # hide
+@save_reference f #hide
 
 #=
 ## Edge waypoints
@@ -272,7 +272,7 @@ for i in 1:4 #hide
     scatter!(ax, waypoints[i], color=RGBA(0.0,0.44705883,0.69803923,1.0)) #hide
 end #hide
 xlims!(ax, (-0.1, 2.25)), hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()
-f # hide
+@save_reference f #hide
 
 #=
 ## Plot Graphs in 3D
@@ -298,11 +298,11 @@ graphplot(g; layout=Spring(dim=3, seed=5),
 Using [`JSServe.jl`](https://github.com/SimonDanisch/JSServe.jl) and [`WGLMakie.jl`](https://github.com/JuliaPlots/WGLMakie.jl)
 we can also add some interactivity:
 =#
-using JSServe
-Page(exportable=true, offline=true)
+using JSServe #md
+Page(exportable=true, offline=true) #md
 #
-using WGLMakie
-WGLMakie.activate!()
-set_theme!(resolution=(800, 600))
-g = smallgraph(:dodecahedral)
-graphplot(g, layout=Spring(dim=3), node_size=100)
+using WGLMakie #md
+WGLMakie.activate!() #md
+set_theme!(resolution=(800, 600)) #md
+g = smallgraph(:dodecahedral) #md
+graphplot(g, layout=Spring(dim=3), node_size=100) #md

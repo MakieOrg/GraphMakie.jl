@@ -2,7 +2,7 @@ using Test
 using GraphMakie
 using GeometryBasics
 
-using GraphMakie: BezierPath, MoveTo, LineTo, CurveTo, interpolate, discretize, tangent, waypoints, Path, Line
+using GraphMakie: BezierPath, MoveTo, LineTo, CurveTo, interpolate, discretize, tangent, Path, Line
 
 @testset "interpolation and tangents" begin
     path = BezierPath([
@@ -45,21 +45,21 @@ end
                 Point2f(0.0,1.0),
                 Point2f(1.0,1.0))
     lines(discretize(path))
-    scatter!(waypoints(path))
+    scatter!(GraphMakie.waypoints(path))
 
     path = Path(Point2f(0.0,0.0),
                 Point2f(-0.5,1.0),
                 Point2f(0.5,1.0),
                 Point2f(0.0,0.0))
     lines(discretize(path))
-    scatter!(waypoints(path))
+    scatter!(GraphMakie.waypoints(path))
 
     path = Path(Point2f(0.0,0.0),
                 Point2f(-0.5,1.0),
                 Point2f(1.5,1.0),
                 Point2f(2.0,0.0))
     lines(discretize(path))
-    scatter!(waypoints(path))
+    scatter!(GraphMakie.waypoints(path))
 
     path = Path(Point2f(0.0,0.0),
                 Point2f(-0.5,1.0),
@@ -68,7 +68,7 @@ end
                 tangents=(Point2f(-1,0),
                           Point2f(-1,0)))
     lines(discretize(path), linewidth=10)
-    scatter!(waypoints(path))
+    scatter!(GraphMakie.waypoints(path))
 end
 
 @testset "two points and tangents" begin
@@ -78,7 +78,7 @@ end
     t2 = Point2f(0,1)
     path = Path(p1, p2; tangents=(t1, t2))
     lines(discretize(path))
-    scatter!(waypoints(path))
+    scatter!(GraphMakie.waypoints(path))
 
     p1 = Point2f(0,0)
     t1 = Point2f(1,0)*10
@@ -86,7 +86,7 @@ end
     t2 = Point2f(0,1)*5
     path = Path(p1, p2; tangents=(t1, t2))
     lines(discretize(path))
-    scatter!(waypoints(path))
+    scatter!(GraphMakie.waypoints(path))
 
     p1 = Point2f(0,0)
     t1 = Point2f(-1,0)
@@ -94,7 +94,7 @@ end
     t2 = Point2f(0,1)
     path = Path(p1, p2; tangents=(t1, t2))
     lines(discretize(path))
-    scatter!(waypoints(path))
+    scatter!(GraphMakie.waypoints(path))
 
     p1 = Point2f(0,0)
     t1 = Point2f(-.5,.5)
@@ -102,7 +102,7 @@ end
     t2 = Point2f(-.5,-.5)
     path = Path(p1, p2; tangents=(t1, t2))
     lines(discretize(path))
-    scatter!(waypoints(path))
+    scatter!(GraphMakie.waypoints(path))
 
     p1 = Point2f(0,0)
     p2 = Point2f(1,0)

@@ -1,3 +1,7 @@
+[compat]
+LayeredLayouts = "0.2"
+NetworkDynamics = "0.7"
+
 [deps]
 CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
@@ -13,6 +17,5 @@ OrdinaryDiffEq = "1dea7af3-3e70-54e6-95c3-0bf5283fa5ed"
 PkgDeps = "839e9fc8-855b-5b3c-a3b7-2833d3dd1f59"
 WGLMakie = "276b4fcb-3e11-5398-bf8b-a0c2d153d008"
 
-[compat]
-LayeredLayouts = "0.2"
-NetworkDynamics = "0.7"
+[extras]
+CPUSummary = "2a0fbf3d-bb9c-48f3-b0a9-814d99fd7ab9"

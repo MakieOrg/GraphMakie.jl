@@ -241,3 +241,5 @@ end
     graphplot(g; curve_distance=collect(0.1:0.1:0.5))
     graphplot(g; curve_distance=collect(0.1:0.1:0.5), curve_distance_usage=true)
 end
+
+include("referencetests.jl")
