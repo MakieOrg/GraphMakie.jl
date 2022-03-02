@@ -205,14 +205,15 @@ function Makie.plot!(gp::GraphPlot)
                           color=gp.edge_color,
                           linewidth=gp.edge_width,
                           gp.edge_attr...)
+    drawn_paths = edge_plot[:drawn_paths]
 
     # plott arrow heads
     arrow_pos = @lift if !isempty($edge_paths)
-        broadcast(interpolate, $edge_paths, $(gp.arrow_shift))
+        broadcast(interpolate, $drawn_paths, $(gp.arrow_shift))
     else # if no edges return (empty) vector of points, broadcast yields Vector{Any} which can't be plotted
         Vector{eltype(node_pos[])}()
     end
-    arrow_rot = @lift Billboard(broadcast($to_angle, edge_paths[], $arrow_pos, gp.arrow_shift[]))
+    arrow_rot = @lift Billboard(broadcast($to_angle, drawn_paths[], $arrow_pos, gp.arrow_shift[]))
     arrow_show = @lift $(gp.arrow_show) === automatic ? Graphs.is_directed($graph) : $(gp.arrow_show)
     arrow_heads = scatter!(gp,
                            arrow_pos;
@@ -261,7 +262,7 @@ function Makie.plot!(gp::GraphPlot)
     if gp.elabels[] !== nothing
         # positions: center point between nodes + offset + distance*normal + shift*edge direction
         positions = @lift begin
-            pos = broadcast(interpolate, $edge_paths, $(gp.elabels_shift))
+            pos = broadcast(interpolate, $drawn_paths, $(gp.elabels_shift))
 
             if $(gp.elabels_offset) !== nothing
                 pos .= pos .+ $(gp.elabels_offset)
@@ -276,7 +277,7 @@ function Makie.plot!(gp::GraphPlot)
                 rot = $(gp.elabels_rotation)
             else
                 # determine rotation for each position
-                rot = broadcast($to_angle, edge_paths[], $positions, gp.elabels_shift[])
+                rot = broadcast($to_angle, drawn_paths[], $positions, gp.elabels_shift[])
 
                 for i in $(gp.elabels_opposite)
                     rot[i] += π
@@ -293,7 +294,7 @@ function Makie.plot!(gp::GraphPlot)
 
         # calculate the offset in pixels in normal direction to the edge
         offsets = @lift begin
-            tangent_px = broadcast(edge_paths[], $positions, gp.elabels_shift[]) do path, p0, t
+            tangent_px = broadcast(drawn_paths[], $positions, gp.elabels_shift[]) do path, p0, t
                 p1 = p0 + tangent(path, t)
                 $to_px(p1) - $to_px(p0)
             end
@@ -473,35 +474,48 @@ end
 
 function Makie.plot!(p::EdgePlot)
     N = length(p[:paths][])
-    # remove plottype from attributes, otherwise attributs can't be passed on
-    plottype = pop!(p.attributes, :plottype)[]
-    if plottype === automatic
-        justlines = all(isline, p[:paths][])
+    plottype = p[:plottype][]
+    justlines = all(isline, p[:paths][])
 
-        if justlines
-            plottype = :linesegments
-        elseif N > 500
-            @warn "Since there are a lot of edges ($N), they will be drawn as straight lines "*
-                "even though they contain curvy edges. If you realy wan't to plot them as "*
-                "bezier curves pass `edge_plottype=:beziersegments` explicitly. This will have "*
-                "much worse performance!"
-            plottype = :linesegments
-        else
-            plottype = :beziersegments
-        end
+    if justlines
+        # all lines
+        plottype = :linesegments
+        p[:drawn_paths] = p[:paths]
+    elseif plottype === automatic && N > 500
+        # N to big, force lines
+        @warn "Since there are a lot of edges ($N), they will be drawn as straight lines "*
+            "even though they contain curvy edges. If you realy wan't to plot them as "*
+            "bezier curves pass `edge_plottype=:beziersegments` explicitly. This will have "*
+            "much worse performance!"
+        plottype = :linesegments
+        p[:drawn_paths] = @lift straighten.($(p[:paths]))
+    elseif plottype === :linesegments
+        # not all lines but explicit linesegments wanted
+        plottype = :linesegments
+        p[:drawn_paths] = @lift straighten.($(p[:paths]))
+    else
+        # not all lines and explicit beziersegents or automatic
+        plottype = :beziersegments
+        p[:drawn_paths] = p[:paths]
     end
 
+    # remove attributes which are only valid for EdgePlot recipe
+    subattr = copy(p.attributes)
+    delete!(subattr, :plottype)
+    delete!(subattr, :drawn_paths)
+
     if plottype === :linesegments
-        PT = ptype(eltype(p[:paths][]))
+        @assert isempty(p[:drawn_paths][]) || eltype(p[:drawn_paths][]) <: Line
+        PT = ptype(eltype(p[:drawn_paths][]))
         segs = Observable(Vector{PT}(undef, 2*N))
 
-        update_segments!(segs, p[:paths][]) # first call to initialize
-        on(p[:paths]) do paths # update if pathes change
+        update_segments!(segs, p[:drawn_paths][]) # first call to initialize
+        on(p[:drawn_paths]) do paths # update if pathes change
             update_segments!(segs, paths)
         end
-        linesegments!(p, segs; p.attributes...)
+        linesegments!(p, segs; subattr...)
     elseif plottype === :beziersegments
-        beziersegments!(p, p[:paths]; p.attributes...)
+        beziersegments!(p, p[:paths]; subattr...)
     else
         error("Unknown plottype $(repr(plottype)) for edge plot")
     end
@@ -514,9 +528,9 @@ function update_segments!(segs, paths)
     if length(segs[]) != 2*N
         resize!(segs[], 2*N)
     end
-    for (i, p) in enumerate(paths)
-        segs[][2*i - 1] = interpolate(p, 0.0)
-        segs[][2*i]     = interpolate(p, 1.0)
+    for (i, line) in enumerate(paths)
+        segs[][2*i - 1] = line.p0
+        segs[][2*i]     = line.p
     end
     notify(segs)
 end

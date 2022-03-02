@@ -2,7 +2,7 @@ using Test
 using GraphMakie
 using GeometryBasics
 
-using GraphMakie: BezierPath, MoveTo, LineTo, CurveTo, interpolate, discretize, tangent, waypoints, Path, Line
+using GraphMakie: BezierPath, MoveTo, LineTo, CurveTo, interpolate, discretize, tangent, waypoints, Path, Line, straighten
 
 @testset "interpolation and tangents" begin
     path = BezierPath([
@@ -144,4 +144,17 @@ end
     g = star_graph(10)
     add_edge!(g, 1, 1)
     @test_throws ErrorException graphplot(g; layout=_->rand(Point3f, 10))
+end
+
+@testset "conversion to line" begin
+    path = BezierPath([
+        MoveTo(Point2f(0,0)),
+        LineTo(Point2f(0.5,0.5)),
+        CurveTo(Point2f(1,0),
+                Point2f(1,0),
+                Point2f(1,1)),
+        CurveTo(Point2f(1,2),
+                Point2f(0,2),
+                Point2f(0,1))])
+    @test straighten(path) == Line(Point2f(0,0), Point2f(0,1))
 end

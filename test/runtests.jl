@@ -241,3 +241,15 @@ end
     graphplot(g; curve_distance=collect(0.1:0.1:0.5))
     graphplot(g; curve_distance=collect(0.1:0.1:0.5), curve_distance_usage=true)
 end
+
+@testset "attribute copys" begin
+    orig = Attributes(:foo => 1, :bar=>"2", :baz=>3.0)
+    cp = copy(orig)
+    delete!(cp, :foo)
+
+    @test orig.bar[] == cp.bar[]
+    @test orig.baz[] == cp.baz[]
+    orig.bar[] = "change"
+    @test orig.bar[] == cp.bar[] == "change"
+    @test orig.baz[] == cp.baz[] == 3.0
+end
