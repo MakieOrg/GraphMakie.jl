@@ -57,7 +57,7 @@ newassets = filter(contains(r".png$"), readdir(TMPDIR))
 @testset "Reference Tests" begin
     for ass in oldassets
         # skip unresolved conflicts
-        contains("+.png", ass) && continue
+        occursin(r"\+.png$", ass) && continue
 
         old = joinpath(ASSETS, ass)
         new = joinpath(TMPDIR, ass)
@@ -70,11 +70,11 @@ newassets = filter(contains(r".png$"), readdir(TMPDIR))
 
         equal = ReferenceTests.psnr_equality()(load(old), load(new))
         if equal
-            println(" ✓ $old")
+            printstyled(" ✓ $ass\n"; color=:green)
             @test true
             rm(new)
         else
-            println(" 𐄂 $old")
+            printstyled(" 𐄂 $ass\n"; color=:red)
             @test false
             parts = rsplit(ass, "."; limit=2)
             @assert length(parts) == 2
@@ -85,7 +85,7 @@ newassets = filter(contains(r".png$"), readdir(TMPDIR))
     end
 
     for new in setdiff(newassets, oldassets)
-        println("𐄂 Move new asset $(new)!")
+        printstyled(" 𐄂 Move new asset $(new)!\n"; color=:red)
         @test false
         mv(joinpath(TMPDIR, new), joinpath(ASSETS, new))
     end

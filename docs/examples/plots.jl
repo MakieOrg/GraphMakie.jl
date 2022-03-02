@@ -10,7 +10,6 @@ set_theme!(resolution=(800, 400)) #hide
 CairoMakie.inline!(true) # hide
 using GraphMakie
 using Graphs
-import Random; Random.seed!(2) # hide
 
 g = wheel_graph(10)
 f, ax, p = graphplot(g)
@@ -69,7 +68,6 @@ p.edge_color = p.edge_color[] # trigger observable
 #=
 ## Adding Node Labels
 =#
-Random.seed!(2)
 g = wheel_graph(10)
 
 colors = [:black for i in 1:nv(g)]
@@ -91,8 +89,7 @@ autolimits!(ax)
 @save_reference f #hide
 
 # ## Adding Edge Labels
-Random.seed!(42)
-g = barabasi_albert(6, 2)
+g = barabasi_albert(6, 2; seed=42)
 
 labels =  repr.(1:ne(g))
 
