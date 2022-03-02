@@ -149,7 +149,7 @@ Waypoints along edges:
         elabels_distance = 0.0,
         elabels_shift = 0.5,
         elabels_opposite = Int[],
-        elabels_rotation = nothing,
+        elabels_rotation = automatic,
         elabels_offset = nothing,
         elabels_color = labels_theme.color,
         elabels_textsize = labels_theme.textsize,
@@ -273,10 +273,19 @@ function Makie.plot!(gp::GraphPlot)
             if $(gp.elabels_rotation) isa Real
                 # fix rotation to a single angle
                 rot = $(gp.elabels_rotation)
+            elseif $(gp.elabels_rotation) == automatic
+                #point the labels up
+                rot = broadcast($to_angle, edge_paths[], $positions, gp.elabels_shift[])
+                upsidedownlabels = (rot .> π/2) .| (rot .< -π/2)
+                rot[upsidedownlabels] .+= π
+                gp.elabels_align[] isa Vector || (gp.elabels_align[] = fill(gp.elabels_align[], ne(gp.graph[]) ))
+                begin
+                    local dtopbot = Dict(:top => :bottom, :bottom => :top)
+                    gp.elabels_align[] = [(x,upsidedownlabels[i] ? dtopbot[y] : y) for (i,(x,y)) in enumerate(gp.elabels_align[])]
+                end
             else
                 # determine rotation for each position
                 rot = broadcast($to_angle, edge_paths[], $positions, gp.elabels_shift[])
-
                 for i in $(gp.elabels_opposite)
                     rot[i] += π
                 end
