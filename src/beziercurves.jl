@@ -39,6 +39,8 @@ end
 
 ptype(::Union{AbstractPath{PT}, Type{<:AbstractPath{PT}}}) where {PT} = PT
 
+straighten(l::Line) = l
+straighten(p::BezierPath) = Line(interpolate(p,0.0), interpolate(p,1.0))
 
 ####
 #### Helper functions to work with bezier pathes
