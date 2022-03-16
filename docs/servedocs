@@ -1,2 +1,0 @@
-#!/bin/zsh
-julia -e 'using LiveServer; serve(dir="build")'
