@@ -14,6 +14,12 @@ mkdir(TMPDIR)
 
 const IMAGE_COUNTERS = Dict{String, Int}()
 
+"""
+    @save_reference fig
+
+Mark figs in example files as reference test image. Those images will
+be saved as `filename-i.png` to the gobal temp dir defined in this script.
+"""
 macro save_reference(fig)
     f = splitpath(string(__source__.file))[end]
     postfix = if haskey(IMAGE_COUNTERS, f)
@@ -29,9 +35,12 @@ macro save_reference(fig)
 end
 
 @info "Generate reference images..."
+# go through all examples in docs/examples
 for exfile in filter(contains(r".jl$"), readdir(EXAMPLE_BASEPATH))
     expath = joinpath(EXAMPLE_BASEPATH, exfile)
 
+    # check if `@save_reference` appears in the example
+    # if not, don't evaluate file
     hasassets = false
     for l in eachline(expath)
         if contains(l, r"@save_reference")
@@ -45,6 +54,7 @@ for exfile in filter(contains(r".jl$"), readdir(EXAMPLE_BASEPATH))
         continue
     end
 
+    # create script, include script (saves files), remove exported script
     Literate.script(expath, TMPDIR)
     script = joinpath(TMPDIR, exfile)
     include(script)
@@ -54,6 +64,7 @@ end
 oldassets = filter(contains(r".png$"), readdir(ASSETS))
 newassets = filter(contains(r".png$"), readdir(TMPDIR))
 
+# now test all the generated graphics in the TMPDIR and compare against files in assets dir
 @testset "Reference Tests" begin
     for ass in oldassets
         # skip unresolved conflicts
