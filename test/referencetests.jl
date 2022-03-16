@@ -64,6 +64,13 @@ end
 oldassets = filter(contains(r".png$"), readdir(ASSETS))
 newassets = filter(contains(r".png$"), readdir(TMPDIR))
 
+function compare(ref, x)
+    if size(ref) != size(x)
+        return 0
+    end
+    return ReferenceTests._psnr(ref, x)
+end
+
 # now test all the generated graphics in the TMPDIR and compare against files in assets dir
 @testset "Reference Tests" begin
     for ass in oldassets
@@ -79,14 +86,23 @@ newassets = filter(contains(r".png$"), readdir(TMPDIR))
             continue
         end
 
-        equal = ReferenceTests.psnr_equality()(load(old), load(new))
-        if equal
-            printstyled(" ✓ $ass\n"; color=:green)
+        # equal = ReferenceTests.psnr_equality()(load(old), load(new))
+        score = compare(load(old), load(new))
+        MEH = 100
+        GOOD = 200
+
+        if score > GOOD
+            printstyled(" ✓ [", repr(round(score, digits=1)), "] $ass\n"; color=:green)
             @test true
             rm(new)
         else
-            printstyled(" 𐄂 $ass\n"; color=:red)
-            @test false
+            if score > MEH
+                printstyled(" ? [", repr(round(score, digits=1)), "] $ass\n"; color=:yellow)
+                @test_broken false
+            else
+                printstyled(" 𐄂 [", repr(round(score, digits=1)), "] $ass\n"; color=:red)
+                @test false
+            end
             parts = rsplit(ass, "."; limit=2)
             @assert length(parts) == 2
             newname = parts[1] * "+." *parts[2]
