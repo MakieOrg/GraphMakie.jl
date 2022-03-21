@@ -175,15 +175,6 @@ function Makie.plot!(gp::GraphPlot)
     # make node_position-Observable available as named attribute from the outside
     gp[:node_pos] = @lift [Pointf(p) for p in ($(gp.layout))($graph)]
 
-    node_pos = gp[:node_pos]
-
-    # create array of pathes triggered by node_pos changes
-    # in case of a graph change the node_position will change anyway
-    edge_paths = lift(node_pos, gp.selfedge_size,
-                      gp.selfedge_direction, gp.selfedge_width) do pos, s, d, w
-        find_edge_paths(graph[], gp.attributes, pos)
-    end
-
     sc = Makie.parent_scene(gp)
 
     # function which projects the point in px space
@@ -199,9 +190,17 @@ function Makie.plot!(gp::GraphPlot)
         atan(tpx[2], tpx[1])
     end
 
+    node_pos = gp[:node_pos]
+
+    # create array of pathes triggered by node_pos changes
+    # in case of a graph change the node_position will change anyway
+    edge_paths = lift(node_pos, gp.selfedge_size,
+                      gp.selfedge_direction, gp.selfedge_width) do pos, s, d, w
+        find_edge_paths(graph[], gp.attributes, pos)
+    end
+
     # plot edges
     edge_plot = edgeplot!(gp, edge_paths;
-                          plottype=gp.edge_plottype,
                           color=gp.edge_color,
                           linewidth=gp.edge_width,
                           gp.edge_attr...)
@@ -323,12 +322,11 @@ end
 """
     find_edge_paths(g, attr, pos::AbstractVector{PT}) where {PT}
 
-Returns an `AbstractPath` for each edge in the graph.
+Returns an `AbstractPath` for each edge in the graph. Based on the `edge_plotype` attribute
+this returns either arbitrary bezier curves or just lines.
 """
 function find_edge_paths(g, attr, pos::AbstractVector{PT}) where {PT}
     paths = Vector{AbstractPath{PT}}(undef, ne(g))
-
-    ne(g) == 0 && return paths
 
     for (i, e) in enumerate(edges(g))
         if e.src == e.dst # selfedge
@@ -389,9 +387,34 @@ function find_edge_paths(g, attr, pos::AbstractVector{PT}) where {PT}
         end
     end
 
-    # try to narrow down the typ, i.e. just `Line`s
-    T = mapreduce(typeof, promote_type, paths)
-    return convert(Vector{T}, paths)
+    plottype = attr[:edge_plottype][]
+
+    if plottype === :beziersegments
+        # user explicitly specified beziersegments
+        return paths
+    elseif plottype === :linesegments
+        # user specified linesegments but there are non-lines
+        return straighten.(paths)
+    elseif plottype === automatic
+        # try to narrow down the typ, i.e. just `Line`s
+        # update :plottype in attr so this is persistent even if the graph changes
+        T = isempty(paths) ? Line{PT} : mapreduce(typeof, promote_type, paths)
+
+        if T <: Line
+            attr[:edge_plottype][] = :linesegments
+            return convert(Vector{T}, paths)
+        elseif ne(g) > 500
+            attr[:edge_plottype][] = :linesegments
+            @warn "Since there are a lot of edges ($N > 500), they will be drawn as straight lines "*
+                "even though they contain curvy edges. If you really want to plot them as "*
+                "bezier curves pass `edge_plottype=:beziersegments` explicitly. This will have "*
+                "much worse performance!"
+            return straighten.(paths)
+        else
+            attr[:edge_plottype][] = :beziersegments
+            return paths
+        end
+    end
 end
 
 """
@@ -458,40 +481,19 @@ end
     edgeplot(paths::Vector{AbstractPath})
     edgeplot!(sc, paths::Vector{AbstractPath})
 
-Recipe to draw the edges. Attribute `plottype` can be either
-
-- `:linesegments`: Draw edges as `linesegments` (just straight lines)
-- `:beziersegments`: Draw edges as `beziersegments` (separate `lines` plot for
-  each edge. Much slower than `linesegments`!)
-- `Makie.automatic()`: Only use `beziersegements` if there is at least one curvy line.
+Recipe to draw the edges. Attribute `plottype` can be either.
+If `eltype(pathes) <: Line` draw using `linesegments`. If `<:AbstractPath`
+draw using bezier segments.
+All attributes are passed down to the actual recipe.
 """
 @recipe(EdgePlot, paths) do scene
-    Attributes(
-        plottype = automatic
-    )
+    Attributes()
 end
 
 function Makie.plot!(p::EdgePlot)
     N = length(p[:paths][])
-    # remove plottype from attributes, otherwise attributs can't be passed on
-    plottype = pop!(p.attributes, :plottype)[]
-    if plottype === automatic
-        justlines = all(isline, p[:paths][])
 
-        if justlines
-            plottype = :linesegments
-        elseif N > 500
-            @warn "Since there are a lot of edges ($N), they will be drawn as straight lines "*
-                "even though they contain curvy edges. If you realy wan't to plot them as "*
-                "bezier curves pass `edge_plottype=:beziersegments` explicitly. This will have "*
-                "much worse performance!"
-            plottype = :linesegments
-        else
-            plottype = :beziersegments
-        end
-    end
-
-    if plottype === :linesegments
+    if eltype(p[:paths][]) <: Line
         PT = ptype(eltype(p[:paths][]))
         segs = Observable(Vector{PT}(undef, 2*N))
 
@@ -500,10 +502,8 @@ function Makie.plot!(p::EdgePlot)
             update_segments!(segs, paths)
         end
         linesegments!(p, segs; p.attributes...)
-    elseif plottype === :beziersegments
-        beziersegments!(p, p[:paths]; p.attributes...)
     else
-        error("Unknown plottype $(repr(plottype)) for edge plot")
+        beziersegments!(p, p[:paths]; p.attributes...)
     end
 
     return p
