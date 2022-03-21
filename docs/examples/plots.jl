@@ -95,6 +95,7 @@ labels =  repr.(1:ne(g))
 
 f, ax, p = graphplot(g, elabels=labels,
                      elabels_color=[:black for i in 1:ne(g)],
+                     elabels_rotation=nothing,
                      edge_color=[:black for i in 1:ne(g)])
 hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()
 @save_reference f #hide
@@ -106,17 +107,15 @@ All possible arguments are described in the docs of the [`graphplot`](@ref) func
 Basicially, each label is placed in the middle of the edge and rotated to match the edge rotation.
 The rotaion for each label can be overwritten with the `elabels_rotation` argument.
 =#
-p.elabels_rotation[] = Vector{Union{Nothing, Float64}}(nothing, ne(g))
-p.elabels_rotation[][5] = 0.0 # set absolute rotation angle for label 5
-p.elabels_rotation[] = p.elabels_rotation[]
+p.elabels_rotation[] = Dict(i => i == 5 ? 0.00 : Makie.Automatic() for i in 1:ne(g))
 nothing #hide
 
 #=
 One can shift the label along the edge with the `elabels_shift` argument and determine the distance
 in pixels using the `elabels_distance` argument.
 =#
-p.elabels_opposite[] = [1,2,8,6]
 
+p.elabels_side[] = Dict(i => :right for i in [1,2,8,6])
 p.elabels_offset[] = [Point2f(0.0, 0.0) for i in 1:ne(g)]
 p.elabels_offset[][5] = Point2f(-0.4,0)
 p.elabels_offset[] = p.elabels_offset[]
@@ -126,9 +125,7 @@ p.elabels_shift[][1] = 0.6
 p.elabels_shift[][7] = 0.4
 p.elabels_shift[] = p.elabels_shift[]
 
-p.elabels_distance[] = zeros(ne(g))
-p.elabels_distance[][8] = 15
-p.elabels_distance[] = p.elabels_distance[]
+p.elabels_distance[] = Dict(8 => 30)
 
 @save_reference f #hide
 
@@ -202,7 +199,7 @@ It is also possible to specify the distance on a per edge base:
 g = complete_digraph(3)
 distances = collect(0.05:0.05:ne(g)*0.05)
 elabels = "d = ".* repr.(round.(distances, digits=2))
-f, ax, p = graphplot(g; curve_distance=distances, elabels, arrow_size=20)
+f, ax, p = graphplot(g; curve_distance=distances, elabels, arrow_size=20, elabels_rotation=nothing)
 hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()
 @save_reference f #hide
 
@@ -223,7 +220,7 @@ tangents = Dict(1 => ((1,1),(0,-1)),
 tfactor = [0.5, 0.75, (0.5, 0.25)]
 f, ax, p = graphplot(g; layout=SquareGrid(cols=3), tangents, tfactor,
                      arrow_size=20, arrow_show=true, edge_color=[:red, :green, :blue],
-                     elabels="Edge ".*repr.(1:ne(g)), elabels_distance=10)
+                     elabels="Edge ".*repr.(1:ne(g)), elabels_distance=10, elabels_rotation=nothing)
 hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()
 plot_controlpoints!(ax, p) # show control points for demonstration
 @save_reference f #hide
@@ -284,9 +281,10 @@ elabels_shift[10] = 0.25
 graphplot(g; layout=Spring(dim=3, seed=5),
           elabels="Edge ".*repr.(1:ne(g)),
           elabels_textsize=12,
-          elabels_opposite=[3,5,7,8,12],
+          elabels_side=Dict(i => :right for i in [3,5,7,8,12]),
           elabels_shift,
           elabels_distance=3,
+          elabels_rotation=nothing,
           arrow_show=true,
           arrow_shift=0.9,
           arrow_size=15)

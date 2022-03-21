@@ -57,13 +57,12 @@ additional `distance` parameter is given in pixels and shifts the text away from
 the edge.
 
 - `elabels=nothing`: `Vector{String}` with label for each edge
-- `elabels_align=(:center, :bottom)`: Anchor of text field.
-- `elabels_distance=0.0`: Pixel distance of anchor to edge.
+- `elabels_align=(:center, :center)`: Anchor of text field.
+- `elabels_side = :left`: Side of the edge to put the edge label text
+- `elabels_distance=Makie.automatic()`: Pixel distance of anchor to edge. The direction is decided based on `elabels_side`
 - `elabels_shift=0.5`: Position between src and dst of edge.
-- `elabels_opposite=Int[]`: List of edge indices, for which the label should be
-  displayed on the opposite side
-- `elabels_rotation=nothing`: Angle of text per label. If `nothing` this will be
-  determined by the edge angle!
+- `elabels_rotation=automatic`: Angle of text per label. If `nothing` this will be
+  determined by the edge angle. If `automatic` it will also point upwards making it easy to read.
 - `elabels_offset=nothing`: Additional offset in data space
 - `elabels_color=labels_theme.color`
 - `elabels_textsize=labels_theme.textsize`
@@ -145,10 +144,10 @@ Waypoints along edges:
         nlabels_attr = (;),
         # edge label attributes (Text)
         elabels = nothing,
-        elabels_align = (:center, :bottom),
-        elabels_distance = 0.0,
+        elabels_align = (:center, :center),
+        elabels_side = :left,
+        elabels_distance = automatic,
         elabels_shift = 0.5,
-        elabels_opposite = Int[],
         elabels_rotation = automatic,
         elabels_offset = nothing,
         elabels_color = labels_theme.color,
@@ -269,30 +268,17 @@ function Makie.plot!(gp::GraphPlot)
         end
 
         # rotations based on the edge_vec_px and opposite argument
-        rotation = @lift begin
-            if $(gp.elabels_rotation) isa Real
-                # fix rotation to a single angle
-                rot = $(gp.elabels_rotation)
-            elseif $(gp.elabels_rotation) == automatic
-                #point the labels up
-                rot = broadcast($to_angle, edge_paths[], $positions, gp.elabels_shift[])
-                upsidedownlabels = (rot .> π/2) .| (rot .< -π/2)
-                rot[upsidedownlabels] .+= π
-                gp.elabels_align[] isa Vector || (gp.elabels_align[] = fill(gp.elabels_align[], ne(gp.graph[]) ))
-                begin
-                    local dtopbot = Dict(:top => :bottom, :bottom => :top)
-                    gp.elabels_align[] = [(x,upsidedownlabels[i] ? dtopbot[y] : y) for (i,(x,y)) in enumerate(gp.elabels_align[])]
-                end
-            else
-                # determine rotation for each position
-                rot = broadcast($to_angle, edge_paths[], $positions, gp.elabels_shift[])
-                for i in $(gp.elabels_opposite)
-                    rot[i] += π
-                end
-                # if there are user provided rotation for some labels, use those
-                if $(gp.elabels_rotation) isa Vector
-                    for (i, α) in enumerate($(gp.elabels_rotation))
-                        α !== nothing && (rot[i] = α)
+        rotation = lift(gp.elabels_rotation, to_angle, positions) do elabrots, tangle, pos
+            rot = broadcast(tangle, edge_paths[], pos, gp.elabels_shift[])
+            for i in 1:ne(graph[])
+                valrot = getattr(gp.elabels_rotation, i, nothing)
+                if valrot isa Real
+                    # fix rotation to a single angle
+                    rot[i] = valrot
+                elseif valrot == automatic
+                    # point the labels up
+                    if (rot[i] > π/2 || rot[i] < - π/2)
+                        rot[i] += π
                     end
                 end
             end
@@ -300,18 +286,14 @@ function Makie.plot!(gp::GraphPlot)
         end
 
         # calculate the offset in pixels in normal direction to the edge
-        offsets = @lift begin
-            tangent_px = broadcast(edge_paths[], $positions, gp.elabels_shift[]) do path, p0, t
+        offsets = lift(positions, to_px, gp.elabels_distance, gp.elabels_side) do pos, tpx, dist, side
+            tangent_px = broadcast(edge_paths[], pos, gp.elabels_shift[]) do path, p0, t
                 p1 = p0 + tangent(path, t)
-                $to_px(p1) - $to_px(p0)
+                tpx(p1) - tpx(p0)
             end
 
             offsets = map(p -> Point(-p.data[2], p.data[1])/norm(p), tangent_px)
-            offsets .= $(gp.elabels_distance) .* offsets
-            for i in $(gp.elabels_opposite)
-                offsets[i] = -1.0 * offsets[i] # flip offset if in opposite
-            end
-            offsets
+            offsets .= elabels_distance_offset(graph[], gp.attributes) .* offsets
         end
 
         elabels_plot = text!(gp, gp.elabels;
@@ -327,6 +309,37 @@ function Makie.plot!(gp::GraphPlot)
     return gp
 end
 
+"""
+    elabels_fistance_offset(g, attrs)
+
+Returns the elabels_distance taking into consideration elabels_side
+"""
+function elabels_distance_offset(g, attrs)
+    offs = zeros(ne(g))
+    for i in 1:ne(g)
+        attrval = getattr(attrs.elabels_distance, i, automatic)
+        attrvalside = getattr(attrs.elabels_side, i, :left)
+        if attrval isa Real
+            if attrvalside == :left
+                offs[i] = attrval
+            elseif attrvalside == :right
+                offs[i] = -attrval
+            elseif attrvalside == :center
+                offs[i] = zero(attrval)
+            end
+        elseif attrval == automatic
+            offval = (attrs.elabels_textsize[] + attrs.edge_width[])/2
+            if attrvalside == :left
+                offs[i] = offval
+            elseif attrvalside == :right
+                offs[i] = -offval
+            elseif attrvalside == :center
+                offs[i] = zero(offval)
+            end
+        end
+    end
+    return offs
+end
 
 """
     find_edge_paths(g, attr, pos::AbstractVector{PT}) where {PT}

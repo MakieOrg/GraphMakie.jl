@@ -49,7 +49,7 @@ g = path_graph(4)
 elabels = ["𐄂" for i in 1:ne(g)]
 elabels_align = (:center, :center)
 fig, ax, p = graphplot(g; layout=SquareGrid(), elabels, elabels_align,
-                       elabels_color=:red)
+                       elabels_color=:red, elabels_rotation=nothing)
 hidedecorations!(ax)
 @save_reference fig
 
@@ -66,7 +66,7 @@ autolimits!(ax)
 g = complete_digraph(3)
 elabels = repr.(edges(g))
 nlabels = repr.(1:nv(g))
-fig, ax, p = graphplot(g; elabels, nlabels, elabels_textsize=10)
+fig, ax, p = graphplot(g; elabels, nlabels, elabels_textsize=10, elabels_rotation=nothing)
 @save_reference fig
 p[:node_pos][] = Point2f.([(1., -.5), (-1.,0.), (-1.,-1.)])
 @save_reference fig

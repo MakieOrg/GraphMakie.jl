@@ -157,7 +157,7 @@ p = graphplot!(ax, g;
                nlabels_align=(:center,:top),
                nlabels_textsize=30,
                elabels=elabels,
-               elabels_opposite=[ne(g)],
+               elabels_side=Dict(ne(g) => :right),
                edge_color=[0.0 for i in 1:ne(g)],
                edge_attr=(colorrange=(fmin,fmax),
                           colormap=:diverging_bkr_55_10_c35_n256))
