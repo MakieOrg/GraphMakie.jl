@@ -406,7 +406,7 @@ function find_edge_paths(g, attr, pos::AbstractVector{PT}) where {PT}
         elseif ne(g) > 500
             attr[:edge_plottype][] = :linesegments
             @warn "Since there are a lot of edges ($N > 500), they will be drawn as straight lines "*
-                "even though they contain curvy edges. If you realy wan't to plot them as "*
+                "even though they contain curvy edges. If you really want to plot them as "*
                 "bezier curves pass `edge_plottype=:beziersegments` explicitly. This will have "*
                 "much worse performance!"
             return straighten.(paths)
