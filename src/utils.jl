@@ -121,3 +121,12 @@ function plot_controlpoints!(ax::Axis, p::BezierPath; color=:black)
         end
     end
 end
+
+"""
+    filter_out(v::Vector, idxs)
+Filter out indices in `idxs` in vector `v`
+"""
+filter_out(v::AbstractVector, idxs) = return idxs === nothing ? v : v[1:end .∉ [idxs]]
+filter_out(v, idxs) = return v
+filter_out(nt::NamedTuple, idxs) =  (;zip(keys(nt), GraphMakie.filter_out.(values(nt),[idxs]))...)
+filter_out(ats::Attributes, idxs) =  Attributes(;zip(keys(ats), GraphMakie.filter_out.(getindex.(values(ats),),[idxs]))...)

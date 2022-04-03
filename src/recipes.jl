@@ -125,6 +125,7 @@ Waypoints along edges:
         node_color = scatter_theme.color,
         node_size = scatter_theme.markersize,
         node_marker = scatter_theme.marker,
+        node_invis = nothing,
         node_attr = (;),
         # edge attributes (LineSegements)
         edge_color = lineseg_theme.color,
@@ -224,13 +225,20 @@ function Makie.plot!(gp::GraphPlot)
                            visible = arrow_show,
                            gp.arrow_attr...)
 
-    # plot vertices
-    vertex_plot = scatter!(gp, node_pos;
-                           color=gp.node_color,
-                           marker=gp.node_marker,
-                           markersize=gp.node_size,
-                           gp.node_attr...)
 
+    node_pos_invis = @lift filter_out($node_pos, $(gp.node_invis))
+    node_color_invis= @lift filter_out($(gp.node_color), $(gp.node_invis))
+    node_marker_invis = @lift filter_out($(gp.node_marker), $(gp.node_invis))
+    node_size_invis = @lift filter_out($(gp.node_size), $(gp.node_invis))
+    vertex_plot = scatter!(gp, node_pos_invis;
+                           color=node_color_invis,
+                           marker=node_marker_invis,
+                           markersize=node_size_invis,
+                           filter_out(gp.node_attr, gp.node_invis[])...)
+
+    if gp.node_invis[] != nothing
+        gp.nlabels[][gp.node_invis[]] .= ""
+    end
     # plot node labels
     if gp.nlabels[] !== nothing
         positions = @lift begin
