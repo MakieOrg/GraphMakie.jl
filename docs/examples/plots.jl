@@ -95,7 +95,6 @@ labels =  repr.(1:ne(g))
 
 f, ax, p = graphplot(g, elabels=labels,
                      elabels_color=[:black for i in 1:ne(g)],
-                     elabels_rotation=nothing,
                      edge_color=[:black for i in 1:ne(g)])
 hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()
 @save_reference f #hide
@@ -199,7 +198,7 @@ It is also possible to specify the distance on a per edge base:
 g = complete_digraph(3)
 distances = collect(0.05:0.05:ne(g)*0.05)
 elabels = "d = ".* repr.(round.(distances, digits=2))
-f, ax, p = graphplot(g; curve_distance=distances, elabels, arrow_size=20, elabels_rotation=nothing)
+f, ax, p = graphplot(g; curve_distance=distances, elabels, arrow_size=20)
 hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()
 @save_reference f #hide
 
@@ -220,7 +219,7 @@ tangents = Dict(1 => ((1,1),(0,-1)),
 tfactor = [0.5, 0.75, (0.5, 0.25)]
 f, ax, p = graphplot(g; layout=SquareGrid(cols=3), tangents, tfactor,
                      arrow_size=20, arrow_show=true, edge_color=[:red, :green, :blue],
-                     elabels="Edge ".*repr.(1:ne(g)), elabels_distance=10, elabels_rotation=nothing)
+                     elabels="Edge ".*repr.(1:ne(g)), elabels_distance=10)
 hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()
 plot_controlpoints!(ax, p) # show control points for demonstration
 @save_reference f #hide

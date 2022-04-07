@@ -310,7 +310,7 @@ function Makie.plot!(gp::GraphPlot)
 end
 
 """
-    elabels_fistance_offset(g, attrs)
+    elabels_distance_offset(g, attrs)
 
 Returns the elabels_distance taking into consideration elabels_side
 """
