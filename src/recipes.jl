@@ -221,7 +221,7 @@ function Makie.plot!(gp::GraphPlot)
                            color = gp.edge_color,
                            rotations = arrow_rot,
                            strokewidth = 0.0,
-                           markerspace = Pixel,
+                           markerspace = :pixel,
                            visible = arrow_show,
                            gp.arrow_attr...)
 
