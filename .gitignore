@@ -5,3 +5,5 @@
 Manifest.toml
 /docs/Manifest.toml
 /docs/src/generated/
+.vscode
+.DS_Store
