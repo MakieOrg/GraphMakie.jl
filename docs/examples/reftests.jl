@@ -46,7 +46,7 @@ p[:nlabels_offset][] = [Point2(.1*cos(-2π/9*i),.1*sin(-2π/9*i)) for i in 1:nv(
 
 # draw some edge labels
 g = path_graph(4)
-elabels = ["𐄂" for i in 1:ne(g)]
+elabels = ["a" for i in 1:ne(g)]
 elabels_align = (:center, :center)
 fig, ax, p = graphplot(g; layout=SquareGrid(), elabels, elabels_align,
                        elabels_color=:red)
@@ -57,7 +57,7 @@ hidedecorations!(ax)
 p[:elabels][] = repr.(edges(g))
 p[:elabels_shift][] = [0.25, 0.5, 0.75]
 p[:elabels_rotation][] = [π/8, 0, -π/8]
-p[:elabels_offset][] = Point2(0.1,0.1)
+p[:elabels_offset][] = Point2(0.05,0.05)
 p[:elabels_textsize][] = 10
 autolimits!(ax)
 @save_reference fig

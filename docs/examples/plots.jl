@@ -219,7 +219,7 @@ tangents = Dict(1 => ((1,1),(0,-1)),
 tfactor = [0.5, 0.75, (0.5, 0.25)]
 f, ax, p = graphplot(g; layout=SquareGrid(cols=3), tangents, tfactor,
                      arrow_size=20, arrow_show=true, edge_color=[:red, :green, :blue],
-                     elabels="Edge ".*repr.(1:ne(g)), elabels_distance=10)
+                     elabels="Edge ".*repr.(1:ne(g)), elabels_distance=20)
 hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()
 plot_controlpoints!(ax, p) # show control points for demonstration
 @save_reference f #hide
