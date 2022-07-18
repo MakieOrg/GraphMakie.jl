@@ -193,10 +193,11 @@ function Makie.plot!(gp::GraphPlot)
 
     # create array of pathes triggered by node_pos changes
     # in case of a graph change the node_position will change anyway
-    edge_paths = lift(node_pos, gp.selfedge_size,
+    gp[:edge_paths] = lift(node_pos, gp.selfedge_size,
                       gp.selfedge_direction, gp.selfedge_width) do pos, s, d, w
         find_edge_paths(graph[], gp.attributes, pos)
     end
+    edge_paths = gp[:edge_paths]
 
     # plot edges
     edge_plot = edgeplot!(gp, edge_paths;
@@ -219,7 +220,7 @@ function Makie.plot!(gp::GraphPlot)
                            color = gp.edge_color,
                            rotations = arrow_rot,
                            strokewidth = 0.0,
-                           markerspace = Pixel,
+                           markerspace = :pixel,
                            visible = arrow_show,
                            gp.arrow_attr...)
 
@@ -427,7 +428,7 @@ function find_edge_paths(g, attr, pos::AbstractVector{PT}) where {PT}
             return convert(Vector{T}, paths)
         elseif ne(g) > 500
             attr[:edge_plottype][] = :linesegments
-            @warn "Since there are a lot of edges ($N > 500), they will be drawn as straight lines "*
+            @warn "Since there are a lot of edges ($(ne(g)) > 500), they will be drawn as straight lines "*
                 "even though they contain curvy edges. If you really want to plot them as "*
                 "bezier curves pass `edge_plottype=:beziersegments` explicitly. This will have "*
                 "much worse performance!"

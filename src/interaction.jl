@@ -1,5 +1,5 @@
 using Makie: ScenePlot
-import Makie.MakieLayout: registration_setup!, process_interaction
+import Makie: registration_setup!, process_interaction
 
 export NodeHoverHandler, EdgeHoverHandler
 export NodeHoverHighlight, EdgeHoverHighlight
