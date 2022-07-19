@@ -59,9 +59,9 @@ the edge.
 - `elabels=nothing`: `Vector{String}` with label for each edge
 - `elabels_align=(:center, :center)`: Anchor of text field.
 - `elabels_side = :left`: Side of the edge to put the edge label text
-- `elabels_distance=Makie.automatic()`: Pixel distance of anchor to edge. The direction is decided based on `elabels_side`
+- `elabels_distance=Makie.automatic`: Pixel distance of anchor to edge. The direction is decided based on `elabels_side`
 - `elabels_shift=0.5`: Position between src and dst of edge.
-- `elabels_rotation=automatic`: Angle of text per label. If `nothing` this will be
+- `elabels_rotation=Makie.automatic`: Angle of text per label. If `nothing` this will be
   determined by the edge angle. If `automatic` it will also point upwards making it easy to read.
 - `elabels_offset=nothing`: Additional offset in data space
 - `elabels_color=labels_theme.color`

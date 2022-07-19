@@ -103,10 +103,10 @@ hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()
 The position of the edge labels is determined by several plot arguments.
 All possible arguments are described in the docs of the [`graphplot`](@ref) function.
 
-Basicially, each label is placed in the middle of the edge and rotated to match the edge rotation.
-The rotaion for each label can be overwritten with the `elabels_rotation` argument.
+By default, each label is placed in the middle of the edge and rotated to match the edge rotation.
+The rotation for each label can be overwritten with the `elabels_rotation` argument.
 =#
-p.elabels_rotation[] = Dict(i => i == 5 ? 0.00 : Makie.Automatic() for i in 1:ne(g))
+p.elabels_rotation[] = Dict(i => i == 5 ? 0.0 : Makie.automatic for i in 1:ne(g))
 nothing #hide
 
 #=
