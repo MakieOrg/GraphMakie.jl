@@ -329,7 +329,7 @@ function elabels_distance_offset(g, attrs)
                 offs[i] = zero(attrval)
             end
         elseif attrval == automatic
-            offval = (attrs.elabels_textsize[] .+ attrs.edge_width[])/2
+            offval = (getattr(attrs.elabels_textsize, i) + getattr(attrs.edge_width, i))/2
             if attrvalside == :left
                 offs[i] = offval
             elseif attrvalside == :right
