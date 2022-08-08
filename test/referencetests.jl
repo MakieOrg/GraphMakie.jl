@@ -100,7 +100,7 @@ end
                 printstyled(" ? [", repr(round(score, digits=1)), "] $ass\n"; color=:yellow)
                 @test_broken false
             else
-                printstyled(" 𐄂 [", repr(round(score, digits=1)), "] $ass\n"; color=:red)
+                printstyled(" × [", repr(round(score, digits=1)), "] $ass\n"; color=:red)
                 @test false
             end
             parts = rsplit(ass, "."; limit=2)
@@ -112,7 +112,7 @@ end
     end
 
     for new in setdiff(newassets, oldassets)
-        printstyled(" 𐄂 Move new asset $(new)!\n"; color=:red)
+        printstyled(" × Move new asset $(new)!\n"; color=:red)
         @test false
         mv(joinpath(TMPDIR, new), joinpath(ASSETS, new))
     end

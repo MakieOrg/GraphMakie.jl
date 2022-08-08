@@ -4,6 +4,7 @@
 This is a more or less uncurated list of figures which are used for reference
 testing. They might be interesting but they are most probably not.
 =#
+# ## Test different `nlabels_align` modes
 using Graphs, GraphMakie, CairoMakie, NetworkLayout
 CairoMakie.activate!(type="png") # hide
 set_theme!(resolution=(400, 400)) #hide
@@ -39,12 +40,12 @@ p[:nlabels_offset][] = Point2(0.1,0.2)
 # variable offsets
 p[:nlabels_distance] = 0
 p[:nlabels_align][] = [(:center, :center) for i in 1:nv(g)]
-p[:nlabels][] = ["𐄂" for i in 1:nv(g)]
+p[:nlabels][] = ["×" for i in 1:nv(g)]
 p[:nlabels_color][] = :red
 p[:nlabels_offset][] = [Point2(.1*cos(-2π/9*i),.1*sin(-2π/9*i)) for i in 1:nv(g)]
 @save_reference fig
 
-# draw some edge labels
+# ## Edge label placement
 g = path_graph(4)
 elabels = ["a" for i in 1:ne(g)]
 elabels_align = (:center, :center)
@@ -62,16 +63,19 @@ p[:elabels_textsize][] = 10
 autolimits!(ax)
 @save_reference fig
 
+# ## Changes of node positions
 # edge and node labels follow graph movement
 g = complete_digraph(3)
 elabels = repr.(edges(g))
 nlabels = repr.(1:nv(g))
 fig, ax, p = graphplot(g; elabels, nlabels, elabels_textsize=10)
 @save_reference fig
+#
+limits!(ax, ax.finallimits[]) # freeze the limits
 p[:node_pos][] = Point2f.([(1., -.5), (-1.,0.), (-1.,-1.)])
 @save_reference fig
 
-# dynamical changes of the underlying graph
+# ## Change of the underlying graph
 gn = Observable(SimpleDiGraph(3))
 fig, ax, p = graphplot(gn)
 hidedecorations!(ax)
@@ -87,4 +91,18 @@ autolimits!(ax)
 # add another edge
 add_edge!(gn[], 2, 1)
 notify(gn)
+@save_reference fig
+
+# ## Different combinations of edge width and edgelabel distance
+g = path_graph(3)
+layout(y) = _ -> Point2f.([(0,-y),(1,-y),(2,-y)])
+elabels = ["Edge 1", "Edge 2"]
+node_color = :red
+
+fig, ax, p = graphplot(g; layout=layout(0), elabels, node_color)
+graphplot!(g; layout=layout(1), elabels, node_color, edge_width=10, elabels_textsize=25)
+graphplot!(g; layout=layout(2), elabels, node_color, edge_width=25, elabels_textsize=15)
+graphplot!(g; layout=layout(3), elabels, node_color, edge_width=25, elabels_textsize=[15,25])
+graphplot!(g; layout=layout(4), elabels, node_color, edge_width=[10,25], elabels_textsize=25)
+autolimits!(ax); hidedecorations!(ax); hidespines!(ax); ylims!(-5,1)
 @save_reference fig
