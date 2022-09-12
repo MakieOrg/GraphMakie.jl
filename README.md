@@ -1,11 +1,11 @@
 # GraphMakie
 
-[![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](http://juliaplots.org/GraphMakie.jl/stable)
-[![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](http://juliaplots.org/GraphMakie.jl/dev/)
-[![Build Status](https://github.com/JuliaPlots/GraphMakie.jl/workflows/CI/badge.svg)](https://github.com/JuliaPlots/GraphMakie.jl/actions)
-[![Coverage](https://codecov.io/gh/JuliaPlots/GraphMakie.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/JuliaPlots/GraphMakie.jl)
+[![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](http://graph.makie.org/stable)
+[![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](http://graph.makie.org/dev/)
+[![Build Status](https://github.com/MakieOrg/GraphMakie.jl/workflows/CI/badge.svg)](https://github.com/MakieOrg/GraphMakie.jl/actions)
+[![Coverage](https://codecov.io/gh/MakieOrg/GraphMakie.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/MakieOrg/GraphMakie.jl)
 
-Plotting graphs¹... with [Makie](https://github.com/JuliaPlots/Makie.jl)!
+Plotting graphs¹... with [Makie](https://github.com/MakieOrg/Makie.jl)!
 
 This package is just a plotting recipe, you still need to use one of the Makie backends.
 

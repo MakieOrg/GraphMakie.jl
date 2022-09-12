@@ -7,7 +7,7 @@ using LinearAlgebra: normalize, ⋅
 ####
 
 # type defs from Julius Krumbiegels PR
-# https://github.com/JuliaPlots/Makie.jl/pull/979
+# https://github.com/MakieOrg/Makie.jl/pull/979
 abstract type AbstractPath{PT<:AbstractPoint} end
 
 # simple lines get there own type. This helps with type stability

@@ -24,10 +24,10 @@ for example in filter(contains(r".jl$"), readdir(example_dir, join=true))
 end
 
 makedocs(; modules=[GraphMakie], authors="Simon Danisch, Hans Würfel",
-         repo="https://github.com/JuliaPlots/GraphMakie.jl/blob/{commit}{path}#{line}",
+         repo="https://github.com/MakieOrg/GraphMakie.jl/blob/{commit}{path}#{line}",
          sitename="GraphMakie.jl",
          format=Documenter.HTML(; prettyurls=get(ENV, "CI", "false") == "true",
-                                canonical="https://JuliaPlots.github.io/GraphMakie.jl", assets=String[]),
+                                canonical="https://graph.makie.org", assets=String[]),
          pages=["Home" => "index.md",
                 "Examples" => [
                     "Feature Walkthrough" => "generated/plots.md",
@@ -41,5 +41,5 @@ makedocs(; modules=[GraphMakie], authors="Simon Danisch, Hans Würfel",
 
 # if gh_pages branch gets to big, check out
 # https://juliadocs.github.io/Documenter.jl/stable/man/hosting/#gh-pages-Branch
-deploydocs(;repo="github.com/JuliaPlots/GraphMakie.jl",
+deploydocs(;repo="github.com/MakieOrg/GraphMakie.jl",
            push_preview=true)

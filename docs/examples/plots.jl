@@ -289,7 +289,7 @@ graphplot(g; layout=Spring(dim=3, seed=5),
           arrow_size=15)
 
 #=
-Using [`JSServe.jl`](https://github.com/SimonDanisch/JSServe.jl) and [`WGLMakie.jl`](https://github.com/JuliaPlots/WGLMakie.jl)
+Using [`JSServe.jl`](https://github.com/SimonDanisch/JSServe.jl) and [`WGLMakie.jl`](https://github.com/MakieOrg/Makie.jl/tree/master/WGLMakie)
 we can also add some interactivity:
 =#
 using JSServe #md
