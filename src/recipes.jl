@@ -169,6 +169,8 @@ end
 
 function Makie.plot!(gp::GraphPlot)
     graph = gp[:graph]
+    
+    dfth = default_theme(gp.parent, GraphPlot)
 
     # create initial vertex positions, will be updated on changes to graph or layout
     # make node_position-Observable available as named attribute from the outside
@@ -224,11 +226,16 @@ function Makie.plot!(gp::GraphPlot)
                            visible = arrow_show,
                            gp.arrow_attr...)
 
+    nodesize = lift(gp.node_size) do _
+        [getattr(gp.node_size, i, dfth.node_size[])
+        for i in vertices(graph[])]
+    end
+
     # plot vertices
     vertex_plot = scatter!(gp, node_pos;
                            color=gp.node_color,
                            marker=gp.node_marker,
-                           markersize=gp.node_size,
+                           markersize=nodesize,
                            gp.node_attr...)
 
     # plot node labels
@@ -247,12 +254,17 @@ function Makie.plot!(gp::GraphPlot)
             $(gp.nlabels_distance) .* align_to_dir($(gp.nlabels_align))
         end
 
+        nlabelstextsize = lift(gp.nlabels_textsize) do _
+            [getattr(gp.nlabels_textsize, i, dfth.nlabels_textsize[])
+            for i in vertices(graph[])]
+        end
+
         nlabels_plot = text!(gp, gp.nlabels;
                              position=positions,
                              align=gp.nlabels_align,
                              color=gp.nlabels_color,
                              offset=offset,
-                             textsize=gp.nlabels_textsize,
+                             textsize=nlabelstextsize,
                              gp.nlabels_attr...)
     end
 
@@ -296,7 +308,6 @@ function Makie.plot!(gp::GraphPlot)
             offsets = map(p -> Point(-p.data[2], p.data[1])/norm(p), tangent_px)
             offsets .= elabels_distance_offset(graph[], gp.attributes) .* offsets
         end
-
         elabels_plot = text!(gp, gp.elabels;
                              position=positions,
                              rotation=rotation,

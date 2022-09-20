@@ -49,6 +49,8 @@ Else return the one and only element.
 function getattr(o::Observable, idx, default=nothing)
     if o[] isa AbstractVector && !isa(o[], Point)
         return o[][idx]
+    elseif o[] isa DefaultDict || o[] isa DefaultOrderedDict
+        return getindex(o[], idx)
     elseif o[] isa AbstractDict
         return get(o[], idx, default)
     else
