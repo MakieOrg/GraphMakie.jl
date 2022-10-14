@@ -6,7 +6,6 @@ and a DAG layout from [`LayeredLayouts.jl`](https://github.com/oxinabox/LayeredL
 =#
 using CairoMakie
 CairoMakie.activate!(type="png") #hide
-CairoMakie.inline!(true) #hide
 set_theme!(resolution=(800, 600)) #hide
 using GraphMakie
 using Graphs
@@ -24,8 +23,13 @@ function depgraph(root)
     connections = Vector{Pair{Int,Int}}()
 
     for pkg in packages
+
         pkgidx = findfirst(isequal(pkg), packages)
-        deps = direct_dependencies(pkg)
+        deps = try
+            direct_dependencies(pkg)
+        catch e
+            continue # in case of standard libs
+        end
 
         for dep in keys(deps)
             idx = findfirst(isequal(dep), packages)

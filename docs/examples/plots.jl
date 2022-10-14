@@ -7,7 +7,6 @@ is as simple as
 using CairoMakie
 CairoMakie.activate!(type="png") # hide
 set_theme!(resolution=(800, 400)) #hide
-CairoMakie.inline!(true) # hide
 using GraphMakie
 using Graphs
 
@@ -299,4 +298,4 @@ using WGLMakie #md
 WGLMakie.activate!() #md
 set_theme!(resolution=(800, 600)) #md
 g = smallgraph(:dodecahedral) #md
-graphplot(g, layout=Spring(dim=3), node_size=100) #md
+graphplot(g, layout=Spring(dim=3)) #md
