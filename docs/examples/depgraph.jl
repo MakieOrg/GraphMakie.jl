@@ -23,8 +23,13 @@ function depgraph(root)
     connections = Vector{Pair{Int,Int}}()
 
     for pkg in packages
+
         pkgidx = findfirst(isequal(pkg), packages)
-        deps = direct_dependencies(pkg)
+        deps = try
+            direct_dependencies(pkg)
+        catch e
+            continue # in case of standard libs
+        end
 
         for dep in keys(deps)
             idx = findfirst(isequal(dep), packages)
