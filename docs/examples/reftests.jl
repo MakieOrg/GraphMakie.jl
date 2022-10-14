@@ -8,7 +8,6 @@ testing. They might be interesting but they are most probably not.
 using Graphs, GraphMakie, CairoMakie, NetworkLayout
 CairoMakie.activate!(type="png") # hide
 set_theme!(resolution=(400, 400)) #hide
-CairoMakie.inline!(true) # hide
 g = SimpleGraph(9)
 nlabels_align = [(:right, :bottom),
                  (:center, :bottom),

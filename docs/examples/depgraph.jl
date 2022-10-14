@@ -6,7 +6,6 @@ and a DAG layout from [`LayeredLayouts.jl`](https://github.com/oxinabox/LayeredL
 =#
 using CairoMakie
 CairoMakie.activate!(type="png") #hide
-CairoMakie.inline!(true) #hide
 set_theme!(resolution=(800, 600)) #hide
 using GraphMakie
 using Graphs

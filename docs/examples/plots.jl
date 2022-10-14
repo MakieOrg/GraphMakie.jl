@@ -7,7 +7,6 @@ is as simple as
 using CairoMakie
 CairoMakie.activate!(type="png") # hide
 set_theme!(resolution=(800, 400)) #hide
-CairoMakie.inline!(true) # hide
 using GraphMakie
 using Graphs
 
