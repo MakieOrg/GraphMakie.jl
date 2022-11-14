@@ -246,7 +246,7 @@ end
     p = Point2f[(0,0), (0, 1), (0,0), (1,0)]
     @test_broken linesegments(p; linestyle = [:dot, :dash])
 
-    graphplot(
+    @test_throws ArgumentError graphplot(
         DiGraph([Edge(1 => 2), Edge(2 => 1)]),
         edge_attr = (; linestyle = [:dot, :dash]),
     )
