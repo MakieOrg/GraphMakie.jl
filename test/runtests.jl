@@ -242,4 +242,25 @@ end
     graphplot(g; curve_distance=collect(0.1:0.1:0.5), curve_distance_usage=true)
 end
 
+@testset "separate linestyle per edge" begin
+    p = Point2f[(0,0), (0, 1), (0,0), (1,0)]
+    @test_broken linesegments(p; linestyle = [:dot, :dash])
+
+    graphplot(
+        DiGraph([Edge(1 => 2), Edge(2 => 1)]),
+        edge_attr = (; linestyle = [:dot, :dash]),
+    )
+
+    @test_throws ArgumentError graphplot(
+        DiGraph([Edge(1 => 2), Edge(2 => 3)]),
+        edge_attr = (; linestyle = [:dot, :dash]),
+    )
+
+    graphplot(
+        DiGraph([Edge(1 => 2), Edge(2 => 3)]),
+        edge_attr = (; linestyle = [:dot, :dash]),
+        edge_plottype = :beziersegments,
+    )
+end
+
 include("referencetests.jl")

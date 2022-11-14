@@ -524,6 +524,16 @@ function Makie.plot!(p::EdgePlot)
         on(p[:paths]) do paths # update if pathes change
             update_segments!(segs, paths)
         end
+
+        ls = try
+            first(p.attributes.linestyle[])
+        catch
+            nothing
+        end
+        if !isnothing(ls) && !isa(ls, Number)
+            throw(ArgumentError("It is not possible to use linestyles per edge `edge_plottype=:linesegments`. Consider passing `edge_plottype=:beziersegments` to `graphplot`."))
+        end
+
         linesegments!(p, segs; p.attributes...)
     else
         beziersegments!(p, p[:paths]; p.attributes...)
