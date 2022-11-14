@@ -261,6 +261,12 @@ end
         edge_attr = (; linestyle = [:dot, :dash]),
         edge_plottype = :beziersegments,
     )
+
+    graphplot(
+        DiGraph([Edge(1 => 2), Edge(2 => 3), Edge(3=>4), Edge(4=>1)]),
+        edge_attr = (; linestyle = [0.5, 1.0, 1.5, 2.5]),
+        edge_plottype = :beziersegments,
+    )
 end
 
 include("referencetests.jl")

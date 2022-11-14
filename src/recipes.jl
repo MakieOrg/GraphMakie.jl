@@ -606,6 +606,9 @@ function Makie.plot!(p::BezierSegments)
                 specific_attr[k] = @lift Makie.interpolated_getindex(colormap,
                                                                      Float64($v[i]),
                                                                      colorrange)
+            elseif k === :linestyle && v[] isa AbstractVector && first(v[]) isa Number
+                # linestyle may be vector of numbers to specify pattern, in that case don't split
+                specific_attr[k] = v
             elseif v[] isa AbstractVector && length(v[]) == N
                 specific_attr[k] = @lift $v[i]
             else
