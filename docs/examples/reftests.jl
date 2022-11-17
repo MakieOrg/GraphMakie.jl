@@ -105,3 +105,24 @@ graphplot!(g; layout=layout(3), elabels, node_color, edge_width=25, elabels_text
 graphplot!(g; layout=layout(4), elabels, node_color, edge_width=[10,25], elabels_textsize=25)
 autolimits!(ax); hidedecorations!(ax); hidespines!(ax); ylims!(-5,1)
 @save_reference fig
+
+# ## Different linestyles per edge
+fig = Figure()
+graphplot(fig[1,1],
+          DiGraph([Edge(1 => 2), Edge(2 => 3)]),
+          edge_attr = (; linestyle = [:dot, :dash]),
+          edge_plottype = :beziersegments,
+          )
+
+graphplot(fig[1,2],
+          DiGraph([Edge(1 => 2), Edge(2 => 1)]),
+          edge_attr = (; linestyle = [:dot, :dash]),
+          edge_plottype = :beziersegments,
+          )
+
+graphplot(fig[2,1],
+          DiGraph([Edge(1 => 2), Edge(2 => 3), Edge(3=>4), Edge(4=>1)]),
+          edge_attr = (; linestyle = [0.5, 1.0, 1.5, 2.5]),
+          edge_plottype = :beziersegments,
+          )
+@save_reference fig
