@@ -430,6 +430,15 @@ function find_edge_paths(g, attr, pos::AbstractVector{PT}) where {PT}
         # user specified linesegments but there are non-lines
         return straighten.(paths)
     elseif plottype === automatic
+        ls = try
+            first(attr.edge_attr.linestyle[])
+        catch
+            nothing
+        end
+        if !isnothing(ls) && !isa(ls, Number)
+            throw(ArgumentError("Linestyles per edge are only supported when passing `edge_plottype=:beziersegments` to `graphplot` explicitly."))
+        end
+
         # try to narrow down the typ, i.e. just `Line`s
         # update :plottype in attr so this is persistent even if the graph changes
         T = isempty(paths) ? Line{PT} : mapreduce(typeof, promote_type, paths)
@@ -535,6 +544,7 @@ function Makie.plot!(p::EdgePlot)
         on(p[:paths]) do paths # update if pathes change
             update_segments!(segs, paths)
         end
+
         linesegments!(p, segs; p.attributes...)
     else
         beziersegments!(p, p[:paths]; p.attributes...)
@@ -607,6 +617,9 @@ function Makie.plot!(p::BezierSegments)
                 specific_attr[k] = @lift Makie.interpolated_getindex(colormap,
                                                                      Float64($v[i]),
                                                                      colorrange)
+            elseif k === :linestyle && v[] isa AbstractVector && first(v[]) isa Number
+                # linestyle may be vector of numbers to specify pattern, in that case don't split
+                specific_attr[k] = v
             elseif v[] isa AbstractVector && length(v[]) == N
                 specific_attr[k] = @lift $v[i]
             else
