@@ -88,7 +88,7 @@ end
 
         # equal = ReferenceTests.psnr_equality()(load(old), load(new))
         score = compare(load(old), load(new))
-        MEH = 100
+        MEH = 90
         GOOD = 200
 
         if score > GOOD
