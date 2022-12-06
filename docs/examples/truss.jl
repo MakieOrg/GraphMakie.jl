@@ -140,7 +140,7 @@ nothing #hide
 =#
 
 fig = Figure(resolution=(1000,550))
-fig[1,1] = title = Label(fig, "Stress on truss", textsize=30)
+fig[1,1] = title = Label(fig, "Stress on truss", fontsize=30)
 title.tellwidth = false
 
 fig[2,1] = ax = Axis(fig)
@@ -155,7 +155,7 @@ p = graphplot!(ax, g;
                node_size=sqrt.(M)*3,
                nlabels=nlabels,
                nlabels_align=(:center,:top),
-               nlabels_textsize=30,
+               nlabels_fontsize=30,
                elabels=elabels,
                elabels_side=Dict(ne(g) => :right),
                edge_color=[0.0 for i in 1:ne(g)],

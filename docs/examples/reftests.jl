@@ -20,11 +20,11 @@ nlabels_align = [(:right, :bottom),
                  (:left, :top)]
 
 nlabels = repr.(nlabels_align)
-nlabels_textsize = 10
+nlabels_fontsize = 10
 
-fig, ax, p = graphplot(g; layout=SquareGrid(), nlabels, nlabels_align, nlabels_textsize)
+fig, ax, p = graphplot(g; layout=SquareGrid(), nlabels, nlabels_align, nlabels_fontsize)
 graphplot!(g; layout=SquareGrid(), nlabels, nlabels_align, nlabels_distance=30,
-           nlabels_color=:red, nlabels_textsize)
+           nlabels_color=:red, nlabels_fontsize)
 hidedecorations!(ax); xlims!(-2,4); ylims!(-4,2)
 @save_reference fig
 
@@ -58,7 +58,7 @@ p[:elabels][] = repr.(edges(g))
 p[:elabels_shift][] = [0.25, 0.5, 0.75]
 p[:elabels_rotation][] = [π/8, 0, -π/8]
 p[:elabels_offset][] = Point2(0.05,0.05)
-p[:elabels_textsize][] = 10
+p[:elabels_fontsize][] = 10
 autolimits!(ax)
 @save_reference fig
 
@@ -67,7 +67,7 @@ autolimits!(ax)
 g = complete_digraph(3)
 elabels = repr.(edges(g))
 nlabels = repr.(1:nv(g))
-fig, ax, p = graphplot(g; elabels, nlabels, elabels_textsize=10)
+fig, ax, p = graphplot(g; elabels, nlabels, elabels_fontsize=10)
 @save_reference fig
 #
 limits!(ax, ax.finallimits[]) # freeze the limits
@@ -99,10 +99,10 @@ elabels = ["Edge 1", "Edge 2"]
 node_color = :red
 
 fig, ax, p = graphplot(g; layout=layout(0), elabels, node_color)
-graphplot!(g; layout=layout(1), elabels, node_color, edge_width=10, elabels_textsize=25)
-graphplot!(g; layout=layout(2), elabels, node_color, edge_width=25, elabels_textsize=15)
-graphplot!(g; layout=layout(3), elabels, node_color, edge_width=25, elabels_textsize=[15,25])
-graphplot!(g; layout=layout(4), elabels, node_color, edge_width=[10,25], elabels_textsize=25)
+graphplot!(g; layout=layout(1), elabels, node_color, edge_width=10, elabels_fontsize=25)
+graphplot!(g; layout=layout(2), elabels, node_color, edge_width=25, elabels_fontsize=15)
+graphplot!(g; layout=layout(3), elabels, node_color, edge_width=25, elabels_fontsize=[15,25])
+graphplot!(g; layout=layout(4), elabels, node_color, edge_width=[10,25], elabels_fontsize=25)
 autolimits!(ax); hidedecorations!(ax); hidespines!(ax); ylims!(-5,1)
 @save_reference fig
 

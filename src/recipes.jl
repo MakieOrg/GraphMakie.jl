@@ -48,7 +48,7 @@ data space.
 - `nlabels_distance=0.0`: Pixel distance from node in direction of align.
 - `nlabels_color=labels_theme.color`
 - `nlabels_offset=nothing`: `Point` or `Vector{Point}` (in data space)
-- `nlabels_textsize=labels_theme.textsize`
+- `nlabels_fontsize=labels_theme.fontsize`
 - `nlabels_attr=(;)`: List of kw arguments which gets passed to the `text` command
 
 ### Edge labels
@@ -65,7 +65,7 @@ the edge.
   determined by the edge angle. If `automatic` it will also point upwards making it easy to read.
 - `elabels_offset=nothing`: Additional offset in data space
 - `elabels_color=labels_theme.color`
-- `elabels_textsize=labels_theme.textsize`
+- `elabels_fontsize=labels_theme.fontsize`
 - `elabels_attr=(;)`: List of kw arguments which gets passed to the `text` command
 
 ### Curvy edges & self edges/loops
@@ -140,7 +140,7 @@ Waypoints along edges:
         nlabels_distance = 0.0,
         nlabels_color = labels_theme.color,
         nlabels_offset = nothing,
-        nlabels_textsize = labels_theme.textsize,
+        nlabels_fontsize = labels_theme.fontsize,
         nlabels_attr = (;),
         # edge label attributes (Text)
         elabels = nothing,
@@ -151,7 +151,7 @@ Waypoints along edges:
         elabels_rotation = automatic,
         elabels_offset = nothing,
         elabels_color = labels_theme.color,
-        elabels_textsize = labels_theme.textsize,
+        elabels_fontsize = labels_theme.fontsize,
         elabels_attr = (;),
         # self edge attributes
         edge_plottype = automatic,
@@ -252,7 +252,7 @@ function Makie.plot!(gp::GraphPlot)
                              align=gp.nlabels_align,
                              color=gp.nlabels_color,
                              offset=offset,
-                             textsize=gp.nlabels_textsize,
+                             fontsize=gp.nlabels_fontsize,
                              gp.nlabels_attr...)
     end
 
@@ -303,7 +303,7 @@ function Makie.plot!(gp::GraphPlot)
                              offset=offsets,
                              align=gp.elabels_align,
                              color=gp.elabels_color,
-                             textsize=gp.elabels_textsize,
+                             fontsize=gp.elabels_fontsize,
                              gp.elabels_attr...)
     end
 
@@ -329,7 +329,7 @@ function elabels_distance_offset(g, attrs)
                 offs[i] = zero(attrval)
             end
         elseif attrval == automatic
-            offval = (getattr(attrs.elabels_textsize, i) + getattr(attrs.edge_width, i))/2
+            offval = (getattr(attrs.elabels_fontsize, i) + getattr(attrs.edge_width, i))/2
             if attrvalside == :left
                 offs[i] = offval
             elseif attrvalside == :right
