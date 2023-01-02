@@ -211,7 +211,11 @@ function Makie.plot!(gp::GraphPlot)
     else # if no edges return (empty) vector of points, broadcast yields Vector{Any} which can't be plotted
         Vector{eltype(node_pos[])}()
     end
-    arrow_rot = @lift Billboard(broadcast($to_angle, edge_paths[], $arrow_pos, gp.arrow_shift[]))
+    arrow_rot = @lift if !isempty(edge_paths[])
+        Billboard(broadcast($to_angle, edge_paths[], $arrow_pos, gp.arrow_shift[]))
+    else
+        Billboard()
+    end
     arrow_show = @lift $(gp.arrow_show) === automatic ? Graphs.is_directed($graph) : $(gp.arrow_show)
     arrow_heads = scatter!(gp,
                            arrow_pos;
@@ -417,7 +421,11 @@ function find_edge_paths(g, attr, pos::AbstractVector{PT}) where {PT}
         return paths
     elseif plottype === :linesegments
         # user specified linesegments but there are non-lines
-        return straighten.(paths)
+        if !isempty(paths)
+            return straighten.(paths)
+        else
+            return Line{PT}[]
+        end
     elseif plottype === automatic
         ls = try
             first(attr.edge_attr.linestyle[])
@@ -446,6 +454,8 @@ function find_edge_paths(g, attr, pos::AbstractVector{PT}) where {PT}
             attr[:edge_plottype][] = :beziersegments
             return paths
         end
+    else
+        throw(ArgumentError("Invalid argument for edge_plottype: $plottype"))
     end
 end
 
@@ -574,6 +584,11 @@ function Makie.plot!(p::BezierSegments)
     N = length(p[:paths][])
     PT = ptype(eltype(p[:paths][]))
     attr = p.attributes
+
+    if N == 0 # no edges, still need to plot some atomic element otherwise recipe does not work
+        lines!(p, PT[])
+        return p
+    end
 
     # set colorange automaticially if needed
     if attr[:color][] isa AbstractArray{<:Number}
