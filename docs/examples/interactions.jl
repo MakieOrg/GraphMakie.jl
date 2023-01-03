@@ -45,7 +45,7 @@ register_interaction!(ax, :nhover, nhover)
 
 function set_cursor!(p) #hide
     direction = Point2f(-0.1, 0.2) #hide
-    arrows!([p-direction], [direction], linewidth=3, arrowsize=20, lengthscale=0.8) #hide
+    arrows!([p-direction], [direction], linewidth=3, arrowsize=20, lengthscale=0.7) #hide
 end #hide
 nodepos = copy(p[:node_pos][]) #hide
 set_cursor!(nodepos[5] + Point2f(0.05, 0)) #hide
