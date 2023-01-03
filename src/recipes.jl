@@ -214,7 +214,7 @@ function Makie.plot!(gp::GraphPlot)
     arrow_rot = @lift if !isempty(edge_paths[])
         Billboard(broadcast($to_angle, edge_paths[], $arrow_pos, gp.arrow_shift[]))
     else
-        Billboard()
+        Billboard(Float32[])
     end
     arrow_show = @lift $(gp.arrow_show) === automatic ? Graphs.is_directed($graph) : $(gp.arrow_show)
     arrow_heads = scatter!(gp,
