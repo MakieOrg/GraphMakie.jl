@@ -36,8 +36,12 @@ end
 @testset "graph without edges" begin
     g = SimpleDiGraph(10)
     graphplot(g)
+    graphplot(g; edge_plottype=:linesegments)
+    graphplot(g; edge_plottype=:beziersegments)
     g = SimpleGraph(10)
     graphplot(g)
+    graphplot(g; edge_plottype=:linesegments)
+    graphplot(g; edge_plottype=:beziersegments)
 end
 
 @testset "selfedge without neighbors" begin
