@@ -251,8 +251,8 @@ function Makie.plot!(gp::GraphPlot)
             $(gp.nlabels_distance) .* align_to_dir($(gp.nlabels_align))
         end
 
-        nlabels_plot = text!(gp, gp.nlabels;
-                             position=positions,
+        nlabels_plot = text!(gp, positions;
+                             text=gp.nlabels,
                              align=gp.nlabels_align,
                              color=gp.nlabels_color,
                              offset=offset,
@@ -301,8 +301,8 @@ function Makie.plot!(gp::GraphPlot)
             offsets .= elabels_distance_offset(graph[], gp.attributes) .* offsets
         end
 
-        elabels_plot = text!(gp, gp.elabels;
-                             position=positions,
+        elabels_plot = text!(gp, positions;
+                             text=gp.elabels,
                              rotation=rotation,
                              offset=offsets,
                              align=gp.elabels_align,

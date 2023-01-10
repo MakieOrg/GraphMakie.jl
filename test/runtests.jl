@@ -171,16 +171,16 @@ end
     @test get_elabel_plot(p) === nothing
 
     fig, ax, p = graphplot(g; nlabels)
-    @test get_nlabel_plot(p)[1][] == nlabels
+    @test get_nlabel_plot(p)[:text][] == nlabels
     @test get_elabel_plot(p) === nothing
 
     fig, ax, p = graphplot(g; elabels)
     @test get_nlabel_plot(p) === nothing
-    @test get_elabel_plot(p)[1][] == elabels
+    @test get_elabel_plot(p)[:text][] == elabels
 
     fig, ax, p = graphplot(g; elabels, nlabels)
-    @test get_nlabel_plot(p)[1][] == nlabels
-    @test get_elabel_plot(p)[1][] == elabels
+    @test get_nlabel_plot(p)[:text][] == nlabels
+    @test get_elabel_plot(p)[:text][] == elabels
 end
 
 @testset "test Pointf" begin

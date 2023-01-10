@@ -29,7 +29,7 @@ get_nlabel_plot(gp::GraphPlot) = _get_label_plot(gp, gp.nlabels[])
 get_elabel_plot(gp::GraphPlot) = _get_label_plot(gp, gp.elabels[])
 
 function _get_label_plot(gp::GraphPlot, labels)
-    ps = filter(p -> p isa Makie.Text && p[1][] == labels, gp.plots)
+    ps = filter(p -> p isa Makie.Text && p[:text][] == labels, gp.plots)
     if isempty(ps)
         return nothing
     elseif length(ps) == 1
