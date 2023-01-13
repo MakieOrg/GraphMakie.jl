@@ -36,8 +36,12 @@ end
 @testset "graph without edges" begin
     g = SimpleDiGraph(10)
     graphplot(g)
+    graphplot(g; edge_plottype=:linesegments)
+    graphplot(g; edge_plottype=:beziersegments)
     g = SimpleGraph(10)
     graphplot(g)
+    graphplot(g; edge_plottype=:linesegments)
+    graphplot(g; edge_plottype=:beziersegments)
 end
 
 @testset "selfedge without neighbors" begin
@@ -167,16 +171,16 @@ end
     @test get_elabel_plot(p) === nothing
 
     fig, ax, p = graphplot(g; nlabels)
-    @test get_nlabel_plot(p)[1][] == nlabels
+    @test get_nlabel_plot(p)[:text][] == nlabels
     @test get_elabel_plot(p) === nothing
 
     fig, ax, p = graphplot(g; elabels)
     @test get_nlabel_plot(p) === nothing
-    @test get_elabel_plot(p)[1][] == elabels
+    @test get_elabel_plot(p)[:text][] == elabels
 
     fig, ax, p = graphplot(g; elabels, nlabels)
-    @test get_nlabel_plot(p)[1][] == nlabels
-    @test get_elabel_plot(p)[1][] == elabels
+    @test get_nlabel_plot(p)[:text][] == nlabels
+    @test get_elabel_plot(p)[:text][] == elabels
 end
 
 @testset "test Pointf" begin

@@ -278,7 +278,7 @@ elabels_shift[[2,7,8,9]] .= 0.3
 elabels_shift[10] = 0.25
 graphplot(g; layout=Spring(dim=3, seed=5),
           elabels="Edge ".*repr.(1:ne(g)),
-          elabels_textsize=12,
+          elabels_fontsize=12,
           elabels_side=Dict(i => :right for i in [3,5,7,8,12]),
           elabels_shift,
           elabels_distance=3,
