@@ -356,13 +356,13 @@ function find_edge_paths(g, attr, pos::AbstractVector{PT}) where {PT}
     paths = Vector{AbstractPath{PT}}(undef, ne(g))
 
     for (i, e) in enumerate(edges(g))
-        if e.src == e.dst # selfedge
+        if src(e) == dst(e) # selfedge
             size = getattr(attr.selfedge_size, i)
             direction = getattr(attr.selfedge_direction, i)
             width = getattr(attr.selfedge_width, i)
-            paths[i] = selfedge_path(g, pos, e.src, size, direction, width)
+            paths[i] = selfedge_path(g, pos, src(e), size, direction, width)
         else # no selfedge
-            p1, p2 = pos[e.src], pos[e.dst]
+            p1, p2 = pos[src(e)], pos[dst(e)]
             tangents = getattr(attr.tangents, i)
             tfactor = getattr(attr.tfactor, i)
             waypoints::Vector{PT} = getattr(attr.waypoints, i, PT[])
@@ -373,7 +373,7 @@ function find_edge_paths(g, attr, pos::AbstractVector{PT}) where {PT}
             elseif cdu === false
                 curve_distance = 0.0
             elseif cdu === automatic
-                if is_directed(g) && has_edge(g, e.dst, e.src)
+                if is_directed(g) && has_edge(g, dst(e), src(e))
                     curve_distance = getattr(attr.curve_distance, i, 0.0)
                 else
                     curve_distance = 0.0

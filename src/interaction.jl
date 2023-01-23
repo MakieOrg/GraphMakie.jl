@@ -340,12 +340,12 @@ function (action::EdgeDragAction)(state, idx, event, _)
     if state == true
         if action.src === action.dst === action.init === nothing
             action.init = event.data
-            action.src = action.p[:node_pos][][edge.src]
-            action.dst = action.p[:node_pos][][edge.dst]
+            action.src = action.p[:node_pos][][src(edge)]
+            action.dst = action.p[:node_pos][][dst(edge)]
         end
         offset = event.data - action.init
-        action.p[:node_pos][][edge.src] = action.src + offset
-        action.p[:node_pos][][edge.dst] = action.dst + offset
+        action.p[:node_pos][][src(edge)] = action.src + offset
+        action.p[:node_pos][][dst(edge)] = action.dst + offset
         action.p[:node_pos][] = action.p[:node_pos][] # trigger change
     elseif state == false
         action.src = action.dst = action.init = nothing
