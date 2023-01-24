@@ -519,7 +519,7 @@ end
 
 Return a BezierPath for a curved edge (not selfedge).
 """
-function curved_path(p1, p2, curve_distance)
+function curved_path(p1::PT, p2::PT, curve_distance) where {PT}
     d = curve_distance
     s = norm(p2 - p1)
     γ = 2*atan(2 * d/s)
