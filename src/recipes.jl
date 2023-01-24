@@ -373,6 +373,11 @@ function find_edge_paths(g, attr, pos::AbstractVector{PT}) where {PT}
         waypoints::Vector{PT} = getattr(attr.waypoints, i, PT[])
         radius = getattr(attr.waypoint_radius, i, nothing)
 
+        if !isnothing(waypoints) && !isempty(waypoints) #remove p1 and p2 from waypoints if these are given
+            waypoints[begin] == p1 && popfirst!(waypoints)
+            waypoints[end] == p2 && pop!(waypoints)
+        end
+
         cdu = getattr(attr.curve_distance_usage, i)
         if cdu === true
             curve_distance = getattr(attr.curve_distance, i, 0.0)
@@ -386,20 +391,15 @@ function find_edge_paths(g, attr, pos::AbstractVector{PT}) where {PT}
             end
         end
 
-        if !isnothing(waypoints) && !isempty(waypoints)#there are waypoints
-            # the waypoints may already include the endpoints (remove them if so)
-            waypoints[begin] == p1 && popfirst!(waypoints)
-            waypoints[end] == p2 && pop!(waypoints)
-            if p1 == p2 && isempty(waypoints)
-                paths[i] = selfedge_path(g, pos, src(e), size, direction, width)
-            elseif isempty(waypoints) || radius === nothing || radius === :spline 
+        if !isnothing(waypoints) && !isempty(waypoints) #there are waypoints
+            if isempty(waypoints) || radius === nothing || radius === :spline 
                 paths[i] = Path(p1, waypoints..., p2; tangents, tfactor)
             elseif radius isa Real
                 paths[i] = Path(radius, p1, waypoints..., p2)
             else
                 throw(ArgumentError("Invalid radius $radius for edge $i!"))
             end
-        elseif p1 == p2 # selfedge
+        elseif src(e) == dst(e) # selfedge
             paths[i] = selfedge_path(g, pos, src(e), size, direction, width)
         elseif !isnothing(tangents)
             paths[i] = Path(p1, p2; tangents, tfactor)
