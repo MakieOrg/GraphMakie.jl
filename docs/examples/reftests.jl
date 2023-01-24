@@ -126,3 +126,9 @@ graphplot(fig[2,1],
           edge_plottype = :beziersegments,
           )
 @save_reference fig
+
+# ##self loop with waypoints
+g1 = SimpleDiGraph(1)
+add_edge!(g1, 1, 1) #add self loop
+fig, ax, p = graphplot(g1, layout = _ -> [(0,0)], waypoints = [[(1,-1),(1,1),(-1,1),(-1,-1)]])
+@save_reference fig

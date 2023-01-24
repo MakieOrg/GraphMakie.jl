@@ -197,7 +197,7 @@ function Path(P::Vararg{PT, N}; tangents=nothing, tfactor=.5) where {PT<:Abstrac
     # first command, recalculate WP if tangent is given
     first_wp = WP[1]
     if tangents !== nothing
-        p1, p2, t = P[1], P[2], normalize(tangents[1])
+        p1, p2, t = P[1], P[2], normalize(Pointf(tangents[1]))
         dir = p2 - p1
         d = tfactor * norm(dir ⋅ t)
         first_wp = PT(p1+d*t)
@@ -214,7 +214,7 @@ function Path(P::Vararg{PT, N}; tangents=nothing, tfactor=.5) where {PT<:Abstrac
     # last command, recalculate last WP if tangent is given
     last_wp = (P[N] + WP[N-1])/2
     if tangents !== nothing
-        p1, p2, t = P[N-1], P[N], normalize(tangents[2])
+        p1, p2, t = P[N-1], P[N], normalize(Pointf(tangents[2]))
         dir = p2 - p1
         d = tfactor * norm(dir ⋅ t)
         last_wp = PT(p2-d*t)
