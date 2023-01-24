@@ -392,7 +392,7 @@ function find_edge_paths(g, attr, pos::AbstractVector{PT}) where {PT}
         end
 
         if !isnothing(waypoints) && !isempty(waypoints) #there are waypoints
-            if isempty(waypoints) || radius === nothing || radius === :spline 
+            if radius === nothing || radius === :spline 
                 paths[i] = Path(p1, waypoints..., p2; tangents, tfactor)
             elseif radius isa Real
                 paths[i] = Path(radius, p1, waypoints..., p2)
