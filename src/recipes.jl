@@ -403,17 +403,7 @@ function find_edge_paths(g, attr, pos::AbstractVector{PT}) where {PT}
         elseif !isnothing(tangents)
             paths[i] = Path(p1, p2; tangents, tfactor)
         elseif PT<:Point2 && !iszero(curve_distance)
-            d = curve_distance
-            s = norm(p2 - p1)
-            γ = 2*atan(2 * d/s)
-            a = (p2 - p1)/s * (4*d^2 + s^2)/(3s)
-
-            m = @SMatrix[cos(γ) -sin(γ); sin(γ) cos(γ)]
-            c1 = PT(p1 + m*a)
-            c2 = PT(p2 - transpose(m)*a)
-
-            commands = [MoveTo(p1), CurveTo(c1, c2, p2)]
-            paths[i] = BezierPath(commands)
+            paths[i] = curved_path(p1, p2, curve_distance)
         else # straight line
             paths[i] = Path(p1, p2)
         end
@@ -467,7 +457,7 @@ end
 """
     selfedge_path(g, pos, v, size, direction, width)
 
-Return a Path for the
+Return a BezierPath for a selfedge.
 """
 function selfedge_path(g, pos::AbstractVector{<:Point2}, v, size, direction, width)
     vp = pos[v]
@@ -522,6 +512,24 @@ end
 
 function selfedge_path(g, pos::AbstractVector{<:Point3}, v, size, direction, width)
     error("Self edges in 3D not yet supported")
+end
+
+"""
+    curved_path(p1, p2, curve_distance)
+
+Return a BezierPath for a curved edge (not selfedge).
+"""
+function curved_path(p1, p2, curve_distance)
+    d = curve_distance
+    s = norm(p2 - p1)
+    γ = 2*atan(2 * d/s)
+    a = (p2 - p1)/s * (4*d^2 + s^2)/(3s)
+
+    m = @SMatrix[cos(γ) -sin(γ); sin(γ) cos(γ)]
+    c1 = PT(p1 + m*a)
+    c2 = PT(p2 - transpose(m)*a)
+
+    return BezierPath([MoveTo(p1), CurveTo(c1, c2, p2)])
 end
 
 """
