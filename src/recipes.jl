@@ -72,11 +72,12 @@ the edge.
 - `edge_plottype=Makie.automatic()`: Either `automatic`, `:linesegments` or
   `:beziersegments`. `:beziersegments` are much slower for big graphs!
 
-Self edges / loops:
+Self edges / loops: 
 
-- `selfedge_size=Makie.automatic()`: Size of self-edge-loop (dict/vector possible).
-- `selfedge_direction=Makie.automatic()`: Direction of self-edge-loop as `Point2` (dict/vector possible).
+- `selfedge_size=Makie.automatic()`: Size of selfloop (dict/vector possible).
+- `selfedge_direction=Makie.automatic()`: Direction of center of the selfloop as `Point2` (dict/vector possible).
 - `selfedge_width=Makie.automatic()`: Opening of selfloop in rad (dict/vector possible).
+- Note: If valid waypoints are provided for selfloops, the selfedge attributes above will be ignored.
 
 High level interface for curvy edges:
 
@@ -104,6 +105,8 @@ Tangents interface for curvy edges:
     Higher factor means bigger radius. Can be tuple per edge to specify different
     factor for src and dst.
 
+- Note: Tangents are ignored on selfloops if no waypoints are provided.
+
 Waypoints along edges:
 - `waypoints=nothing`
 
@@ -111,7 +114,12 @@ Waypoints along edges:
     dict. Waypoints will be crossed using natural cubic splines. The waypoints may
     or may not include the src/dst positions.
 
-- `waypoint_radius=nothing`: If number (dict/vector possible) bent lines within radius of waypoints.
+- `waypoint_radius=nothing`
+
+    If the attribute `waypoint_radius` is `nothing` or `:spline` the waypoints will 
+    be crossed using natural cubic spline interpolation. If number (dict/vector 
+    possible), the waypoints won't be reached, instead they will be connected with 
+    straight lines which bend in the given radius around the waypoints.
 """
 @recipe(GraphPlot, graph) do scene
     # TODO: figure out this whole theme business
@@ -356,61 +364,59 @@ function find_edge_paths(g, attr, pos::AbstractVector{PT}) where {PT}
     paths = Vector{AbstractPath{PT}}(undef, ne(g))
 
     for (i, e) in enumerate(edges(g))
-        if src(e) == dst(e) # selfedge
-            size = getattr(attr.selfedge_size, i)
-            direction = getattr(attr.selfedge_direction, i)
-            width = getattr(attr.selfedge_width, i)
-            paths[i] = selfedge_path(g, pos, src(e), size, direction, width)
-        else # no selfedge
-            p1, p2 = pos[src(e)], pos[dst(e)]
-            tangents = getattr(attr.tangents, i)
-            tfactor = getattr(attr.tfactor, i)
-            waypoints::Vector{PT} = getattr(attr.waypoints, i, PT[])
+        p1, p2 = pos[src(e)], pos[dst(e)]
+        size = getattr(attr.selfedge_size, i)
+        direction = getattr(attr.selfedge_direction, i)
+        width = getattr(attr.selfedge_width, i)
+        tangents = getattr(attr.tangents, i)
+        tfactor = getattr(attr.tfactor, i)
+        waypoints::Vector{PT} = getattr(attr.waypoints, i, PT[])
+        radius = getattr(attr.waypoint_radius, i, nothing)
 
-            cdu = getattr(attr.curve_distance_usage, i)
-            if cdu === true
+        cdu = getattr(attr.curve_distance_usage, i)
+        if cdu === true
+            curve_distance = getattr(attr.curve_distance, i, 0.0)
+        elseif cdu === false
+            curve_distance = 0.0
+        elseif cdu === automatic
+            if is_directed(g) && has_edge(g, dst(e), src(e))
                 curve_distance = getattr(attr.curve_distance, i, 0.0)
-            elseif cdu === false
+            else
                 curve_distance = 0.0
-            elseif cdu === automatic
-                if is_directed(g) && has_edge(g, dst(e), src(e))
-                    curve_distance = getattr(attr.curve_distance, i, 0.0)
-                else
-                    curve_distance = 0.0
-                end
             end
+        end
 
-            if !isnothing(waypoints) && !isempty(waypoints) #there are waypoints
-                # the waypoints may already include the endpoints
-                waypoints[begin] == p1 && popfirst!(waypoints)
-                waypoints[end] == p2 && pop!(waypoints)
-
-                radius = getattr(attr.waypoint_radius, i, nothing)
-
-                if isempty(waypoints) || radius === nothing || radius === :spline
-                    paths[i] = Path(p1, waypoints..., p2; tangents, tfactor)
-                elseif radius isa Real
-                    paths[i] = Path(radius, p1, waypoints..., p2)
-                else
-                    throw(ArgumentError("Invalid radius $radius for edge $i!"))
-                end
-            elseif !isnothing(tangents)
-                paths[i] = Path(p1, p2; tangents, tfactor)
-            elseif PT<:Point2 && !iszero(curve_distance)
-                d = curve_distance
-                s = norm(p2 - p1)
-                γ = 2*atan(2 * d/s)
-                a = (p2 - p1)/s * (4*d^2 + s^2)/(3s)
-
-                m = @SMatrix[cos(γ) -sin(γ); sin(γ) cos(γ)]
-                c1 = PT(p1 + m*a)
-                c2 = PT(p2 - transpose(m)*a)
-
-                commands = [MoveTo(p1), CurveTo(c1, c2, p2)]
-                paths[i] = BezierPath(commands)
-            else # straight line
-                paths[i] = Path(p1, p2)
+        if !isnothing(waypoints) && !isempty(waypoints)#there are waypoints
+            # the waypoints may already include the endpoints (remove them if so)
+            waypoints[begin] == p1 && popfirst!(waypoints)
+            waypoints[end] == p2 && pop!(waypoints)
+            if p1 == p2 && isempty(waypoints)
+                paths[i] = selfedge_path(g, pos, src(e), size, direction, width)
+            elseif isempty(waypoints) || radius === nothing || radius === :spline 
+                paths[i] = Path(p1, waypoints..., p2; tangents, tfactor)
+            elseif radius isa Real
+                paths[i] = Path(radius, p1, waypoints..., p2)
+            else
+                throw(ArgumentError("Invalid radius $radius for edge $i!"))
             end
+        elseif p1 == p2 # selfedge
+            paths[i] = selfedge_path(g, pos, src(e), size, direction, width)
+        elseif !isnothing(tangents)
+            paths[i] = Path(p1, p2; tangents, tfactor)
+        elseif PT<:Point2 && !iszero(curve_distance)
+            d = curve_distance
+            s = norm(p2 - p1)
+            γ = 2*atan(2 * d/s)
+            a = (p2 - p1)/s * (4*d^2 + s^2)/(3s)
+
+            m = @SMatrix[cos(γ) -sin(γ); sin(γ) cos(γ)]
+            c1 = PT(p1 + m*a)
+            c2 = PT(p2 - transpose(m)*a)
+
+            commands = [MoveTo(p1), CurveTo(c1, c2, p2)]
+            paths[i] = BezierPath(commands)
+        else # straight line
+            paths[i] = Path(p1, p2)
         end
     end
 
