@@ -365,14 +365,9 @@ function find_edge_paths(g, attr, pos::AbstractVector{PT}) where {PT}
 
     for (i, e) in enumerate(edges(g))
         p1, p2 = pos[src(e)], pos[dst(e)]
-        size = getattr(attr.selfedge_size, i)
-        direction = getattr(attr.selfedge_direction, i)
-        width = getattr(attr.selfedge_width, i)
         tangents = getattr(attr.tangents, i)
         tfactor = getattr(attr.tfactor, i)
         waypoints::Vector{PT} = getattr(attr.waypoints, i, PT[])
-        radius = getattr(attr.waypoint_radius, i, nothing)
-
         if !isnothing(waypoints) && !isempty(waypoints) #remove p1 and p2 from waypoints if these are given
             waypoints[begin] == p1 && popfirst!(waypoints)
             waypoints[end] == p2 && pop!(waypoints)
@@ -392,6 +387,7 @@ function find_edge_paths(g, attr, pos::AbstractVector{PT}) where {PT}
         end
 
         if !isnothing(waypoints) && !isempty(waypoints) #there are waypoints
+            radius = getattr(attr.waypoint_radius, i, nothing)
             if radius === nothing || radius === :spline 
                 paths[i] = Path(p1, waypoints..., p2; tangents, tfactor)
             elseif radius isa Real
@@ -400,6 +396,9 @@ function find_edge_paths(g, attr, pos::AbstractVector{PT}) where {PT}
                 throw(ArgumentError("Invalid radius $radius for edge $i!"))
             end
         elseif src(e) == dst(e) # selfedge
+            size = getattr(attr.selfedge_size, i)
+            direction = getattr(attr.selfedge_direction, i)
+            width = getattr(attr.selfedge_width, i)
             paths[i] = selfedge_path(g, pos, src(e), size, direction, width)
         elseif !isnothing(tangents)
             paths[i] = Path(p1, p2; tangents, tfactor)
