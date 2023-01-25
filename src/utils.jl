@@ -121,3 +121,67 @@ function plot_controlpoints!(ax::Axis, p::BezierPath; color=:black)
         end
     end
 end
+
+"""
+    move_arrows_to_nodes!(ax::Axis, gp::GraphPlot; t=0.9)
+
+Moves arrowheads to the surface of the each destination node.
+Only supported for markers of type `Circle`.
+
+Call this function only after all changes have been made to the plot.
+"""
+function move_arrows_to_nodes!(ax::Axis, gp::GraphPlot; t=1)
+    if gp.node_marker[] !== Circle
+        error("`move_arrows_to_nodes! is only supported for plots that use `Cricle` as the `node_marker`.")
+    end
+
+    #get point to pixel scale
+    xlims = ax.xaxis.attributes.limits[]
+    xrange = ax.xaxis.attributes.endpoints[]
+    ylims = ax.yaxis.attributes.limits[]
+    yrange = ax.yaxis.attributes.endpoints[]
+    dx = xlims[2] - xlims[1]
+    dxpx = xrange[2][1] - xrange[1][1]
+    dy = ylims[2] - ylims[1]
+    dypx = yrange[2][2] - yrange[1][2]
+    dpx = [dx/dxpx, dy/dypx]
+
+    #node attr
+    node_pos = gp.node_pos[]
+    node_size = gp.node_size[]
+    node_rad = node_size ./ 2 #radius
+
+    #arrow attr
+    arrow_pos = gp.arrow_pos[]
+    arrow_size = gp.arrow_size[]
+    arrow_rot = gp.arrow_rot[]
+    arrow_rad = arrow_size ./ 2 #radius
+
+    #scene and projection
+    sc = Makie.parent_scene(gp)
+    to_px(point) = project(sc, point)
+
+    #edge and graph
+    edge_paths = gp.edge_paths[]
+    g = gp.graph[]
+
+    for (i,e) in enumerate(edges(g))
+        #update arrow rotation
+        e_tan = tangent(edge_paths[i], t) #tangent at destination node
+        e_tan_px = to_px(e_tan) - to_px(Point2(0,0)) #project to pixels
+        θ = atan(e_tan_px[2], e_tan_px[1]) #tangent angle
+        arrow_rot.rotation[i] = θ
+
+        #update arrow position
+        j = dst(e)
+        d = node_rad[1] + arrow_rad[1] #distance between center of node and center of arrow
+        p0 = node_pos[j]
+        p1 = p0 .- d * [cos(θ),sin(θ)] .* dpx
+        arrow_pos[i] = p1
+    end
+    
+    gp.arrow_pos[] = gp.arrow_pos[]
+    gp.arrow_rot[] = gp.arrow_rot[]
+
+    return nothing
+end
