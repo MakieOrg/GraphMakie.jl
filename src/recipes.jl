@@ -1,5 +1,7 @@
 using LinearAlgebra: normalize, ⋅, norm
-export GraphPlot, graphplot, graphplot!
+export GraphPlot, graphplot, graphplot!, Arrow
+
+const Arrow = Makie.Polygon(Point2f.([(-0.5,-0.5),(0.5,0),(-0.5,0.5),(-0.25,0)]))
 
 """
     graphplot(graph::AbstractGraph)
@@ -131,7 +133,7 @@ Waypoints along edges:
         # node attributes (Scatter)
         node_color = scatter_theme.color,
         node_size = scatter_theme.markersize,
-        node_marker = scatter_theme.marker,
+        node_marker = Circle,#scatter_theme.marker,
         node_attr = (;),
         # edge attributes (LineSegements)
         edge_color = lineseg_theme.color,
@@ -141,6 +143,7 @@ Waypoints along edges:
         arrow_show = automatic,
         arrow_size = scatter_theme.markersize,
         arrow_shift = 0.5,
+        arrow_marker = Arrow,#'➤',
         arrow_attr = (;),
         # node label attributes (Text)
         nlabels = nothing,
@@ -227,7 +230,7 @@ function Makie.plot!(gp::GraphPlot)
     arrow_show = @lift $(gp.arrow_show) === automatic ? Graphs.is_directed($graph) : $(gp.arrow_show)
     arrow_heads = scatter!(gp,
                            arrow_pos;
-                           marker = '➤',
+                           marker = gp.arrow_marker,#'➤',
                            markersize = gp.arrow_size,
                            color = gp.edge_color,
                            rotations = arrow_rot,
@@ -235,6 +238,9 @@ function Makie.plot!(gp::GraphPlot)
                            markerspace = :pixel,
                            visible = arrow_show,
                            gp.arrow_attr...)
+
+    gp[:arrow_pos] = arrow_pos
+    gp[:arrow_rot] = arrow_rot
 
     # plot vertices
     vertex_plot = scatter!(gp, node_pos;
