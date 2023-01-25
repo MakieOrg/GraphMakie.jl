@@ -132,3 +132,8 @@ g1 = SimpleDiGraph(1)
 add_edge!(g1, 1, 1) #add self loop
 fig, ax, p = graphplot(g1, layout = _ -> [(0,0)], waypoints = [[(1,-1),(1,1),(-1,1),(-1,-1)]])
 @save_reference fig
+
+# ##shift arrows to nodes
+fig,ax,p=graphplot(SimpleDiGraph(ones(2,2)),node_size=50,arrow_size=20,curve_distance=0.5)
+GraphMakie.move_arrows_to_nodes!(ax,p;t=0.99)
+@save_reference fig
