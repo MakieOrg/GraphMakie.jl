@@ -205,7 +205,7 @@ hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()
 It is possible to move the arrowheads to the surface of the destination node
 on each edge. After making all changes to a figure, call
 `move_arrows_to_nodes!(ax, p; t)` to shift the arrowheads.
-`t` should be a value between 0 and 1, and close to 1 so that the angle rotation 
+`t` should be a value between 0 and 1, and close to 1 so that the arrow rotation 
 is updated close to the tangent line at the destination node.
 
 NOTE: This is only for graphs that have Circle as the `node_marker`.
