@@ -1,4 +1,5 @@
 export get_edge_plot, get_arrow_plot, get_node_plot, get_nlabel_plot, get_elabel_plot
+export move_arrows_to_nodes!
 
 "Get the `EdgePlot` subplot from a `GraphPlot`."
 function get_edge_plot(gp::GraphPlot)
@@ -182,8 +183,8 @@ function move_arrows_to_nodes!(ax::Axis, gp::GraphPlot; t=1)
         arrow_pos[i] = p1
     end
     
-    gp.arrow_pos[] = gp.arrow_pos[]
-    gp.arrow_rot[] = gp.arrow_rot[]
+    notify(gp.arrow_pos)
+    notify(gp.arrow_rot)
 
     return nothing
 end

@@ -202,6 +202,18 @@ hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()
 @save_reference f #hide
 
 #=
+It is possible to move the arrowheads to the surface of the destination node
+on each edge. After making all changes to a figure, call
+`move_arrows_to_nodes!(ax, p; t)` to shift the arrowheads.
+`t` should be a value between 0 and 1, and close to 1 so that the angle rotation 
+is updated close to the tangent line at the destination node.
+=#
+f,ax,p=graphplot(SimpleDiGraph(ones(2,2)),node_size=50,arrow_size=20,curve_distance=0.5)
+hidedecorations!(ax); hidespines!(ax)
+move_arrows_to_nodes!(ax, p; t=0.99)
+@save_reference f #hide
+
+#=
 ### `tangents` interface
 
 Curvy edges are also possible using the low level interface of passing tangent
@@ -210,7 +222,7 @@ two vectors per edge (one for src vertex, one for dst vertex). The `tfactor`
 scales the distance of the bezier control point relative to the distance of src
 and dst nodes. For real world usage see the [AST of a Julia function](@ref) example.
 =#
-using GraphMakie: plot_controlpoints!
+using GraphMakie: plot_controlpoints!, SquareGrid
 g = complete_graph(3)
 tangents = Dict(1 => ((1,1),(0,-1)),
                 2 => ((0,1),(0,-1)),
