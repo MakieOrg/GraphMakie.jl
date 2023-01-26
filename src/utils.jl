@@ -123,10 +123,12 @@ function plot_controlpoints!(ax::Axis, p::BezierPath; color=:black)
 end
 
 """
-    move_arrows_to_nodes!(ax::Axis, gp::GraphPlot; t=0.9)
+    move_arrows_to_nodes!(ax::Axis, gp::GraphPlot; t=1)
 
 Moves arrowheads to the surface of the each destination node.
-Only supported for markers of type `Circle`.
+Only supported for markers of type `Circle`. `t` is a value
+    between 0 and 1 and should be close to 1, which is where
+    the tangent for the arrow position will be placed.
 
 Call this function only after all changes have been made to the plot.
 """
