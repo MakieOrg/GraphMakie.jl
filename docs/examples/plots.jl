@@ -285,7 +285,8 @@ Specifying `waypoints` for self-edges will override any `selfedge_` attributes.
 If `waypoints` are specified on an edge, `tangents` can also be added. However,
 if `tangents` are given, but no `waypoints`, the `tangents` are ignored.
 =#
-g = SimpleDiGraph([1;;]) #single node with self loop
+g = SimpleDiGraph(1) #single node
+add_edge!(g, 1, 1) #add self loop
 f, ax, p = graphplot(g, 
                      layout = _ -> [(0,0)], 
                      waypoints = [[(1,-1),(1,1),(-1,1),(-1,-1)]])
