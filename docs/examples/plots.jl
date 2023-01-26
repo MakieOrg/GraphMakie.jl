@@ -281,6 +281,17 @@ xlims!(ax, (-0.1, 2.25)), hidedecorations!(ax); hidespines!(ax); ax.aspect = Dat
 @save_reference f #hide
 
 #=
+Specifying `waypoints` for self-edges will override any `selfedge_` attributes.
+If `waypoints` are specified on an edge, `tangents` can also be added. However,
+if `tangents` are given, but no `waypoints`, the `tangents` are ignored.
+=#
+g = SimpleDiGraph([1;;]) #single node with self loop
+f, ax, p = graphplot(g, 
+                     layout = _ -> [(0,0)], 
+                     waypoints = [[(1,-1),(1,1),(-1,1),(-1,-1)]])
+@save_reference f #hide
+
+#=
 ## Plot Graphs in 3D
 If the layout returns points in 3 dimensions, the plot will be in 3D. However this is a bit
 experimental. Feel free to file an issue if there are any problems.
