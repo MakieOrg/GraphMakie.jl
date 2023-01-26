@@ -207,6 +207,8 @@ on each edge. After making all changes to a figure, call
 `move_arrows_to_nodes!(ax, p; t)` to shift the arrowheads.
 `t` should be a value between 0 and 1, and close to 1 so that the angle rotation 
 is updated close to the tangent line at the destination node.
+
+NOTE: This is only for graphs that have Circle as the `node_marker`.
 =#
 f,ax,p=graphplot(SimpleDiGraph(ones(2,2)),node_size=50,arrow_size=20,curve_distance=0.5)
 hidedecorations!(ax); hidespines!(ax)
