@@ -1,5 +1,4 @@
 export get_edge_plot, get_arrow_plot, get_node_plot, get_nlabel_plot, get_elabel_plot
-export move_arrows_to_nodes!
 
 "Get the `EdgePlot` subplot from a `GraphPlot`."
 function get_edge_plot(gp::GraphPlot)
@@ -124,67 +123,19 @@ function plot_controlpoints!(ax::Axis, p::BezierPath; color=:black)
 end
 
 """
-    move_arrows_to_nodes!(ax::Axis, gp::GraphPlot; t=1)
+    radius_px(marker)
 
-Moves arrowheads to the surface of the each destination node.
-Only supported for markers of type `Circle`. `t` is a value
-    between 0 and 1 and should be close to 1, which is where
-    the tangent for the arrow position will be placed.
-
-Call this function only after all changes have been made to the plot.
+Get base size (scaling) in pixels for `marker`.
 """
-function move_arrows_to_nodes!(ax::Axis, gp::GraphPlot; t=1)
-    if gp.node_marker[] !== Circle
-        error("`move_arrows_to_nodes! is only supported for plots that use `Cricle` as the `node_marker`.")
+function radius_px(marker)
+    if marker == Circle
+        r = 1
+    elseif marker == Arrow
+        r = 1
+    else
+        #NOTE: "arrow_shift = 1 will not display properly with markers that are do not have a 1x1 base size."
+        r = 1
     end
 
-    #get point to pixel scale
-    xlims = ax.xaxis.attributes.limits[]
-    xrange = ax.xaxis.attributes.endpoints[]
-    ylims = ax.yaxis.attributes.limits[]
-    yrange = ax.yaxis.attributes.endpoints[]
-    dx = xlims[2] - xlims[1]
-    dxpx = xrange[2][1] - xrange[1][1]
-    dy = ylims[2] - ylims[1]
-    dypx = yrange[2][2] - yrange[1][2]
-    dpx = [dx/dxpx, dy/dypx]
-
-    #node attr
-    node_pos = gp.node_pos[]
-    node_size = gp.node_size[]
-    node_rad = node_size ./ 2 #radius
-
-    #arrow attr
-    arrow_pos = gp.arrow_pos[]
-    arrow_size = gp.arrow_size[]
-    arrow_rot = gp.arrow_rot[]
-    arrow_rad = arrow_size ./ 2 #radius
-
-    #scene and projection
-    sc = Makie.parent_scene(gp)
-    to_px(point) = project(sc, point)
-
-    #edge and graph
-    edge_paths = gp.edge_paths[]
-    g = gp.graph[]
-
-    for (i,e) in enumerate(edges(g))
-        #update arrow rotation
-        e_tan = tangent(edge_paths[i], t) #tangent at destination node
-        e_tan_px = to_px(e_tan) - to_px(Point2(0,0)) #project to pixels
-        θ = atan(e_tan_px[2], e_tan_px[1]) #tangent angle
-        arrow_rot.rotation[i] = θ
-
-        #update arrow position
-        j = dst(e)
-        d = node_rad[1] + arrow_rad[1] #distance between center of node and center of arrow
-        p0 = node_pos[j]
-        p1 = p0 .- d * [cos(θ),sin(θ)] .* dpx
-        arrow_pos[i] = p1
-    end
-    
-    notify(gp.arrow_pos)
-    notify(gp.arrow_rot)
-
-    return nothing
+    return r
 end
