@@ -107,7 +107,7 @@ end
 
 function inverse_interpolate(p, pt::Point3)
     # TODO: is this the right place to throw an error when trying to shift arrows to destination nodes?
-    @warn "arrow_shift = 1 will not display properly for 3D plots."
+    @warn "arrow_shift = :end will not display properly for 3D plots."
     nothing
 end
 

@@ -40,6 +40,8 @@ underlying graph and therefore changing the number of Edges/Nodes.
 - `arrow_marker=GraphMakie.Arrow`
 - `arrow_size=scatter_theme.markersize`: Size of arrowheads.
 - `arrow_shift=0.5`: Shift arrow position from source (0) to dest (1) node. 
+  If `arrow_shift=:end`, the arrowhead will be placed on the surface of the destination node 
+  (assuming the destination node is circular).
 - `arrow_attr=(;)`: List of kw arguments which gets passed to the `scatter` command
 
 ### Node labels
@@ -667,7 +669,7 @@ end
 """
     update_arrow_shift(g, gp, edge_paths::Vector{<:AbstractPath{PT}}, shift, to_angle, scale_px) where {PT}
 
-Checks `arrow_shift` attr so that `arrow_shift = 1` gets transformed so that the arrowhead for that edge
+Checks `arrow_shift` attr so that `arrow_shift = :end` gets transformed so that the arrowhead for that edge
 lands on the surface of the destination node.
 """
 function update_arrow_shift(g, gp, edge_paths::Vector{<:AbstractPath{PT}}, shift, to_angle, scale_px) where {PT}
@@ -675,7 +677,7 @@ function update_arrow_shift(g, gp, edge_paths::Vector{<:AbstractPath{PT}}, shift
 
     for (i,e) in enumerate(edges(g))
         t = getattr(gp.arrow_shift, i, 0.5)
-        if isone(t)
+        if t === :end
             j = dst(e)
             p0 = getattr(gp.node_pos, j)
             node_marker = getattr(gp.node_marker, j)
