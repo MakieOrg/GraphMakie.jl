@@ -89,20 +89,13 @@ Method: Calculates the square distance between `pt` and path `p` and minimizes (
     let a = p0 - pt, b = p - p0
     t = -(a[1]*b[1] + a[2]*b[2]) / (b[1]^2 + b[2]^2)
 """
-function inverse_interpolate(p::BezierPath{PT}, pt) where PT
+function inverse_interpolate(p::BezierPath{<:Point2}, pt)
     p0 = p.commands[end-1].p
     c = p.commands[end]
-    p1, p2, p3 = c.c1, c.c2, c.p
-    poly0 = - p0[1]^2 + p0[1]*p1[1] + p0[1]*pt[1] - p0[2]^2 + p0[2]*p1[2] + p0[2]*pt[2] - p1[1]*pt[1] - p1[2]*pt[2]
-    poly1 = 5*p0[1]^2 - 10*p0[1]*p1[1] + 2*p0[1]*p2[1] - 2*p0[1]*pt[1] + 5*p0[2]^2 - 10*p0[2]*p1[2] + 2*p0[2]*p2[2] - 2*p0[2]*pt[2] + 3*p1[1]^2 + 4*p1[1]*pt[1] + 3*p1[2]^2 + 4*p1[2]*pt[2] - 2*p2[1]*pt[1] - 2*p2[2]*pt[2]
-    poly2 = -10*p0[1]^2 + 30*p0[1]*p1[1] - 12*p0[1]*p2[1] + p0[1]*p3[1] + p0[1]*pt[1] - 10*p0[2]^2 + 30*p0[2]*p1[2] - 12*p0[2]*p2[2] + p0[2]*p3[2] + p0[2]*pt[2] - 18*p1[1]^2 + 9*p1[1]*p2[1] - 3*p1[1]*pt[1] - 18*p1[2]^2 + 9*p1[2]*p2[2] - 3*p1[2]*pt[2] + 3*p2[1]*pt[1] + 3*p2[2]*pt[2] - p3[1]*pt[1] - p3[2]*pt[2]
-    poly3 = 10*p0[1]^2 - 40*p0[1]*p1[1] + 24*p0[1]*p2[1] - 4*p0[1]*p3[1] + 10*p0[2]^2 - 40*p0[2]*p1[2] + 24*p0[2]*p2[2] - 4*p0[2]*p3[2] + 36*p1[1]^2 - 36*p1[1]*p2[1] + 4*p1[1]*p3[1] + 36*p1[2]^2 - 36*p1[2]*p2[2] + 4*p1[2]*p3[2] + 6*p2[1]^2 + 6*p2[2]^2
-    poly4 = -5*p0[1]^2 + 25*p0[1]*p1[1] - 20*p0[1]*p2[1] + 5*p0[1]*p3[1] - 5*p0[2]^2 + 25*p0[2]*p1[2] - 20*p0[2]*p2[2] + 5*p0[2]*p3[2] - 30*p1[1]^2 + 45*p1[1]*p2[1] - 10*p1[1]*p3[1] - 30*p1[2]^2 + 45*p1[2]*p2[2] - 10*p1[2]*p3[2] - 15*p2[1]^2 + 5*p2[1]*p3[1] - 15*p2[2]^2 + 5*p2[2]*p3[2]
-    poly5 = p0[1]^2 - 6*p0[1]*p1[1] + 6*p0[1]*p2[1] - 2*p0[1]*p3[1] + p0[2]^2 - 6*p0[2]*p1[2] + 6*p0[2]*p2[2] - 2*p0[2]*p3[2] + 9*p1[1]^2 - 18*p1[1]*p2[1] + 6*p1[1]*p3[1] + 9*p1[2]^2 - 18*p1[2]*p2[2] + 6*p1[2]*p3[2] + 9*p2[1]^2 - 6*p2[1]*p3[1] + 9*p2[2]^2 - 6*p2[2]*p3[2] + p3[1]^2 + p3[2]^2
-    polynomial = [poly0, poly1, poly2, poly3, poly4, poly5]
-    t_vals = round.(roots5(polynomial), digits=6) #get roots and round to 6 digits
-    t_reals = filter(i -> isreal(i) && 0 <= real(i) <= 1, t_vals) #get reals between 0 and 1
-    return real.(t_reals)
+    tseg = maximum(_inverse_interpolate(c, p0, pt)) #get value (root) closest to 1
+    N = length(p.commands) - 1
+    t = ((N-1) + tseg) / N
+    return t
 end
 
 function inverse_interpolate(l::Line{PT}, pt) where PT
@@ -116,6 +109,21 @@ function inverse_interpolate(p, pt::Point3)
     # TODO: is this the right place to throw an error when trying to shift arrows to destination nodes?
     @warn "arrow_shift = 1 will not display properly for 3D plots."
     nothing
+end
+
+_inverse_interpolate(c::LineTo{<:Point2}, p0, pt) = inverse_interpolate(Line(p0, c.p), pt)
+function _inverse_interpolate(c::CurveTo{<:Point2}, p0, pt)
+    p1, p2, p3 = c.c1, c.c2, c.p
+    poly0 = - p0[1]^2 + p0[1]*p1[1] + p0[1]*pt[1] - p0[2]^2 + p0[2]*p1[2] + p0[2]*pt[2] - p1[1]*pt[1] - p1[2]*pt[2]
+    poly1 = 5*p0[1]^2 - 10*p0[1]*p1[1] + 2*p0[1]*p2[1] - 2*p0[1]*pt[1] + 5*p0[2]^2 - 10*p0[2]*p1[2] + 2*p0[2]*p2[2] - 2*p0[2]*pt[2] + 3*p1[1]^2 + 4*p1[1]*pt[1] + 3*p1[2]^2 + 4*p1[2]*pt[2] - 2*p2[1]*pt[1] - 2*p2[2]*pt[2]
+    poly2 = -10*p0[1]^2 + 30*p0[1]*p1[1] - 12*p0[1]*p2[1] + p0[1]*p3[1] + p0[1]*pt[1] - 10*p0[2]^2 + 30*p0[2]*p1[2] - 12*p0[2]*p2[2] + p0[2]*p3[2] + p0[2]*pt[2] - 18*p1[1]^2 + 9*p1[1]*p2[1] - 3*p1[1]*pt[1] - 18*p1[2]^2 + 9*p1[2]*p2[2] - 3*p1[2]*pt[2] + 3*p2[1]*pt[1] + 3*p2[2]*pt[2] - p3[1]*pt[1] - p3[2]*pt[2]
+    poly3 = 10*p0[1]^2 - 40*p0[1]*p1[1] + 24*p0[1]*p2[1] - 4*p0[1]*p3[1] + 10*p0[2]^2 - 40*p0[2]*p1[2] + 24*p0[2]*p2[2] - 4*p0[2]*p3[2] + 36*p1[1]^2 - 36*p1[1]*p2[1] + 4*p1[1]*p3[1] + 36*p1[2]^2 - 36*p1[2]*p2[2] + 4*p1[2]*p3[2] + 6*p2[1]^2 + 6*p2[2]^2
+    poly4 = -5*p0[1]^2 + 25*p0[1]*p1[1] - 20*p0[1]*p2[1] + 5*p0[1]*p3[1] - 5*p0[2]^2 + 25*p0[2]*p1[2] - 20*p0[2]*p2[2] + 5*p0[2]*p3[2] - 30*p1[1]^2 + 45*p1[1]*p2[1] - 10*p1[1]*p3[1] - 30*p1[2]^2 + 45*p1[2]*p2[2] - 10*p1[2]*p3[2] - 15*p2[1]^2 + 5*p2[1]*p3[1] - 15*p2[2]^2 + 5*p2[2]*p3[2]
+    poly5 = p0[1]^2 - 6*p0[1]*p1[1] + 6*p0[1]*p2[1] - 2*p0[1]*p3[1] + p0[2]^2 - 6*p0[2]*p1[2] + 6*p0[2]*p2[2] - 2*p0[2]*p3[2] + 9*p1[1]^2 - 18*p1[1]*p2[1] + 6*p1[1]*p3[1] + 9*p1[2]^2 - 18*p1[2]*p2[2] + 6*p1[2]*p3[2] + 9*p2[1]^2 - 6*p2[1]*p3[1] + 9*p2[2]^2 - 6*p2[2]*p3[2] + p3[1]^2 + p3[2]^2
+    polynomial = [poly0, poly1, poly2, poly3, poly4, poly5]
+    t_vals = round.(roots5(polynomial), digits=6) #get roots and round to 6 digits
+    t_reals = filter(i -> isreal(i) && 0 <= real(i) <= 1, t_vals) #get reals between 0 and 1
+    return real.(t_reals)
 end
 
 """

@@ -201,7 +201,7 @@ function Makie.plot!(gp::GraphPlot)
         atan(tpx[2], tpx[1])
     end
     # function which projects the pixels to a point in data space
-    to_point = @lift (px) -> begin
+    scale_px = @lift (px) -> begin
         px ./ ($to_px(Point(1,1)) - $to_px(Point(0,0)))
     end
 
@@ -222,7 +222,7 @@ function Makie.plot!(gp::GraphPlot)
                           gp.edge_attr...)
 
     # plot arrow heads
-    arrow_shift = @lift update_arrow_shift!(graph[], gp, $edge_paths, $(gp.arrow_shift), $to_angle, $to_point)
+    arrow_shift = @lift update_arrow_shift(graph[], gp, $edge_paths, $(gp.arrow_shift), $to_angle, $scale_px)
     arrow_pos = @lift if !isempty(edge_paths[])
         broadcast(interpolate, edge_paths[], $arrow_shift)
     else # if no edges return (empty) vector of points, broadcast yields Vector{Any} which can't be plotted
@@ -665,34 +665,28 @@ function update_discretized!(disc, pathes)
 end
 
 """
-    update_arrow_shift!(g, gp, edge_paths::Vector{<:AbstractPath{PT}}, shift, to_angle, to_point) where {PT}
+    update_arrow_shift(g, gp, edge_paths::Vector{<:AbstractPath{PT}}, shift, to_angle, scale_px) where {PT}
 
 Checks `arrow_shift` attr so that `arrow_shift = 1` gets transformed so that the arrowhead for that edge
 lands on the surface of the destination node.
 """
-function update_arrow_shift!(g, gp, edge_paths::Vector{<:AbstractPath{PT}}, shift, to_angle, to_point) where {PT}
+function update_arrow_shift(g, gp, edge_paths::Vector{<:AbstractPath{PT}}, shift, to_angle, scale_px) where {PT}
     arrow_shift = Vector{Float32}(undef, ne(g))
-
-    #node attr
-    node_marker = gp.node_marker[] 
-    node_pos = gp.node_pos[]
-
-    #arrow attr
-    arrow_marker = gp.arrow_marker[]
-    arrow_size = gp.arrow_size[]
 
     for (i,e) in enumerate(edges(g))
         t = getattr(gp.arrow_shift, i, 0.5)
         if isone(t)
             j = dst(e)
-            p0 = node_pos[j]
+            p0 = getattr(gp.node_pos, j)
+            node_marker = getattr(gp.node_marker, j)
             node_size = getattr(gp.node_size, j)
+            arrow_marker = getattr(gp.arrow_marker, j)
+            arrow_size = getattr(gp.arrow_size, j)
             θ = to_angle(edge_paths[i], Point(0,0), 1) #angle at dst node
             d = distance_between_markers(node_marker, node_size, arrow_marker, arrow_size, θ)
             r = [cos(θ),sin(θ)] #direction vector
-            p1 = p0 .- to_point(d) .* r
-            t_vals = inverse_interpolate(edge_paths[i], p1)
-            t = maximum(t_vals) #get value (root) closest to 1
+            p1 = p0 .- scale_px(d) .* r
+            t = inverse_interpolate(edge_paths[i], p1)
         end
         arrow_shift[i] = t
     end
