@@ -202,7 +202,7 @@ function Makie.plot!(gp::GraphPlot)
         tpx = $to_px(p1) - $to_px(p0)
         atan(tpx[2], tpx[1])
     end
-    # function which projects the pixels to a point in data space
+    # function which scales the pixels to a point in data space
     scale_px = @lift (px) -> begin
         px ./ ($to_px(Point(1,1)) - $to_px(Point(0,0)))
     end
@@ -224,7 +224,7 @@ function Makie.plot!(gp::GraphPlot)
                           gp.edge_attr...)
 
     # plot arrow heads
-    arrow_shift = @lift update_arrow_shift(graph[], gp, $edge_paths, $(gp.arrow_shift), $to_angle, $scale_px)
+    arrow_shift = @lift update_arrow_shift(graph[], gp, $edge_paths, $(gp.arrow_shift), $to_angle, scale_px[])
     arrow_pos = @lift if !isempty(edge_paths[])
         broadcast(interpolate, edge_paths[], $arrow_shift)
     else # if no edges return (empty) vector of points, broadcast yields Vector{Any} which can't be plotted
