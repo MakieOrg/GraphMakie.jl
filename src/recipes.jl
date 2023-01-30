@@ -688,8 +688,9 @@ function update_arrow_shift!(g, gp, edge_paths::Vector{<:AbstractPath{PT}}, shif
             p0 = node_pos[j]
             node_size = getattr(gp.node_size, j)
             θ = to_angle(edge_paths[i], Point(0,0), 1) #angle at dst node
-            d = radius_px(node_marker)*node_size/2 + radius_px(arrow_marker)*arrow_size/2 #distance between markers
-            p1 = p0 .- to_point(d) .* [cos(θ),sin(θ)]
+            d = distance_between_markers(node_marker, node_size, arrow_marker, arrow_size, θ)
+            r = [cos(θ),sin(θ)] #direction vector
+            p1 = p0 .- to_point(d) .* r
             t_vals = inverse_interpolate(edge_paths[i], p1)
             t = maximum(t_vals) #get value (root) closest to 1
         end
