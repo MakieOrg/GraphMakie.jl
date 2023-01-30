@@ -222,25 +222,24 @@ function Makie.plot!(gp::GraphPlot)
                           gp.edge_attr...)
 
     # plot arrow heads
-    # arrow_shift = @lift update_arrow_shift!(graph[], gp, edge_paths[], $(gp.arrow_shift[]), $to_angle, $to_point)
-    # arrow_pos = @lift if !isempty($edge_paths)
-    #     broadcast(interpolate, $edge_paths, $arrow_shift)
-    # else # if no edges return (empty) vector of points, broadcast yields Vector{Any} which can't be plotted
-    #     Vector{eltype(node_pos[])}()
-    # end
-    # arrow_rot = @lift if !isempty(edge_paths[])
-    #     Billboard(broadcast($to_angle, edge_paths[], $arrow_pos, arrow_shift[]))
-    # else
-    #     Billboard(Float32[])
-    # end
-    @lift find_arrow_pos_rot(graph[], gp, edge_paths[], $(gp.arrow_shift), $to_angle, $to_point)
+    arrow_shift = @lift update_arrow_shift!(graph[], gp, $edge_paths, $(gp.arrow_shift), $to_angle, $to_point)
+    arrow_pos = @lift if !isempty(edge_paths[])
+        broadcast(interpolate, edge_paths[], $arrow_shift)
+    else # if no edges return (empty) vector of points, broadcast yields Vector{Any} which can't be plotted
+        Vector{eltype(node_pos[])}()
+    end
+    arrow_rot = @lift if !isempty(edge_paths[])
+        Billboard(broadcast($to_angle, edge_paths[], $arrow_pos, arrow_shift[]))
+    else
+        Billboard(Float32[])
+    end
     arrow_show = @lift $(gp.arrow_show) === automatic ? Graphs.is_directed($graph) : $(gp.arrow_show)
     arrow_heads = scatter!(gp,
-                           gp.arrow_pos;
+                           arrow_pos;
                            marker = gp.arrow_marker,#'➤',
                            markersize = gp.arrow_size,
                            color = gp.edge_color,
-                           rotations = gp.arrow_rot,
+                           rotations = arrow_rot,
                            strokewidth = 0.0,
                            markerspace = :pixel,
                            visible = arrow_show,
@@ -666,7 +665,10 @@ function update_discretized!(disc, pathes)
 end
 
 """
+    update_arrow_shift!(g, gp, edge_paths::Vector{<:AbstractPath{PT}}, shift, to_angle, to_point) where {PT}
 
+Checks `arrow_shift` attr so that `arrow_shift = 1` gets transformed so that the arrowhead for that edge
+lands on the surface of the destination node.
 """
 function update_arrow_shift!(g, gp, edge_paths::Vector{<:AbstractPath{PT}}, shift, to_angle, to_point) where {PT}
     arrow_shift = Vector{Float32}(undef, ne(g))
@@ -674,21 +676,19 @@ function update_arrow_shift!(g, gp, edge_paths::Vector{<:AbstractPath{PT}}, shif
     #node attr
     node_marker = gp.node_marker[] 
     node_pos = gp.node_pos[]
-    node_size = gp.node_size[]
 
     #arrow attr
     arrow_marker = gp.arrow_marker[]
     arrow_size = gp.arrow_size[]
 
-    #distance between center of node and center of arrow
-    d = radius_px(node_marker)*node_size/2 + radius_px(arrow_marker)*arrow_size/2 
-
     for (i,e) in enumerate(edges(g))
-        t = getattr(gp.arrow_shift, i)
+        t = getattr(gp.arrow_shift, i, 0.5)
         if isone(t)
             j = dst(e)
             p0 = node_pos[j]
+            node_size = getattr(gp.node_size, j)
             θ = to_angle(edge_paths[i], Point(0,0), 1) #angle at dst node
+            d = radius_px(node_marker)*node_size/2 + radius_px(arrow_marker)*arrow_size/2 #distance between markers
             p1 = p0 .- to_point(d) .* [cos(θ),sin(θ)]
             t_vals = inverse_interpolate(edge_paths[i], p1)
             t = maximum(t_vals) #get value (root) closest to 1
@@ -696,47 +696,5 @@ function update_arrow_shift!(g, gp, edge_paths::Vector{<:AbstractPath{PT}}, shif
         arrow_shift[i] = t
     end
 
-    # gp.arrow_shift[] = arrow_shift
     return arrow_shift
-end
-
-"""
-    find_arrow_pos_rot(g, gp, edge_paths::Vector{<:AbstractPath{PT}}, arrow_shift, to_angle, to_point) where {PT}
-
-Set the arrow position and rotation based on the edge_path and arrow_shift parameters.
-If the arrow_shift = 1, then the arrow is placed on the surface of the node.
-"""
-function find_arrow_pos_rot(g, gp, edge_paths::Vector{<:AbstractPath{PT}}, arrow_shift, to_angle, to_point) where {PT}
-    arrow_pos = Vector{PT}(undef, ne(g))
-    arrow_rot = Vector{Float32}(undef, ne(g))
-
-    #node attr
-    node_marker = gp.node_marker[] 
-    node_pos = gp.node_pos[]
-    node_size = gp.node_size[]
-
-    #arrow attr
-    arrow_marker = gp.arrow_marker[]
-    arrow_size = gp.arrow_size[]
-    # arrow_shift = attr.arrow_shift[]
-
-    #distance between center of node and center of arrow
-    d = radius_px(node_marker)*node_size/2 + radius_px(arrow_marker)*arrow_size/2 
-
-    for (i,e) in enumerate(edges(g))
-        t = getattr(gp.arrow_shift, i, 0.5)
-        if isone(t)
-            j = dst(e)
-            p0 = node_pos[j]
-            θ = to_angle(edge_paths[i], Point(0,0), 1) #angle at dst node
-            p1 = p0 .- to_point(d) .* [cos(θ),sin(θ)]
-            t_vals = inverse_interpolate(edge_paths[i], p1)
-            t = maximum(t_vals) #get value (root) closest to 1
-        end
-        arrow_pos[i] = interpolate(edge_paths[i], t)
-        arrow_rot[i] = to_angle(edge_paths[i], arrow_pos[i], t)
-    end
-
-    gp[:arrow_pos] = arrow_pos
-    gp[:arrow_rot] = Billboard(arrow_rot)
 end
