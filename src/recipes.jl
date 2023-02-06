@@ -144,7 +144,7 @@ Waypoints along edges:
         edge_attr = (;),
         # arrow attributes (Scatter)
         arrow_show = automatic,
-        arrow_marker = Arrow,#'➤',
+        arrow_marker = '➤',
         arrow_size = scatter_theme.markersize,
         arrow_shift = 0.5,
         arrow_attr = (;),
@@ -226,7 +226,6 @@ function Makie.plot!(gp::GraphPlot)
     arrow_shift = lift(edge_paths, to_angle, gp.arrow_shift, gp.node_size, gp.arrow_size) do paths, angle, shift, nsize, asize
         update_arrow_shift(graph[], gp, paths, angle, scale_px[])
     end
-    # arrow_shift = @lift update_arrow_shift(graph[], gp, $edge_paths, $(gp.arrow_shift), $to_angle, scale_px[])
     arrow_pos = @lift if !isempty(edge_paths[])
         broadcast(interpolate, edge_paths[], $arrow_shift)
     else # if no edges return (empty) vector of points, broadcast yields Vector{Any} which can't be plotted
@@ -240,7 +239,7 @@ function Makie.plot!(gp::GraphPlot)
     arrow_show = @lift $(gp.arrow_show) === automatic ? Graphs.is_directed($graph) : $(gp.arrow_show)
     arrow_heads = scatter!(gp,
                            arrow_pos;
-                           marker = gp.arrow_marker,#'➤',
+                           marker = gp.arrow_marker,
                            markersize = gp.arrow_size,
                            color = gp.edge_color,
                            rotations = arrow_rot,
