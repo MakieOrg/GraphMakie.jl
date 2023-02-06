@@ -210,7 +210,7 @@ two vectors per edge (one for src vertex, one for dst vertex). The `tfactor`
 scales the distance of the bezier control point relative to the distance of src
 and dst nodes. For real world usage see the [AST of a Julia function](@ref) example.
 =#
-using GraphMakie: plot_controlpoints!
+using GraphMakie: plot_controlpoints!, SquareGrid
 g = complete_graph(3)
 tangents = Dict(1 => ((1,1),(0,-1)),
                 2 => ((0,1),(0,-1)),
@@ -264,6 +264,18 @@ for i in 1:4 #hide
     scatter!(ax, waypoints[i], color=RGBA(0.0,0.44705883,0.69803923,1.0)) #hide
 end #hide
 xlims!(ax, (-0.1, 2.25)), hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()
+@save_reference f #hide
+
+#=
+Specifying `waypoints` for self-edges will override any `selfedge_` attributes.
+If `waypoints` are specified on an edge, `tangents` can also be added. However,
+if `tangents` are given, but no `waypoints`, the `tangents` are ignored.
+=#
+g = SimpleDiGraph(1) #single node
+add_edge!(g, 1, 1) #add self loop
+f, ax, p = graphplot(g, 
+                     layout = _ -> [(0,0)], 
+                     waypoints = [[(1,-1),(1,1),(-1,1),(-1,-1)]])
 @save_reference f #hide
 
 #=

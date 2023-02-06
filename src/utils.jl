@@ -121,3 +121,33 @@ function plot_controlpoints!(ax::Axis, p::BezierPath; color=:black)
         end
     end
 end
+
+"""
+    scale_factor(marker)
+
+Get base size (scaling) in pixels for `marker`.
+"""
+function scale_factor(marker)
+    if marker in [Circle, Rect, Arrow]
+        r = 1
+    else #based of Makie.default_marker_map(), all of the markers have scale_factor = 0.75
+        r = 0.75
+    end
+
+    return r
+end
+
+"""
+    distance_between_markers(marker1, size1, marker2, size2, θ)
+
+Calculate distance between 2 markers at an angle θ.
+TODO: Implement for noncircular marker1.
+"""
+function distance_between_markers(marker1, size1, marker2, size2, θ)
+    #NOTE: If marker1 is Circle or :circle, θ has no impact on the distance.
+    marker1_scale = scale_factor(marker1)
+    marker2_scale = scale_factor(marker2)
+    d = marker1_scale*size1/2 + marker2_scale*size2/2
+
+    return d
+end
