@@ -59,7 +59,7 @@ function interpolate(p::BezierPath{PT}, t) where PT
     N = length(p.commands) - 1
 
     tn = N*t
-    seg = min(floor(Int, tn), N-1)
+    seg = max(0, min(floor(Int, tn), N-1))
     tseg = tn - seg
 
     p0 = p.commands[seg+1].p
@@ -92,9 +92,14 @@ Method: Calculates the square distance between `pt` and path `p` and minimizes (
 function inverse_interpolate(p::BezierPath{<:Point2}, pt)
     p0 = p.commands[end-1].p
     c = p.commands[end]
-    tseg = maximum(_inverse_interpolate(c, p0, pt)) #get value (root) closest to 1
     N = length(p.commands) - 1
-    t = ((N-1) + tseg) / N
+    tseg = _inverse_interpolate(c, p0, pt) #get interpolation value closest to pt
+    if isempty(tseg)
+        t = NaN
+    else
+        _, tloc = findmin((tseg .- 1).^2) #find the value closest to 1
+        t = ((N-1) + tseg[tloc]) / N
+    end
     return t
 end
 
@@ -120,9 +125,8 @@ function _inverse_interpolate(c::CurveTo{<:Point2}, p0, pt)
     poly3 = 10*p0[1]^2 - 40*p0[1]*p1[1] + 24*p0[1]*p2[1] - 4*p0[1]*p3[1] + 10*p0[2]^2 - 40*p0[2]*p1[2] + 24*p0[2]*p2[2] - 4*p0[2]*p3[2] + 36*p1[1]^2 - 36*p1[1]*p2[1] + 4*p1[1]*p3[1] + 36*p1[2]^2 - 36*p1[2]*p2[2] + 4*p1[2]*p3[2] + 6*p2[1]^2 + 6*p2[2]^2
     poly4 = -5*p0[1]^2 + 25*p0[1]*p1[1] - 20*p0[1]*p2[1] + 5*p0[1]*p3[1] - 5*p0[2]^2 + 25*p0[2]*p1[2] - 20*p0[2]*p2[2] + 5*p0[2]*p3[2] - 30*p1[1]^2 + 45*p1[1]*p2[1] - 10*p1[1]*p3[1] - 30*p1[2]^2 + 45*p1[2]*p2[2] - 10*p1[2]*p3[2] - 15*p2[1]^2 + 5*p2[1]*p3[1] - 15*p2[2]^2 + 5*p2[2]*p3[2]
     poly5 = p0[1]^2 - 6*p0[1]*p1[1] + 6*p0[1]*p2[1] - 2*p0[1]*p3[1] + p0[2]^2 - 6*p0[2]*p1[2] + 6*p0[2]*p2[2] - 2*p0[2]*p3[2] + 9*p1[1]^2 - 18*p1[1]*p2[1] + 6*p1[1]*p3[1] + 9*p1[2]^2 - 18*p1[2]*p2[2] + 6*p1[2]*p3[2] + 9*p2[1]^2 - 6*p2[1]*p3[1] + 9*p2[2]^2 - 6*p2[2]*p3[2] + p3[1]^2 + p3[2]^2
-    polynomial = [poly0, poly1, poly2, poly3, poly4, poly5]
-    t_vals = round.(roots5(polynomial), digits=6) #get roots and round to 6 digits
-    t_reals = filter(i -> isreal(i) && 0 <= real(i) <= 1, t_vals) #get reals between 0 and 1
+    t_vals = roots5([poly0, poly1, poly2, poly3, poly4, poly5]) #get roots
+    t_reals = filter(i -> isreal(i), round.(t_vals, digits=6)) #get reals (round to 6 digits)
     return real.(t_reals)
 end
 
@@ -136,7 +140,7 @@ function tangent(p::BezierPath, t)
     N = length(p.commands) - 1
 
     tn = N*t
-    seg = min(floor(Int, tn), N-1)
+    seg = max(0, min(floor(Int, tn), N-1))
     tseg = tn - seg
 
     p0 = p.commands[seg+1].p
