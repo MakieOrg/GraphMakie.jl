@@ -136,7 +136,7 @@ Waypoints along edges:
         # node attributes (Scatter)
         node_color = scatter_theme.color,
         node_size = scatter_theme.markersize,
-        node_marker = Circle,#scatter_theme.marker,
+        node_marker = scatter_theme.marker,
         node_attr = (;),
         # edge attributes (LineSegements)
         edge_color = lineseg_theme.color,
@@ -198,14 +198,13 @@ function Makie.plot!(gp::GraphPlot)
     # get angle in px space from path p at point t
     to_angle = @lift (path, p0, t) -> begin
         # TODO: maybe shorter tangent? For some perspectives this might give wrong angles in 3d
+        #       3d space requires 2 angles, inclination and azimuth (this function gives aximuth: x-y plane)
         p1 = p0 + tangent(path, t)
         tpx = $to_px(p1) - $to_px(p0)
         atan(tpx[2], tpx[1])
     end
     # function which scales the pixels to a point in data space
-    scale_px = @lift (px) -> begin
-        px ./ ($to_px(Point(1,1)) - $to_px(Point(0,0)))
-    end
+    scale_px = @lift (px) -> px ./ ($to_px(Point2(1,1)) - $to_px(Point2(0,0)))
 
     node_pos = gp[:node_pos]
 
@@ -224,7 +223,10 @@ function Makie.plot!(gp::GraphPlot)
                           gp.edge_attr...)
 
     # plot arrow heads
-    arrow_shift = @lift update_arrow_shift(graph[], gp, $edge_paths, $(gp.arrow_shift), $to_angle, scale_px[])
+    arrow_shift = lift(edge_paths, to_angle, gp.arrow_shift, gp.node_size, gp.arrow_size) do paths, angle, shift, nsize, asize
+        update_arrow_shift(graph[], gp, paths, angle, scale_px[])
+    end
+    # arrow_shift = @lift update_arrow_shift(graph[], gp, $edge_paths, $(gp.arrow_shift), $to_angle, scale_px[])
     arrow_pos = @lift if !isempty(edge_paths[])
         broadcast(interpolate, edge_paths[], $arrow_shift)
     else # if no edges return (empty) vector of points, broadcast yields Vector{Any} which can't be plotted
@@ -667,12 +669,12 @@ function update_discretized!(disc, pathes)
 end
 
 """
-    update_arrow_shift(g, gp, edge_paths::Vector{<:AbstractPath{PT}}, shift, to_angle, scale_px) where {PT}
+    update_arrow_shift(g, gp, edge_paths::Vector{<:AbstractPath{PT}}, to_angle, scale_px) where {PT}
 
 Checks `arrow_shift` attr so that `arrow_shift = :end` gets transformed so that the arrowhead for that edge
 lands on the surface of the destination node.
 """
-function update_arrow_shift(g, gp, edge_paths::Vector{<:AbstractPath{PT}}, shift, to_angle, scale_px) where {PT}
+function update_arrow_shift(g, gp, edge_paths::Vector{<:AbstractPath{PT}}, to_angle, scale_px) where {PT}
     arrow_shift = Vector{Float32}(undef, ne(g))
 
     for (i,e) in enumerate(edges(g))
@@ -682,13 +684,34 @@ function update_arrow_shift(g, gp, edge_paths::Vector{<:AbstractPath{PT}}, shift
             p0 = getattr(gp.node_pos, j)
             node_marker = getattr(gp.node_marker, j)
             node_size = getattr(gp.node_size, j)
-            arrow_marker = getattr(gp.arrow_marker, j)
-            arrow_size = getattr(gp.arrow_size, j)
-            θ = to_angle(edge_paths[i], Point(0,0), 1) #angle at dst node
+            arrow_marker = getattr(gp.arrow_marker, i)
+            arrow_size = getattr(gp.arrow_size, i)
+            θ = to_angle(edge_paths[i], PT(0), 1) #edge angle at dst node
             d = distance_between_markers(node_marker, node_size, arrow_marker, arrow_size, θ)
-            r = [cos(θ),sin(θ)] #direction vector
+            r = [cos(θ), sin(θ)] #direction vector
             p1 = p0 .- scale_px(d) .* r
             t = inverse_interpolate(edge_paths[i], p1)
+            if isnan(t)
+                @warn """
+                    Shifting arrowheads to destination nodes failed.
+                    This can happen when the markers are inadequately scaled (e.g., when zooming out too far).
+                    Arrow shift has been reset to 0.5.
+                """
+                t = 0.5
+            end
+        end
+        arrow_shift[i] = t
+    end
+
+    return arrow_shift
+end
+function update_arrow_shift(g, gp, edge_paths::Vector{<:AbstractPath{<:Point3}}, to_angle, scale_px)
+    arrow_shift = Vector{Float32}(undef, ne(g))
+
+    for (i,e) in enumerate(edges(g))
+        t = getattr(gp.arrow_shift, i, 0.5)
+        if t === :end
+            error("arrow_shift = :end not supported for 3D plots yet.")
         end
         arrow_shift[i] = t
     end
