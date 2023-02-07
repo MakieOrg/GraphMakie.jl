@@ -198,13 +198,10 @@ function Makie.plot!(gp::GraphPlot)
     # get angle in px space from path p at point t
     to_angle = @lift (path, p0, t) -> begin
         # TODO: maybe shorter tangent? For some perspectives this might give wrong angles in 3d
-        #       3d space requires 2 angles, inclination and azimuth (this function gives aximuth: x-y plane)
         p1 = p0 + tangent(path, t)
         tpx = $to_px(p1) - $to_px(p0)
         atan(tpx[2], tpx[1])
     end
-    # function which scales the pixels to a point in data space
-    scale_px = @lift (px) -> px ./ ($to_px(Point2(1,1)) - $to_px(Point2(0,0)))
 
     node_pos = gp[:node_pos]
 
@@ -223,8 +220,8 @@ function Makie.plot!(gp::GraphPlot)
                           gp.edge_attr...)
 
     # plot arrow heads
-    arrow_shift = lift(edge_paths, to_angle, gp.arrow_shift, gp.node_size, gp.arrow_size) do paths, angle, shift, nsize, asize
-        update_arrow_shift(graph[], gp, paths, angle, scale_px[])
+    arrow_shift = lift(edge_paths, to_px, gp.arrow_shift, gp.node_size, gp.arrow_size) do paths, tpx, shift, nsize, asize
+        update_arrow_shift(graph[], gp, paths, tpx)
     end
     arrow_pos = @lift if !isempty(edge_paths[])
         broadcast(interpolate, edge_paths[], $arrow_shift)
@@ -668,12 +665,12 @@ function update_discretized!(disc, pathes)
 end
 
 """
-    update_arrow_shift(g, gp, edge_paths::Vector{<:AbstractPath{PT}}, to_angle, scale_px) where {PT}
+    update_arrow_shift(g, gp, edge_paths::Vector{<:AbstractPath{PT}}, to_px) where {PT}
 
 Checks `arrow_shift` attr so that `arrow_shift = :end` gets transformed so that the arrowhead for that edge
 lands on the surface of the destination node.
 """
-function update_arrow_shift(g, gp, edge_paths::Vector{<:AbstractPath{PT}}, to_angle, scale_px) where {PT}
+function update_arrow_shift(g, gp, edge_paths::Vector{<:AbstractPath{PT}}, to_px) where {PT}
     arrow_shift = Vector{Float32}(undef, ne(g))
 
     for (i,e) in enumerate(edges(g))
@@ -685,10 +682,8 @@ function update_arrow_shift(g, gp, edge_paths::Vector{<:AbstractPath{PT}}, to_an
             node_size = getattr(gp.node_size, j)
             arrow_marker = getattr(gp.arrow_marker, i)
             arrow_size = getattr(gp.arrow_size, i)
-            θ = to_angle(edge_paths[i], PT(0), 1) #edge angle at dst node
-            d = distance_between_markers(node_marker, node_size, arrow_marker, arrow_size, θ)
-            r = [cos(θ), sin(θ)] #direction vector
-            p1 = p0 .- scale_px(d) .* r
+            d = distance_between_markers(node_marker, node_size, arrow_marker, arrow_size)
+            p1 = point_near_dst(edge_paths[i], p0, d, to_px)
             t = inverse_interpolate(edge_paths[i], p1)
             if isnan(t)
                 @warn """
@@ -701,16 +696,16 @@ function update_arrow_shift(g, gp, edge_paths::Vector{<:AbstractPath{PT}}, to_an
         end
         arrow_shift[i] = t
     end
-
+    
     return arrow_shift
 end
-function update_arrow_shift(g, gp, edge_paths::Vector{<:AbstractPath{<:Point3}}, to_angle, scale_px)
+function update_arrow_shift(g, gp, edge_paths::Vector{<:AbstractPath{<:Point3}}, to_px)
     arrow_shift = Vector{Float32}(undef, ne(g))
 
     for (i,e) in enumerate(edges(g))
         t = getattr(gp.arrow_shift, i, 0.5)
-        if t === :end
-            error("arrow_shift = :end not supported for 3D plots yet.")
+        if t === :end #not supported because to_px does not give pixels in 3D space (would need to map 3D coordinates to pixels...?)
+            error("`arrow_shift = :end` not supported for 3D plots.")
         end
         arrow_shift[i] = t
     end

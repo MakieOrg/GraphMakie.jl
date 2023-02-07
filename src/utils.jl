@@ -138,16 +138,31 @@ function scale_factor(marker)
 end
 
 """
-    distance_between_markers(marker1, size1, marker2, size2, θ)
+    distance_between_markers(marker1, size1, marker2, size2)
 
-Calculate distance between 2 markers at an angle θ.
+Calculate distance between 2 markers.
 TODO: Implement for noncircular marker1.
+      (will require angle for line joining the 2 markers).
 """
-function distance_between_markers(marker1, size1, marker2, size2, θ)
-    #NOTE: If marker1 is Circle or :circle, θ has no impact on the distance.
+function distance_between_markers(marker1, size1, marker2, size2)
     marker1_scale = scale_factor(marker1)
     marker2_scale = scale_factor(marker2)
     d = marker1_scale*size1/2 + marker2_scale*size2/2
 
     return d
+end
+
+"""
+    point_near_dst(edge_path, p0::PT, d, to_px) where {PT}
+
+Find point near destination node along `edge_path` a 
+distance `d` pixels along the tangent line.
+"""
+function point_near_dst(edge_path, p0::PT, d, to_px) where {PT}
+    pt = tangent(edge_path, 1) #edge tangent at dst node
+    r = to_px(pt) - to_px(PT(0)) #direction vector in pixels
+    scale_px = 1 ./ (to_px(PT(1)) - to_px(PT(0)))
+    p1 = p0 - d*normalize(r)*scale_px
+
+    return p1
 end
