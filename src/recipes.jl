@@ -29,7 +29,7 @@ underlying graph and therefore changing the number of Edges/Nodes.
 - `layout=Spring()`: function `AbstractGraph->Vector{Point}` determines the base layout
 - `node_color=scatter_theme.color`
 - `node_size=scatter_theme.markersize`
-- `node_marker=Circle`
+- `node_marker=scatter_theme.marker`
 - `node_attr=(;)`: List of kw arguments which gets passed to the `scatter` command
 - `edge_color=lineseg_theme.color`: Color for edges.
 - `edge_width=lineseg_theme.linewidth`: Pass a vector with 2 width per edge to
@@ -37,7 +37,7 @@ underlying graph and therefore changing the number of Edges/Nodes.
 - `edge_attr=(;)`: List of kw arguments which gets passed to the `linesegments` command
 - `arrow_show=Makie.automatic`: `Bool`, indicate edge directions with arrowheads?
   Defaults to `Graphs.is_directed(graph)`.
-- `arrow_marker=GraphMakie.Arrow`
+- `arrow_marker='➤'`
 - `arrow_size=scatter_theme.markersize`: Size of arrowheads.
 - `arrow_shift=0.5`: Shift arrow position from source (0) to dest (1) node. 
   If `arrow_shift=:end`, the arrowhead will be placed on the surface of the destination node 
@@ -136,7 +136,7 @@ Waypoints along edges:
         # node attributes (Scatter)
         node_color = scatter_theme.color,
         node_size = scatter_theme.markersize,
-        node_marker = Circle,
+        node_marker = scatter_theme.marker,
         node_attr = (;),
         # edge attributes (LineSegements)
         edge_color = lineseg_theme.color,
@@ -144,7 +144,7 @@ Waypoints along edges:
         edge_attr = (;),
         # arrow attributes (Scatter)
         arrow_show = automatic,
-        arrow_marker = Arrow,
+        arrow_marker = '➤',
         arrow_size = scatter_theme.markersize,
         arrow_shift = 0.5,
         arrow_attr = (;),
