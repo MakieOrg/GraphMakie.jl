@@ -136,7 +136,7 @@ Waypoints along edges:
         # node attributes (Scatter)
         node_color = scatter_theme.color,
         node_size = scatter_theme.markersize,
-        node_marker = scatter_theme.marker,
+        node_marker = Circle,
         node_attr = (;),
         # edge attributes (LineSegements)
         edge_color = lineseg_theme.color,
@@ -144,7 +144,7 @@ Waypoints along edges:
         edge_attr = (;),
         # arrow attributes (Scatter)
         arrow_show = automatic,
-        arrow_marker = '➤',
+        arrow_marker = Arrow,
         arrow_size = scatter_theme.markersize,
         arrow_shift = 0.5,
         arrow_attr = (;),

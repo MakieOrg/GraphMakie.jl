@@ -11,7 +11,6 @@ end
 function get_arrow_plot(gp::GraphPlot)
     p = gp.plots[2]
     @assert p isa Scatter
-    @assert p.marker[] == '➤'
     return p
 end
 
