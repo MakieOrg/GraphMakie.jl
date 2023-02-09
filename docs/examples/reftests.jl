@@ -158,3 +158,17 @@ notify(p.arrow_size)
 p.node_pos[][1] = (0,0)
 notify(p.node_pos)
 @save_reference fig
+
+# test large nodes
+using GraphMakie: SquareGrid
+g = SimpleDiGraph(8)
+add_edge!(g, 1, 2)
+add_edge!(g, 3, 4)
+add_edge!(g, 5, 6)
+add_edge!(g, 7, 8)
+
+fig, ax, p = graphplot(g; arrow_shift=:end, layout=SquareGrid(cols=2),
+                       node_size=[10, 10, 10, 200, 10, 350, 10, 500])
+xlims!(-.5,1.5)
+ylims!(-3.5,.5)
+@save_reference fig
