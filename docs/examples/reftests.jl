@@ -168,7 +168,9 @@ add_edge!(g, 5, 6)
 add_edge!(g, 7, 8)
 
 fig, ax, p = graphplot(g; arrow_shift=:end, layout=SquareGrid(cols=2),
-                       node_size=[10, 10, 10, 200, 10, 350, 10, 500])
-xlims!(-.5,1.5)
-ylims!(-3.5,.5)
+                       node_size=[10, 10, 10, 100, 10, 200, 10, 300],
+                       arrow_size=[150,100,50,10],
+                       arrow_attr=(color=:blue,),
+                       edge_color=:red)
+xlims!(-.5,1.5); ylims!(-3.5,.5)
 @save_reference fig
