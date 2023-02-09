@@ -1,5 +1,7 @@
 using LinearAlgebra: normalize, ⋅, norm
-export GraphPlot, graphplot, graphplot!
+export GraphPlot, graphplot, graphplot!, Arrow
+
+const Arrow = Makie.Polygon(Point2f.([(-0.5,-0.5),(0.5,0),(-0.5,0.5),(-0.25,0)]))
 
 """
     graphplot(graph::AbstractGraph)
@@ -35,8 +37,11 @@ underlying graph and therefore changing the number of Edges/Nodes.
 - `edge_attr=(;)`: List of kw arguments which gets passed to the `linesegments` command
 - `arrow_show=Makie.automatic`: `Bool`, indicate edge directions with arrowheads?
   Defaults to `Graphs.is_directed(graph)`.
+- `arrow_marker='➤'`
 - `arrow_size=scatter_theme.markersize`: Size of arrowheads.
-- `arrow_shift=0.5`: Shift arrow position from source (0) to dest (1) node.
+- `arrow_shift=0.5`: Shift arrow position from source (0) to dest (1) node. 
+  If `arrow_shift=:end`, the arrowhead will be placed on the surface of the destination node 
+  (assuming the destination node is circular).
 - `arrow_attr=(;)`: List of kw arguments which gets passed to the `scatter` command
 
 ### Node labels
@@ -139,6 +144,7 @@ Waypoints along edges:
         edge_attr = (;),
         # arrow attributes (Scatter)
         arrow_show = automatic,
+        arrow_marker = '➤',
         arrow_size = scatter_theme.markersize,
         arrow_shift = 0.5,
         arrow_attr = (;),
@@ -213,21 +219,24 @@ function Makie.plot!(gp::GraphPlot)
                           linewidth=gp.edge_width,
                           gp.edge_attr...)
 
-    # plott arrow heads
-    arrow_pos = @lift if !isempty($edge_paths)
-        broadcast(interpolate, $edge_paths, $(gp.arrow_shift))
+    # plot arrow heads
+    arrow_shift = lift(edge_paths, to_px, gp.arrow_shift, gp.node_size, gp.arrow_size) do paths, tpx, shift, nsize, asize
+        update_arrow_shift(graph[], gp, paths, tpx)
+    end
+    arrow_pos = @lift if !isempty(edge_paths[])
+        broadcast(interpolate, edge_paths[], $arrow_shift)
     else # if no edges return (empty) vector of points, broadcast yields Vector{Any} which can't be plotted
         Vector{eltype(node_pos[])}()
     end
     arrow_rot = @lift if !isempty(edge_paths[])
-        Billboard(broadcast($to_angle, edge_paths[], $arrow_pos, gp.arrow_shift[]))
+        Billboard(broadcast($to_angle, edge_paths[], $arrow_pos, arrow_shift[]))
     else
         Billboard(Float32[])
     end
     arrow_show = @lift $(gp.arrow_show) === automatic ? Graphs.is_directed($graph) : $(gp.arrow_show)
     arrow_heads = scatter!(gp,
                            arrow_pos;
-                           marker = '➤',
+                           marker = gp.arrow_marker,
                            markersize = gp.arrow_size,
                            color = gp.edge_color,
                            rotations = arrow_rot,
@@ -653,4 +662,53 @@ function update_discretized!(disc, pathes)
     for (i, p) in enumerate(pathes)
         disc[i][] = discretize(p)
     end
+end
+
+"""
+    update_arrow_shift(g, gp, edge_paths::Vector{<:AbstractPath{PT}}, to_px) where {PT}
+
+Checks `arrow_shift` attr so that `arrow_shift = :end` gets transformed so that the arrowhead for that edge
+lands on the surface of the destination node.
+"""
+function update_arrow_shift(g, gp, edge_paths::Vector{<:AbstractPath{PT}}, to_px) where {PT}
+    arrow_shift = Vector{Float32}(undef, ne(g))
+
+    for (i,e) in enumerate(edges(g))
+        t = getattr(gp.arrow_shift, i, 0.5)
+        if t === :end
+            j = dst(e)
+            p0 = getattr(gp.node_pos, j)
+            node_marker = getattr(gp.node_marker, j)
+            node_size = getattr(gp.node_size, j)
+            arrow_marker = getattr(gp.arrow_marker, i)
+            arrow_size = getattr(gp.arrow_size, i)
+            d = distance_between_markers(node_marker, node_size, arrow_marker, arrow_size)
+            p1 = point_near_dst(edge_paths[i], p0, d, to_px)
+            t = inverse_interpolate(edge_paths[i], p1)
+            if isnan(t)
+                @warn """
+                    Shifting arrowheads to destination nodes failed.
+                    This can happen when the markers are inadequately scaled (e.g., when zooming out too far).
+                    Arrow shift has been reset to 0.5.
+                """
+                t = 0.5
+            end
+        end
+        arrow_shift[i] = t
+    end
+    
+    return arrow_shift
+end
+function update_arrow_shift(g, gp, edge_paths::Vector{<:AbstractPath{<:Point3}}, to_px)
+    arrow_shift = Vector{Float32}(undef, ne(g))
+
+    for (i,e) in enumerate(edges(g))
+        t = getattr(gp.arrow_shift, i, 0.5)
+        if t === :end #not supported because to_px does not give pixels in 3D space (would need to map 3D coordinates to pixels...?)
+            error("`arrow_shift = :end` not supported for 3D plots.")
+        end
+        arrow_shift[i] = t
+    end
+
+    return arrow_shift
 end
