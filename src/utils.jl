@@ -126,14 +126,24 @@ end
 
 Get base size (scaling) in pixels for `marker`.
 """
-function scale_factor(marker)
-    if marker in [Circle, Rect, Arrow]
-        r = 1
-    else #based of Makie.default_marker_map(), all of the markers have scale_factor = 0.75
-        r = 0.75
+scale_factor(marker) = 1 #for 1x1 base sizes (Circle, Rect, Arrow)
+scale_factor(marker::Char) = 0.705 #set to the same value as :circle, but is really dependent on the Char
+function scale_factor(marker::Symbol)
+    size_factor = 0.75 #Makie.default_marker_map() has all markers scaled by 0.75
+    if marker == :circle #BezierCircle
+        r = 0.47
+    elseif marker in [:rect, :diamond, :vline, :hline] #BezierSquare
+        rmarker = 0.95*sqrt(pi)/2/2
+        r = sqrt(2*rmarker^2) #pithagoras to get radius of circle that circumscribes marker
+    elseif marker in [:utriangle, :dtriangle, :ltriangle, :rtriangle] #Bezier Triangles
+        r = 0.97/2
+    elseif marker in [:star4, :star5, :star6, :star8] #Bezier Stars
+        r = 0.6
+    else #Bezier Crosses/Xs and Ngons
+        r = 0.5
     end
 
-    return r
+    return 2*r*size_factor #get shape diameter
 end
 
 """
