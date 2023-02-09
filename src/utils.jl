@@ -127,7 +127,15 @@ end
 Get base size (scaling) in pixels for `marker`.
 """
 scale_factor(marker) = 1 #for 1x1 base sizes (Circle, Rect, Arrow)
-scale_factor(marker::Char) = 0.705 #set to the same value as :circle, but is really dependent on the Char
+function scale_factor(marker::Char)
+    if marker == '➤'
+        d = 0.675
+    else
+        d = 0.705 #set to the same value as :circle, but is really dependent on the Char
+    end
+
+    return d
+end
 function scale_factor(marker::Symbol)
     size_factor = 0.75 #Makie.default_marker_map() has all markers scaled by 0.75
     if marker == :circle #BezierCircle
