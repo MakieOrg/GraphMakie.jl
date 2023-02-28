@@ -1,6 +1,7 @@
 using GeometryBasics
 using StaticArrays
 using LinearAlgebra: normalize, ⋅
+using PolynomialRoots
 
 ####
 #### Type definitions
@@ -58,7 +59,7 @@ function interpolate(p::BezierPath{PT}, t) where PT
     N = length(p.commands) - 1
 
     tn = N*t
-    seg = min(floor(Int, tn), N-1)
+    seg = max(0, min(floor(Int, tn), N-1))
     tseg = tn - seg
 
     p0 = p.commands[seg+1].p
@@ -66,6 +67,68 @@ function interpolate(p::BezierPath{PT}, t) where PT
 end
 
 interpolate(l::Line{PT}, t) where PT = l.p0 + t*(l.p - l.p0) |> PT
+
+"""
+    inverse_interpolate(p, pt)
+
+Find interpolation point `t ∈ [0, 1]` for the point along `p` that is closest to `pt`.
+
+Method: Calculates the square distance between `pt` and path `p` and minimizes (takes first derivative, equates to 0 and finds roots)
+
+    For BezierPath:
+    p = f(t)
+    D² = [f(t)[1] - pt[1]]^2 + [f(t)[2] - pt[2]]^2
+    d(D²)/dt = 2D*d(D)/dt = 2*([f(t)[1] - pt[1]] * d(f(t)[1])/dt + [f(t)[2] - pt[2]] * d(f(t)[2])/dt) = 0
+    [f(t)[1] - pt[1]] * d(f(t)[1])/dt + [f(t)[2] - pt[2]] * d(f(t)[2])/dt = 0
+    This is a 5th order polynomial for 3rd order Bezier curves.
+
+    For Lines:
+    D² = [p0[1] + t*p[1] - pt[1]]^2 + [p0[2] + t*p[2] - pt[2]]^2
+    Take derivative, equate to 0 and divide by 2:
+    [p0[1] + t*p[1] - pt[1]]*p[1] + [p0[2] + t*p[2] - pt[2]]*p[2] = 0
+    let a = p0 - pt, b = p - p0
+    t = -(a[1]*b[1] + a[2]*b[2]) / (b[1]^2 + b[2]^2)
+"""
+function inverse_interpolate(p::BezierPath{<:Point2}, pt)
+    p0 = p.commands[end-1].p
+    c = p.commands[end]
+    N = length(p.commands) - 1
+    tseg = _inverse_interpolate(c, p0, pt) #get interpolation value closest to pt
+    if isempty(tseg)
+        t = NaN
+    else
+        _, tloc = findmin((tseg .- 1).^2) #find the value closest to 1
+        t = ((N-1) + tseg[tloc]) / N
+    end
+    return t
+end
+
+function inverse_interpolate(l::Line{PT}, pt) where PT
+    a = l.p0 - pt
+    b = l.p - l.p0
+    t = -(a[1]*b[1] + a[2]*b[2]) / (b[1]^2 + b[2]^2)
+    return t
+end
+
+function inverse_interpolate(p, pt::Point3)
+    # TODO: is this the right place to throw an error when trying to shift arrows to destination nodes?
+    @warn "arrow_shift = :end will not display properly for 3D plots."
+    nothing
+end
+
+_inverse_interpolate(c::LineTo{<:Point2}, p0, pt) = inverse_interpolate(Line(p0, c.p), pt)
+function _inverse_interpolate(c::CurveTo{<:Point2}, p0, pt)
+    p1, p2, p3 = c.c1, c.c2, c.p
+    poly0 = - p0[1]^2 + p0[1]*p1[1] + p0[1]*pt[1] - p0[2]^2 + p0[2]*p1[2] + p0[2]*pt[2] - p1[1]*pt[1] - p1[2]*pt[2]
+    poly1 = 5*p0[1]^2 - 10*p0[1]*p1[1] + 2*p0[1]*p2[1] - 2*p0[1]*pt[1] + 5*p0[2]^2 - 10*p0[2]*p1[2] + 2*p0[2]*p2[2] - 2*p0[2]*pt[2] + 3*p1[1]^2 + 4*p1[1]*pt[1] + 3*p1[2]^2 + 4*p1[2]*pt[2] - 2*p2[1]*pt[1] - 2*p2[2]*pt[2]
+    poly2 = -10*p0[1]^2 + 30*p0[1]*p1[1] - 12*p0[1]*p2[1] + p0[1]*p3[1] + p0[1]*pt[1] - 10*p0[2]^2 + 30*p0[2]*p1[2] - 12*p0[2]*p2[2] + p0[2]*p3[2] + p0[2]*pt[2] - 18*p1[1]^2 + 9*p1[1]*p2[1] - 3*p1[1]*pt[1] - 18*p1[2]^2 + 9*p1[2]*p2[2] - 3*p1[2]*pt[2] + 3*p2[1]*pt[1] + 3*p2[2]*pt[2] - p3[1]*pt[1] - p3[2]*pt[2]
+    poly3 = 10*p0[1]^2 - 40*p0[1]*p1[1] + 24*p0[1]*p2[1] - 4*p0[1]*p3[1] + 10*p0[2]^2 - 40*p0[2]*p1[2] + 24*p0[2]*p2[2] - 4*p0[2]*p3[2] + 36*p1[1]^2 - 36*p1[1]*p2[1] + 4*p1[1]*p3[1] + 36*p1[2]^2 - 36*p1[2]*p2[2] + 4*p1[2]*p3[2] + 6*p2[1]^2 + 6*p2[2]^2
+    poly4 = -5*p0[1]^2 + 25*p0[1]*p1[1] - 20*p0[1]*p2[1] + 5*p0[1]*p3[1] - 5*p0[2]^2 + 25*p0[2]*p1[2] - 20*p0[2]*p2[2] + 5*p0[2]*p3[2] - 30*p1[1]^2 + 45*p1[1]*p2[1] - 10*p1[1]*p3[1] - 30*p1[2]^2 + 45*p1[2]*p2[2] - 10*p1[2]*p3[2] - 15*p2[1]^2 + 5*p2[1]*p3[1] - 15*p2[2]^2 + 5*p2[2]*p3[2]
+    poly5 = p0[1]^2 - 6*p0[1]*p1[1] + 6*p0[1]*p2[1] - 2*p0[1]*p3[1] + p0[2]^2 - 6*p0[2]*p1[2] + 6*p0[2]*p2[2] - 2*p0[2]*p3[2] + 9*p1[1]^2 - 18*p1[1]*p2[1] + 6*p1[1]*p3[1] + 9*p1[2]^2 - 18*p1[2]*p2[2] + 6*p1[2]*p3[2] + 9*p2[1]^2 - 6*p2[1]*p3[1] + 9*p2[2]^2 - 6*p2[2]*p3[2] + p3[1]^2 + p3[2]^2
+    t_vals = roots5([poly0, poly1, poly2, poly3, poly4, poly5]) #get roots
+    t_reals = filter(i -> isreal(i), round.(t_vals, digits=6)) #get reals (round to 6 digits)
+    return real.(t_reals)
+end
 
 """
     tangent(p::AbstractPath, t)
@@ -77,7 +140,7 @@ function tangent(p::BezierPath, t)
     N = length(p.commands) - 1
 
     tn = N*t
-    seg = min(floor(Int, tn), N-1)
+    seg = max(0, min(floor(Int, tn), N-1))
     tseg = tn - seg
 
     p0 = p.commands[seg+1].p
@@ -197,7 +260,7 @@ function Path(P::Vararg{PT, N}; tangents=nothing, tfactor=.5) where {PT<:Abstrac
     # first command, recalculate WP if tangent is given
     first_wp = WP[1]
     if tangents !== nothing
-        p1, p2, t = P[1], P[2], normalize(tangents[1])
+        p1, p2, t = P[1], P[2], normalize(Pointf(tangents[1]))
         dir = p2 - p1
         d = tfactor * norm(dir ⋅ t)
         first_wp = PT(p1+d*t)
@@ -214,7 +277,7 @@ function Path(P::Vararg{PT, N}; tangents=nothing, tfactor=.5) where {PT<:Abstrac
     # last command, recalculate last WP if tangent is given
     last_wp = (P[N] + WP[N-1])/2
     if tangents !== nothing
-        p1, p2, t = P[N-1], P[N], normalize(tangents[2])
+        p1, p2, t = P[N-1], P[N], normalize(Pointf(tangents[2]))
         dir = p2 - p1
         d = tfactor * norm(dir ⋅ t)
         last_wp = PT(p2-d*t)

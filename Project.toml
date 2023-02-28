@@ -1,7 +1,7 @@
 name = "GraphMakie"
 uuid = "1ecd5474-83a3-4783-bb4f-06765db800d2"
 authors = ["Simon Danisch", "Hans Würfel"]
-version = "0.5.1"
+version = "0.5.3"
 
 [deps]
 DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
@@ -10,6 +10,7 @@ Graphs = "86223c79-3864-5bf0-83f7-82e725a168b6"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 Makie = "ee78f7c6-11fb-53f2-987a-cfe4a2b5a57a"
 NetworkLayout = "46757867-2c16-5918-afeb-47bfcb05e46a"
+PolynomialRoots = "3a141323-8675-5d76-9d11-e1df1406c778"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 
 [compat]
@@ -17,6 +18,7 @@ GeometryBasics = "0.4"
 Graphs = "1.4"
 Makie = "0.19"
 NetworkLayout = "0.4.3"
+PolynomialRoots = "1"
 StaticArrays = "1.2"
 julia = "1"
 

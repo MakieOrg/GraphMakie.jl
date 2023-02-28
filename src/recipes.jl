@@ -1,5 +1,7 @@
 using LinearAlgebra: normalize, ⋅, norm
-export GraphPlot, graphplot, graphplot!
+export GraphPlot, graphplot, graphplot!, Arrow
+
+const Arrow = Makie.Polygon(Point2f.([(-0.5,-0.5),(0.5,0),(-0.5,0.5),(-0.25,0)]))
 
 """
     graphplot(graph::AbstractGraph)
@@ -35,8 +37,11 @@ underlying graph and therefore changing the number of Edges/Nodes.
 - `edge_attr=(;)`: List of kw arguments which gets passed to the `linesegments` command
 - `arrow_show=Makie.automatic`: `Bool`, indicate edge directions with arrowheads?
   Defaults to `Graphs.is_directed(graph)`.
+- `arrow_marker='➤'`
 - `arrow_size=scatter_theme.markersize`: Size of arrowheads.
-- `arrow_shift=0.5`: Shift arrow position from source (0) to dest (1) node.
+- `arrow_shift=0.5`: Shift arrow position from source (0) to dest (1) node. 
+  If `arrow_shift=:end`, the arrowhead will be placed on the surface of the destination node 
+  (assuming the destination node is circular).
 - `arrow_attr=(;)`: List of kw arguments which gets passed to the `scatter` command
 
 ### Node labels
@@ -72,11 +77,12 @@ the edge.
 - `edge_plottype=Makie.automatic()`: Either `automatic`, `:linesegments` or
   `:beziersegments`. `:beziersegments` are much slower for big graphs!
 
-Self edges / loops:
+Self edges / loops: 
 
-- `selfedge_size=Makie.automatic()`: Size of self-edge-loop (dict/vector possible).
-- `selfedge_direction=Makie.automatic()`: Direction of self-edge-loop as `Point2` (dict/vector possible).
+- `selfedge_size=Makie.automatic()`: Size of selfloop (dict/vector possible).
+- `selfedge_direction=Makie.automatic()`: Direction of center of the selfloop as `Point2` (dict/vector possible).
 - `selfedge_width=Makie.automatic()`: Opening of selfloop in rad (dict/vector possible).
+- Note: If valid waypoints are provided for selfloops, the selfedge attributes above will be ignored.
 
 High level interface for curvy edges:
 
@@ -104,6 +110,8 @@ Tangents interface for curvy edges:
     Higher factor means bigger radius. Can be tuple per edge to specify different
     factor for src and dst.
 
+- Note: Tangents are ignored on selfloops if no waypoints are provided.
+
 Waypoints along edges:
 - `waypoints=nothing`
 
@@ -111,7 +119,12 @@ Waypoints along edges:
     dict. Waypoints will be crossed using natural cubic splines. The waypoints may
     or may not include the src/dst positions.
 
-- `waypoint_radius=nothing`: If number (dict/vector possible) bent lines within radius of waypoints.
+- `waypoint_radius=nothing`
+
+    If the attribute `waypoint_radius` is `nothing` or `:spline` the waypoints will 
+    be crossed using natural cubic spline interpolation. If number (dict/vector 
+    possible), the waypoints won't be reached, instead they will be connected with 
+    straight lines which bend in the given radius around the waypoints.
 """
 @recipe(GraphPlot, graph) do scene
     # TODO: figure out this whole theme business
@@ -131,6 +144,7 @@ Waypoints along edges:
         edge_attr = (;),
         # arrow attributes (Scatter)
         arrow_show = automatic,
+        arrow_marker = '➤',
         arrow_size = scatter_theme.markersize,
         arrow_shift = 0.5,
         arrow_attr = (;),
@@ -207,21 +221,24 @@ function Makie.plot!(gp::GraphPlot)
                           linewidth=gp.edge_width,
                           gp.edge_attr...)
 
-    # plott arrow heads
-    arrow_pos = @lift if !isempty($edge_paths)
-        broadcast(interpolate, $edge_paths, $(gp.arrow_shift))
+    # plot arrow heads
+    arrow_shift = lift(edge_paths, to_px, gp.arrow_shift, gp.node_size, gp.arrow_size) do paths, tpx, shift, nsize, asize
+        update_arrow_shift(graph[], gp, paths, tpx)
+    end
+    arrow_pos = @lift if !isempty(edge_paths[])
+        broadcast(interpolate, edge_paths[], $arrow_shift)
     else # if no edges return (empty) vector of points, broadcast yields Vector{Any} which can't be plotted
         Vector{eltype(node_pos[])}()
     end
     arrow_rot = @lift if !isempty(edge_paths[])
-        Billboard(broadcast($to_angle, edge_paths[], $arrow_pos, gp.arrow_shift[]))
+        Billboard(broadcast($to_angle, edge_paths[], $arrow_pos, arrow_shift[]))
     else
         Billboard(Float32[])
     end
     arrow_show = @lift $(gp.arrow_show) === automatic ? Graphs.is_directed($graph) : $(gp.arrow_show)
     arrow_heads = scatter!(gp,
                            arrow_pos;
-                           marker = '➤',
+                           marker = gp.arrow_marker,
                            markersize = gp.arrow_size,
                            color = gp.edge_color,
                            rotations = arrow_rot,
@@ -367,61 +384,48 @@ function find_edge_paths(g, attr, pos::AbstractVector{PT}) where {PT}
     paths = Vector{AbstractPath{PT}}(undef, ne(g))
 
     for (i, e) in enumerate(edges(g))
-        if e.src == e.dst # selfedge
+        p1, p2 = pos[src(e)], pos[dst(e)]
+        tangents = getattr(attr.tangents, i)
+        tfactor = getattr(attr.tfactor, i)
+        waypoints::Vector{PT} = getattr(attr.waypoints, i, PT[])
+        if !isnothing(waypoints) && !isempty(waypoints) #remove p1 and p2 from waypoints if these are given
+            waypoints[begin] == p1 && popfirst!(waypoints)
+            waypoints[end] == p2 && pop!(waypoints)
+        end
+
+        cdu = getattr(attr.curve_distance_usage, i)
+        if cdu === true
+            curve_distance = getattr(attr.curve_distance, i, 0.0)
+        elseif cdu === false
+            curve_distance = 0.0
+        elseif cdu === automatic
+            if is_directed(g) && has_edge(g, dst(e), src(e))
+                curve_distance = getattr(attr.curve_distance, i, 0.0)
+            else
+                curve_distance = 0.0
+            end
+        end
+
+        if !isnothing(waypoints) && !isempty(waypoints) #there are waypoints
+            radius = getattr(attr.waypoint_radius, i, nothing)
+            if radius === nothing || radius === :spline 
+                paths[i] = Path(p1, waypoints..., p2; tangents, tfactor)
+            elseif radius isa Real
+                paths[i] = Path(radius, p1, waypoints..., p2)
+            else
+                throw(ArgumentError("Invalid radius $radius for edge $i!"))
+            end
+        elseif src(e) == dst(e) # selfedge
             size = getattr(attr.selfedge_size, i)
             direction = getattr(attr.selfedge_direction, i)
             width = getattr(attr.selfedge_width, i)
-            paths[i] = selfedge_path(g, pos, e.src, size, direction, width)
-        else # no selfedge
-            p1, p2 = pos[e.src], pos[e.dst]
-            tangents = getattr(attr.tangents, i)
-            tfactor = getattr(attr.tfactor, i)
-            waypoints::Vector{PT} = getattr(attr.waypoints, i, PT[])
-
-            cdu = getattr(attr.curve_distance_usage, i)
-            if cdu === true
-                curve_distance = getattr(attr.curve_distance, i, 0.0)
-            elseif cdu === false
-                curve_distance = 0.0
-            elseif cdu === automatic
-                if is_directed(g) && has_edge(g, e.dst, e.src)
-                    curve_distance = getattr(attr.curve_distance, i, 0.0)
-                else
-                    curve_distance = 0.0
-                end
-            end
-
-            if !isnothing(waypoints) && !isempty(waypoints) #there are waypoints
-                # the waypoints may already include the endpoints
-                waypoints[begin] == p1 && popfirst!(waypoints)
-                waypoints[end] == p2 && pop!(waypoints)
-
-                radius = getattr(attr.waypoint_radius, i, nothing)
-
-                if isempty(waypoints) || radius === nothing || radius === :spline
-                    paths[i] = Path(p1, waypoints..., p2; tangents, tfactor)
-                elseif radius isa Real
-                    paths[i] = Path(radius, p1, waypoints..., p2)
-                else
-                    throw(ArgumentError("Invalid radius $radius for edge $i!"))
-                end
-            elseif !isnothing(tangents)
-                paths[i] = Path(p1, p2; tangents, tfactor)
-            elseif PT<:Point2 && !iszero(curve_distance)
-                d = curve_distance
-                s = norm(p2 - p1)
-                γ = 2*atan(2 * d/s)
-                a = (p2 - p1)/s * (4*d^2 + s^2)/(3s)
-
-                m = @SMatrix[cos(γ) -sin(γ); sin(γ) cos(γ)]
-                c1 = PT(p1 + m*a)
-                c2 = PT(p2 - transpose(m)*a)
-
-                commands = [MoveTo(p1), CurveTo(c1, c2, p2)]
-                paths[i] = BezierPath(commands)
-            else # straight line
-                paths[i] = Path(p1, p2)
-            end
+            paths[i] = selfedge_path(g, pos, src(e), size, direction, width)
+        elseif !isnothing(tangents)
+            paths[i] = Path(p1, p2; tangents, tfactor)
+        elseif PT<:Point2 && !iszero(curve_distance)
+            paths[i] = curved_path(p1, p2, curve_distance)
+        else # straight line
+            paths[i] = Path(p1, p2)
         end
     end
 
@@ -473,7 +477,7 @@ end
 """
     selfedge_path(g, pos, v, size, direction, width)
 
-Return a Path for the
+Return a BezierPath for a selfedge.
 """
 function selfedge_path(g, pos::AbstractVector{<:Point2}, v, size, direction, width)
     vp = pos[v]
@@ -528,6 +532,24 @@ end
 
 function selfedge_path(g, pos::AbstractVector{<:Point3}, v, size, direction, width)
     error("Self edges in 3D not yet supported")
+end
+
+"""
+    curved_path(p1, p2, curve_distance)
+
+Return a BezierPath for a curved edge (not selfedge).
+"""
+function curved_path(p1::PT, p2::PT, curve_distance) where {PT}
+    d = curve_distance
+    s = norm(p2 - p1)
+    γ = 2*atan(2 * d/s)
+    a = (p2 - p1)/s * (4*d^2 + s^2)/(3s)
+
+    m = @SMatrix[cos(γ) -sin(γ); sin(γ) cos(γ)]
+    c1 = PT(p1 + m*a)
+    c2 = PT(p2 - transpose(m)*a)
+
+    return BezierPath([MoveTo(p1), CurveTo(c1, c2, p2)])
 end
 
 """
@@ -651,4 +673,53 @@ function update_discretized!(disc, pathes)
     for (i, p) in enumerate(pathes)
         disc[i][] = discretize(p)
     end
+end
+
+"""
+    update_arrow_shift(g, gp, edge_paths::Vector{<:AbstractPath{PT}}, to_px) where {PT}
+
+Checks `arrow_shift` attr so that `arrow_shift = :end` gets transformed so that the arrowhead for that edge
+lands on the surface of the destination node.
+"""
+function update_arrow_shift(g, gp, edge_paths::Vector{<:AbstractPath{PT}}, to_px) where {PT}
+    arrow_shift = Vector{Float32}(undef, ne(g))
+
+    for (i,e) in enumerate(edges(g))
+        t = getattr(gp.arrow_shift, i, 0.5)
+        if t === :end
+            j = dst(e)
+            p0 = getattr(gp.node_pos, j)
+            node_marker = getattr(gp.node_marker, j)
+            node_size = getattr(gp.node_size, j)
+            arrow_marker = getattr(gp.arrow_marker, i)
+            arrow_size = getattr(gp.arrow_size, i)
+            d = distance_between_markers(node_marker, node_size, arrow_marker, arrow_size)
+            p1 = point_near_dst(edge_paths[i], p0, d, to_px)
+            t = inverse_interpolate(edge_paths[i], p1)
+            if isnan(t)
+                @warn """
+                    Shifting arrowheads to destination nodes failed.
+                    This can happen when the markers are inadequately scaled (e.g., when zooming out too far).
+                    Arrow shift has been reset to 0.5.
+                """
+                t = 0.5
+            end
+        end
+        arrow_shift[i] = t
+    end
+    
+    return arrow_shift
+end
+function update_arrow_shift(g, gp, edge_paths::Vector{<:AbstractPath{<:Point3}}, to_px)
+    arrow_shift = Vector{Float32}(undef, ne(g))
+
+    for (i,e) in enumerate(edges(g))
+        t = getattr(gp.arrow_shift, i, 0.5)
+        if t === :end #not supported because to_px does not give pixels in 3D space (would need to map 3D coordinates to pixels...?)
+            error("`arrow_shift = :end` not supported for 3D plots.")
+        end
+        arrow_shift[i] = t
+    end
+
+    return arrow_shift
 end

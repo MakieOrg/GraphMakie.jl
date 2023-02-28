@@ -100,7 +100,7 @@ function get_load(u, p, t=0.0)
     for (i,e) in enumerate(edges(g))
         edgeval = get_edge(gd_nd, i)
         fvec = Point(edgeval[1], edgeval[2])
-        dir = pos[e.dst] .- pos[e.src]
+        dir = pos[dst(e)] .- pos[src(e)]
         force[i] = sign(fvec ⋅ dir) * norm(fvec)
     end
     return force
@@ -116,7 +116,7 @@ gc = [9.81 for i in 1:nv(g)] # gravitational constant
 γ = [200.0 for i in 1:nv(g)] # damping parameter
 γ[end] = 100.0
 
-L = [norm(pos0[e.src] - pos0[e.dst]) for e in edges(g)] # length of edges
+L = [norm(pos0[src(e)] - pos0[dst(e)]) for e in edges(g)] # length of edges
 K = [0.5e6 for i in 1:ne(g)] # spring constant of edges
 
 ## bundle parameters for NetworkDynamics

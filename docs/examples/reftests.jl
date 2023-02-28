@@ -126,3 +126,51 @@ graphplot(fig[2,1],
           edge_plottype = :beziersegments,
           )
 @save_reference fig
+
+# ##self loop with waypoints
+g1 = SimpleDiGraph(1)
+add_edge!(g1, 1, 1) #add self loop
+fig, ax, p = graphplot(g1, layout = _ -> [(0,0)], waypoints = [[(1,-1),(1,1),(-1,1),(-1,-1)]])
+@save_reference fig
+
+# ##shift arrows to nodes
+fig, ax, p=graphplot(SimpleDiGraph(ones(2,2)),node_size=50,arrow_size=20,curve_distance=0.5,arrow_shift=:end)
+@save_reference fig
+
+# ##update shifts
+g = SimpleDiGraph(3)
+add_edge!(g, 1, 1); add_edge!(g, 1, 2); add_edge!(g, 2, 1); add_edge!(g, 2, 3); add_edge!(g, 3, 1);
+
+# test update of  node and arrow size, and node position
+fig, ax, p = graphplot(g; arrow_shift=:end,
+                       node_size=[20 for _ in 1:nv(g)],
+                       arrow_size=[20 for _ in 1:ne(g)])
+@save_reference fig
+
+p.node_size[][1] = 40
+notify(p.node_size)
+@save_reference fig
+
+p.arrow_size[][3] = 40
+notify(p.arrow_size)
+@save_reference fig
+
+p.node_pos[][1] = (0,0)
+notify(p.node_pos)
+@save_reference fig
+
+# test large nodes
+using GraphMakie: SquareGrid
+g = SimpleDiGraph(8)
+add_edge!(g, 1, 2)
+add_edge!(g, 3, 4)
+add_edge!(g, 5, 6)
+add_edge!(g, 7, 8)
+
+fig, ax, p = graphplot(g; arrow_shift=:end, layout=SquareGrid(cols=2),
+                       node_size=[10, 10, 10, 100, 10, 200, 10, 300],
+                       arrow_size=[150,100,50,10],
+                       arrow_attr=(color=:blue,),
+                       edge_color=:red)
+xlims!(-.5,1.5); ylims!(-3.5,.5)
+@save_reference fig
