@@ -247,10 +247,7 @@ function Makie.plot!(gp::GraphPlot)
                            visible = arrow_show,
                            gp.arrow_attr...)
 
-    nodesize = lift(gp.node_size) do _
-        [getattr(gp.node_size, i, dfth.node_size[])
-        for i in vertices(graph[])]
-    end
+    nodesize = prep_arguments(gp.node_size, @lift(length(vertices($graph))), dfth.node_size)
 
     # plot vertices
     vertex_plot = scatter!(gp, node_pos;
@@ -275,10 +272,7 @@ function Makie.plot!(gp::GraphPlot)
             $(gp.nlabels_distance) .* align_to_dir($(gp.nlabels_align))
         end
 
-        nlabelsfontsize = lift(gp.nlabels_fontsize) do _
-            [getattr(gp.nlabels_fontsize, i, dfth.nlabels_fontsize[])
-            for i in vertices(graph[])]
-        end
+        nlabelsfontsize = prep_arguments(gp.nlabels_fontsize, @lift(length(vertices($graph))), dfth.nlabels_fontsize)
 
         nlabels_plot = text!(gp, positions;
                              text=gp.nlabels,
@@ -329,8 +323,8 @@ function Makie.plot!(gp::GraphPlot)
             offsets = map(p -> Point(-p.data[2], p.data[1])/norm(p), tangent_px)
             offsets .= elabels_distance_offset(graph[], gp.attributes) .* offsets
         end
-        elabels_plot = text!(gp, gp.elabels;
-                             position=positions,
+        elabels_plot = text!(gp, positions;
+                             text=gp.elabels,
                              rotation=rotation,
                              offset=offsets,
                              align=gp.elabels_align,
@@ -340,6 +334,16 @@ function Makie.plot!(gp::GraphPlot)
     end
 
     return gp
+end
+
+function prep_arguments(o::Observable, size::Observable, default::Observable)
+    @lift begin
+        if isscalar($o)
+            isnothing($o) ? $default : $o
+        else
+            [getattr(o, i, $default) for i in 1:$size]
+        end
+    end
 end
 
 """

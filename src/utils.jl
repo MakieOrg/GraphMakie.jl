@@ -58,6 +58,13 @@ function getattr(o::Observable, idx, default=nothing)
 end
 
 """
+    isscalar(o::Observable)
+
+Return `true` if `Observable` is not an `AbstractVector` or an `AbstractDict`
+"""
+isscalar(o) = !isa(o, AbstractVector) && !isa(o, AbstractDict)
+
+"""
     Pointf(p::Point{N, T})
 
 Convert Point{N, T} or NTuple{N, T} to Point{N, Float32}.
