@@ -247,7 +247,7 @@ function Makie.plot!(gp::GraphPlot)
                            visible = arrow_show,
                            gp.arrow_attr...)
 
-    nodesize = prep_arguments(gp.node_size, @lift(vertices($graph)), dfth.node_size)
+    nodesize = prep_attributes(gp.node_size, @lift(vertices($graph)), dfth.node_size)
 
     # plot vertices
     vertex_plot = scatter!(gp, node_pos;
@@ -272,7 +272,7 @@ function Makie.plot!(gp::GraphPlot)
             $(gp.nlabels_distance) .* align_to_dir($(gp.nlabels_align))
         end
 
-        nlabelsfontsize = prep_arguments(gp.nlabels_fontsize, @lift(vertices($graph)), dfth.nlabels_fontsize)
+        nlabelsfontsize = prep_attributes(gp.nlabels_fontsize, @lift(vertices($graph)), dfth.nlabels_fontsize)
 
         nlabels_plot = text!(gp, positions;
                              text=gp.nlabels,
@@ -334,16 +334,6 @@ function Makie.plot!(gp::GraphPlot)
     end
 
     return gp
-end
-
-function prep_arguments(o::Observable, indices::Observable, default::Observable)
-    @lift begin
-        if isscalar($o)
-            isnothing($o) ? $default : $o
-        else
-            [getattr(o, i, $default) for i in $indices]
-        end
-    end
 end
 
 """

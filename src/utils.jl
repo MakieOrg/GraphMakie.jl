@@ -42,27 +42,55 @@ end
     getattr(o::Observable, idx, default=nothing)
 
 If observable wraps an AbstractVector or AbstractDict return
-the value at idx. If dict has no key idx rerturn default.
+the value at idx. If dict has no key idx return default.
 Else return the one and only element.
 """
-function getattr(o::Observable, idx, default=nothing)
-    if o[] isa AbstractVector && !isa(o[], Point)
-        return o[][idx]
-    elseif o[] isa DefaultDict || o[] isa DefaultOrderedDict
-        return getindex(o[], idx)
-    elseif o[] isa AbstractDict
-        return get(o[], idx, default)
+getattr(o::Observable, idx, default=nothing) = getattr(o[], idx, default)
+
+"""
+    getattr(x, idx, default=nothing)
+
+If `x` wraps an AbstractVector or AbstractDict return
+the value at idx. If dict has no key idx return default.
+Else return the one and only element.
+"""
+function getattr(x, idx, default=nothing)
+    if x isa AbstractVector && !isa(x, Point)
+        return x[idx]
+    elseif x isa DefaultDict || x isa DefaultOrderedDict
+        return getindex(x, idx)
+    elseif x isa AbstractDict
+        return get(x, idx, default)
     else
-        return o[] === nothing ? default : o[]
+        return x === nothing ? default : x
     end
 end
 
 """
-    isscalar(o::Observable)
+    prep_attributes(o::Observable, indices::Observable, default::Observable)
 
-Return `true` if `Observable` is not an `AbstractVector` or an `AbstractDict`
+Prepare the attributes to be forwarded to the internal recipes.
+If the attribute is a `Vector` or single value forward it as is (or the `default` value if isnothing).
+If it is an `AbstractDict` expand it to a `Vector` using `indices`.
 """
-isscalar(o) = !isa(o, AbstractVector) && !isa(o, AbstractDict)
+function prep_attributes(o::Observable, indices::Observable, default::Observable)
+    @lift begin
+        if issingleattribute($o)
+            isnothing($o) ? $default : $o
+        elseif $o isa AbstractVector
+            $o
+        else
+            [getattr($o, i, $default) for i in $indices]
+        end
+    end
+end
+
+"""
+    issingleattribute(x)
+
+Return `true` if `x` represents a single attribute value
+"""
+issingleattribute(x) = isa(x, Point) || (!isa(x, AbstractVector) && !isa(x, AbstractDict))
 
 """
     Pointf(p::Point{N, T})
