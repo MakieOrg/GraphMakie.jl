@@ -13,7 +13,7 @@ using NetworkLayout
 using CairoMakie
 
 #=
-The following code, which walks the AST and creats a `SimpleDiGraph` was taken and slightly
+The following code, which walks the AST and creates a `SimpleDiGraph` was taken and slightly
 modified from [`TreeView.jl`](https://github.com/JuliaTeX/TreeView.jl). Thanks!
 =#
 function walk_tree(ex; show_call=true)

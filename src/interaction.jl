@@ -160,7 +160,7 @@ EdgeHoverHandler(fun::F) where {F} = HoverHandler{EdgePlot,F}(nothing, nothing, 
     EdgeHoverHeighlight(p::GraphPlot, factor=2)
 
 Magnifies the `edge_width` of edge under cursor by `factor`.
-If `arrow_size isa Vector{<:Real}` it also magnefies the arrow scatter.
+If `arrow_size isa Vector{<:Real}` it also magnifies the arrow scatter.
 
 # Example
 ```
