@@ -57,7 +57,7 @@ data space.
 - `nlabels_attr=(;)`: List of kw arguments which gets passed to the `text` command
 
 ### Edge labels
-The base position of each label is determinded by `src + shift*(dst-src)`. The
+The base position of each label is determined by `src + shift*(dst-src)`. The
 additional `distance` parameter is given in pixels and shifts the text away from
 the edge.
 
@@ -89,7 +89,7 @@ High level interface for curvy edges:
 - `curve_distance=0.1`:
 
     Specify a distance of the (now curved) line to the straight line *in data
-    space*. Can be single value, array or dict. User proivded `tangents` or
+    space*. Can be single value, array or dict. User provided `tangents` or
     `waypoints` will overrule this property.
 
 - `curve_distance_usage=Makie.automatic()`:

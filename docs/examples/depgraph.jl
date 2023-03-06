@@ -70,7 +70,7 @@ lay = _ -> Point.(zip(xs,ys))
 ## create a vector of Point2f per edge
 wp = [Point2f.(zip(paths[e]...)) for e in edges(g)]
 
-## manually tweak some of the lable aligns
+## manually tweak some of the label aligns
 align = [(:right, :center) for i in 1:N]
 align[1]  = (:left, :center)  # Revise
 align[3]  = (:right, :top)    # LoweredCodeUtils

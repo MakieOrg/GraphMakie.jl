@@ -62,7 +62,7 @@ EdgeDrag
 
 ## Interaction Interface
 `GraphMakie.jl` provides some helper functions to register interactions to your graph plot.
-There are special interaction types for hovering, clicking and draging nodes and edges.
+There are special interaction types for hovering, clicking and dragging nodes and edges.
 For more information on the axis interaction please consult the [`Makie.jl` docs](https://docs.makie.org/stable/examples/blocks/axis/index.html#custom_interactions).
 
 The general idea is to create some handler type, provide some action function and register it
