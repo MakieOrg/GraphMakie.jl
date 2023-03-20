@@ -1,4 +1,4 @@
-#! julia
+#! julia --startup-file=no
 
 using Pkg
 Pkg.activate(@__DIR__)
@@ -11,7 +11,11 @@ using LiveServer
 
 run = true
 while run
-    include("make.jl")
+    try
+        include("make.jl")
+    catch e
+        @info "make.jl error" e
+    end
 
     println("Run again? Enter! Exit with 'q'.")
     if readline() == "q"
