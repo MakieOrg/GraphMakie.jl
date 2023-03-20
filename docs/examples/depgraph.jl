@@ -83,9 +83,9 @@ wp = [Point2f.(zip(paths[e]...)) for e in edges(g)]
 align = [(:right, :center) for i in 1:N]
 align[findfirst(isequal("Revise"), packages)]           = (:left, :center)
 align[findfirst(isequal("LoweredCodeUtils"), packages)] = (:right, :top)
-align[findfirst(isequal("CodeTracking"), packages)]     = (:left, :top)
+align[findfirst(isequal("CodeTracking"), packages)]     = (:left, :bottom)
 align[findfirst(isequal("JuliaInterpreter"), packages)] = (:left, :bottom)
-align[findfirst(isequal("Requires"), packages)]         = (:left, :top)
+align[findfirst(isequal("Requires"), packages)]         = (:left, :bottom)
 
 ## shift "JuliaInterpreter" node in data space
 offset = [Point2f(0,0) for i in 1:N]
