@@ -208,7 +208,7 @@ function Makie.plot!(gp::GraphPlot)
     # create array of pathes triggered by node_pos changes
     # in case of a graph change the node_position will change anyway
     gp[:edge_paths] = lift(node_pos, gp.selfedge_size,
-                      gp.selfedge_direction, gp.selfedge_width) do pos, s, d, w
+                      gp.selfedge_direction, gp.selfedge_width, gp.curve_distance_usage, gp.curve_distance) do pos, s, d, w, cdu, cd
         find_edge_paths(graph[], gp.attributes, pos)
     end
     edge_paths = gp[:edge_paths]
