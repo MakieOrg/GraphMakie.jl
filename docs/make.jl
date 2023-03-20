@@ -8,7 +8,7 @@ using JSServe
 using NetworkDynamics
 using LayeredLayouts
 using Graphs
-using PkgDeps
+using RegistryInstances
 
 DocMeta.setdocmeta!(GraphMakie, :DocTestSetup, :(using GraphMakie); recursive=true)
 
