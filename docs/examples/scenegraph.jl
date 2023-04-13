@@ -110,4 +110,4 @@ for v in vertices(newg)
     end
 end
 p.nlabels_align = nlabels_align
-fig
+@save_reference fig
