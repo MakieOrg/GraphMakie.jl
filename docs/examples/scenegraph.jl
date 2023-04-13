@@ -85,7 +85,7 @@ f, a, p = graphplot(
     figure = (; resolution = (900, 600)),
     axis = (limits = (-2.5, 2, -16, 2),)
 )
-hidedecorations!(ax); hidespines!(ax)
+hidedecorations!(a); hidespines!(a)
 # Now, we add some improvements to the labels and positions (this is fairly minor):
 _nlabels = deepcopy(newl)
 _nlabels[1] = "Scene (root)"
