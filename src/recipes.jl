@@ -134,9 +134,10 @@ Waypoints along edges:
     Attributes(
         layout = Spring(),
         # node attributes (Scatter)
-        node_color = scatter_theme.color,
-        node_size = scatter_theme.markersize,
-        node_marker = scatter_theme.marker,
+        node_color = automatic,
+        node_size = automatic,
+        node_marker = automatic,
+        node_strokewidth = automatic,
         node_attr = (;),
         # edge attributes (LineSegements)
         edge_color = lineseg_theme.color,
@@ -156,6 +157,11 @@ Waypoints along edges:
         nlabels_offset = nothing,
         nlabels_fontsize = labels_theme.fontsize,
         nlabels_attr = (;),
+        # inner node labels
+        ilabels = nothing,
+        ilabels_color = labels_theme.color,
+        ilabels_fontsize = labels_theme.fontsize,
+        ilabels_attr = (;),
         # edge label attributes (Text)
         elabels = nothing,
         elabels_align = (:center, :center),
@@ -244,12 +250,48 @@ function Makie.plot!(gp::GraphPlot)
                            markerspace = :pixel,
                            visible = arrow_show,
                            gp.arrow_attr...)
+                           
+    scatter_theme = default_theme(sc, Scatter)
 
+    if gp[:ilabels][] !== nothing
+        positions = node_pos
+        
+        ilabels_plot = text!(gp, positions;
+            text=string.(gp.ilabels[]),
+            align=(:center, :center),
+            color=gp.ilabels_color,
+            fontsize=gp.ilabels_fontsize,
+            gp.ilabels_attr...)
+
+        translate!(ilabels_plot, 0, 0, 1)
+        
+        node_size = lift(ilabels_plot.plots[1][1]) do glyphcollections
+            map(glyphcollections) do gc
+                rect = Rect2f(boundingbox(gc, Quaternion((1,0,0,0))))
+                norm(rect.widths) + 0.1 * gp.ilabels_fontsize[]
+            end
+        end
+    else
+        node_size = @lift $(gp.node_size) === automatic ? scatter_theme.markersize[] : gp.node_size[]
+    end
+
+    node_color = @lift if $(gp.node_color) === automatic
+        gp.ilabels[] !== nothing ? :gray80 : scatter_theme.color[]
+    end
+    
+    node_marker = @lift if $(gp.node_marker) === automatic
+        gp.ilabels[] !== nothing ? Circle : scatter_theme.marker[]
+    end
+    node_strokewidth = @lift if $(gp.node_strokewidth) === automatic
+        gp.ilabels[] !== nothing ? 1 : scatter_theme.strokewidth[]
+    end
+    
     # plot vertices
     vertex_plot = scatter!(gp, node_pos;
-                           color=gp.node_color,
-                           marker=gp.node_marker,
-                           markersize=gp.node_size,
+                           color=node_color,
+                           marker=node_marker,
+                           markersize=node_size,
+                           strokewidth=node_strokewidth,
                            gp.node_attr...)
 
     # plot node labels
