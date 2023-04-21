@@ -211,46 +211,7 @@ function Makie.plot!(gp::GraphPlot)
 
     node_pos = gp[:node_pos]
 
-    # create array of pathes triggered by node_pos changes
-    # in case of a graph change the node_position will change anyway
-    gp[:edge_paths] = lift(node_pos, gp.selfedge_size,
-                      gp.selfedge_direction, gp.selfedge_width, gp.curve_distance_usage, gp.curve_distance) do pos, s, d, w, cdu, cd
-        find_edge_paths(graph[], gp.attributes, pos)
-    end
-    edge_paths = gp[:edge_paths]
-
-    # plot edges
-    edge_plot = edgeplot!(gp, edge_paths;
-                          color=gp.edge_color,
-                          linewidth=gp.edge_width,
-                          gp.edge_attr...)
-
-    # plot arrow heads
-    arrow_shift = lift(edge_paths, to_px, gp.arrow_shift, gp.node_size, gp.arrow_size) do paths, tpx, shift, nsize, asize
-        update_arrow_shift(graph[], gp, paths, tpx)
-    end
-    arrow_pos = @lift if !isempty(edge_paths[])
-        broadcast(interpolate, edge_paths[], $arrow_shift)
-    else # if no edges return (empty) vector of points, broadcast yields Vector{Any} which can't be plotted
-        Vector{eltype(node_pos[])}()
-    end
-    arrow_rot = @lift if !isempty(edge_paths[])
-        Billboard(broadcast($to_angle, edge_paths[], $arrow_pos, arrow_shift[]))
-    else
-        Billboard(Float32[])
-    end
-    arrow_show = @lift $(gp.arrow_show) === automatic ? Graphs.is_directed($graph) : $(gp.arrow_show)
-    arrow_heads = scatter!(gp,
-                           arrow_pos;
-                           marker = gp.arrow_marker,
-                           markersize = gp.arrow_size,
-                           color = gp.edge_color,
-                           rotations = arrow_rot,
-                           strokewidth = 0.0,
-                           markerspace = :pixel,
-                           visible = arrow_show,
-                           gp.arrow_attr...)
-                           
+    # plot inside labels
     scatter_theme = default_theme(sc, Scatter)
 
     if gp[:ilabels][] !== nothing
@@ -277,14 +238,61 @@ function Makie.plot!(gp::GraphPlot)
 
     node_color = @lift if $(gp.node_color) === automatic
         gp.ilabels[] !== nothing ? :gray80 : scatter_theme.color[]
+    else
+        $(gp.node_color)
     end
     
     node_marker = @lift if $(gp.node_marker) === automatic
         gp.ilabels[] !== nothing ? Circle : scatter_theme.marker[]
+    else
+        $(gp.node_marker)
     end
+
     node_strokewidth = @lift if $(gp.node_strokewidth) === automatic
         gp.ilabels[] !== nothing ? 1 : scatter_theme.strokewidth[]
+    else
+        $(gp.node_strokewidth)
     end
+
+    # create array of pathes triggered by node_pos changes
+    # in case of a graph change the node_position will change anyway
+    gp[:edge_paths] = lift(node_pos, gp.selfedge_size,
+                      gp.selfedge_direction, gp.selfedge_width, gp.curve_distance_usage, gp.curve_distance) do pos, s, d, w, cdu, cd
+        find_edge_paths(graph[], gp.attributes, pos)
+    end
+    edge_paths = gp[:edge_paths]
+
+    # plot edges
+    edge_plot = edgeplot!(gp, edge_paths;
+                          color=gp.edge_color,
+                          linewidth=gp.edge_width,
+                          gp.edge_attr...)
+
+    # plot arrow heads
+    arrow_shift = lift(edge_paths, to_px, gp.arrow_shift, node_marker, node_size, gp.arrow_size) do paths, tpx, shift, nmarker, nsize, asize
+        update_arrow_shift(graph[], gp, paths, tpx, node_marker, node_size)
+    end
+    arrow_pos = @lift if !isempty(edge_paths[])
+        broadcast(interpolate, edge_paths[], $arrow_shift)
+    else # if no edges return (empty) vector of points, broadcast yields Vector{Any} which can't be plotted
+        Vector{eltype(node_pos[])}()
+    end
+    arrow_rot = @lift if !isempty(edge_paths[])
+        Billboard(broadcast($to_angle, edge_paths[], $arrow_pos, arrow_shift[]))
+    else
+        Billboard(Float32[])
+    end
+    arrow_show = @lift $(gp.arrow_show) === automatic ? Graphs.is_directed($graph) : $(gp.arrow_show)
+    arrow_heads = scatter!(gp,
+                           arrow_pos;
+                           marker = gp.arrow_marker,
+                           markersize = gp.arrow_size,
+                           color = gp.edge_color,
+                           rotations = arrow_rot,
+                           strokewidth = 0.0,
+                           markerspace = :pixel,
+                           visible = arrow_show,
+                           gp.arrow_attr...)
     
     # plot vertices
     vertex_plot = scatter!(gp, node_pos;
@@ -712,7 +720,7 @@ end
 Checks `arrow_shift` attr so that `arrow_shift = :end` gets transformed so that the arrowhead for that edge
 lands on the surface of the destination node.
 """
-function update_arrow_shift(g, gp, edge_paths::Vector{<:AbstractPath{PT}}, to_px) where {PT}
+function update_arrow_shift(g, gp, edge_paths::Vector{<:AbstractPath{PT}}, to_px, node_markers, node_sizes) where {PT}
     arrow_shift = Vector{Float32}(undef, ne(g))
 
     for (i,e) in enumerate(edges(g))
@@ -720,8 +728,8 @@ function update_arrow_shift(g, gp, edge_paths::Vector{<:AbstractPath{PT}}, to_px
         if t === :end
             j = dst(e)
             p0 = getattr(gp.node_pos, j)
-            node_marker = getattr(gp.node_marker, j)
-            node_size = getattr(gp.node_size, j)
+            node_marker = getattr(node_markers, j)
+            node_size = getattr(node_sizes, j)
             arrow_marker = getattr(gp.arrow_marker, i)
             arrow_size = getattr(gp.arrow_size, i)
             d = distance_between_markers(node_marker, node_size, arrow_marker, arrow_size)
