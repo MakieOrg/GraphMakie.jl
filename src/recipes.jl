@@ -187,7 +187,7 @@ function Makie.plot!(gp::GraphPlot)
     # create initial vertex positions, will be updated on changes to graph or layout
     # make node_position-Observable available as named attribute from the outside
     gp[:node_pos] = @lift if $(gp.layout) isa AbstractVector
-        if length($(gp.layout)) != nv($(graph))
+        if length($(gp.layout)) != nv($graph)
             throw(ArgumentError("The length of the layout vector does not match the number of nodes in the graph!"))
         else
             [Pointf(p) for p in $(gp.layout)]
