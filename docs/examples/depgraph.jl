@@ -75,7 +75,7 @@ nothing #hide
 In `GraphMakie` the layout always needs to be function. So we're creating a dummy function...
 We will use the [Edge waypoints](@ref) attribute to get the graph with the least crossings.
 =#
-lay = _ -> Point.(zip(xs,ys))
+lay = Point.(zip(xs,ys))
 ## create a vector of Point2f per edge
 wp = [Point2f.(zip(paths[e]...)) for e in edges(g)]
 

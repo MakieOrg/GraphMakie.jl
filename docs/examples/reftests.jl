@@ -94,7 +94,7 @@ notify(gn)
 
 # ## Different combinations of edge width and edgelabel distance
 g = path_graph(3)
-layout(y) = _ -> Point2f.([(0,-y),(1,-y),(2,-y)])
+layout(y) = Point2f.([(0,-y),(1,-y),(2,-y)])
 elabels = ["Edge 1", "Edge 2"]
 node_color = :red
 
@@ -130,7 +130,7 @@ graphplot(fig[2,1],
 # ##self loop with waypoints
 g1 = SimpleDiGraph(1)
 add_edge!(g1, 1, 1) #add self loop
-fig, ax, p = graphplot(g1, layout = _ -> [(0,0)], waypoints = [[(1,-1),(1,1),(-1,1),(-1,-1)]])
+fig, ax, p = graphplot(g1, layout = [(0,0)], waypoints = [[(1,-1),(1,1),(-1,1),(-1,-1)]])
 @save_reference fig
 
 # ##shift arrows to nodes
