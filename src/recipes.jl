@@ -303,7 +303,6 @@ function Makie.plot!(gp::GraphPlot)
                            markerspace = :pixel,
                            visible = arrow_show,
                            gp.arrow_attr...)
-    
     # plot vertices
     vertex_plot = scatter!(gp, node_pos;
                            color=node_color,
