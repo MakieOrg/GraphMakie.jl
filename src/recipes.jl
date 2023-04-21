@@ -56,6 +56,16 @@ data space.
 - `nlabels_fontsize=labels_theme.fontsize`
 - `nlabels_attr=(;)`: List of kw arguments which gets passed to the `text` command
 
+### Inner node labels
+Put labels inside the marker. If labels are provided, change default attributes to
+`node_marker=Circle`, `node_strokewidth=1` and `node_color=:gray80`.
+The `node_size` will match size of the `ilabels`.
+
+- `ilabels=nothing`: `Vector` with label for each node
+- `ilabels_color=labels_theme.color`
+- `ilabels_fontsize=labels_theme.fontsize`
+- `ilabels_attr=(;)`: List of kw arguments which gets passed to the `text` command
+
 ### Edge labels
 The base position of each label is determined by `src + shift*(dst-src)`. The
 additional `distance` parameter is given in pixels and shifts the text away from
@@ -249,7 +259,7 @@ function Makie.plot!(gp::GraphPlot)
     end
 
     node_strokewidth = @lift if $(gp.node_strokewidth) === automatic
-        gp.ilabels[] !== nothing ? 1 : scatter_theme.strokewidth[]
+        gp.ilabels[] !== nothing ? 1.0 : scatter_theme.strokewidth[]
     else
         $(gp.node_strokewidth)
     end
