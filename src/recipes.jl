@@ -218,7 +218,7 @@ function Makie.plot!(gp::GraphPlot)
         positions = node_pos
         
         ilabels_plot = text!(gp, positions;
-            text=string.(gp.ilabels[]),
+            text=@lift(string.($(gp.ilabels))),
             align=(:center, :center),
             color=gp.ilabels_color,
             fontsize=gp.ilabels_fontsize,
@@ -226,10 +226,10 @@ function Makie.plot!(gp::GraphPlot)
 
         translate!(ilabels_plot, 0, 0, 1)
         
-        node_size = lift(ilabels_plot.plots[1][1]) do glyphcollections
+        node_size = lift(ilabels_plot.plots[1][1], gp.ilabels_fontsize) do glyphcollections, ilabels_fontsize
             map(glyphcollections) do gc
                 rect = Rect2f(boundingbox(gc, Quaternion((1,0,0,0))))
-                norm(rect.widths) + 0.1 * gp.ilabels_fontsize[]
+                norm(rect.widths) + 0.1 * ilabels_fontsize
             end
         end
     else
