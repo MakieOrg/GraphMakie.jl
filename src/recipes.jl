@@ -190,7 +190,7 @@ function Makie.plot!(gp::GraphPlot)
         if length($(gp.layout)) != nv($graph)
             throw(ArgumentError("The length of the layout vector does not match the number of nodes in the graph!"))
         else
-            [Pointf(p) for p in $(gp.layout)]
+            Pointf.($(gp.layout))
         end
     else
         [Pointf(p) for p in ($(gp.layout))($graph)]
