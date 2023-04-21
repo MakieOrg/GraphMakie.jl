@@ -26,7 +26,7 @@ underlying graph and therefore changing the number of Edges/Nodes.
 
 ## Attributes
 ### Main attributes
-- `layout=Spring()`: function `AbstractGraph->Vector{Point}` determines the base layout
+- `layout=Spring()`: function `AbstractGraph->Vector{Point}` or `Vector{Point}` determines the base layout
 - `node_color=scatter_theme.color`
 - `node_size=scatter_theme.markersize`
 - `node_marker=scatter_theme.marker`
@@ -186,7 +186,15 @@ function Makie.plot!(gp::GraphPlot)
 
     # create initial vertex positions, will be updated on changes to graph or layout
     # make node_position-Observable available as named attribute from the outside
-    gp[:node_pos] = @lift [Pointf(p) for p in ($(gp.layout))($graph)]
+    gp[:node_pos] = @lift if $(gp.layout) isa AbstractVector
+        if length($(gp.layout)) != nv($graph)
+            throw(ArgumentError("The length of the layout vector does not match the number of nodes in the graph!"))
+        else
+            Pointf.($(gp.layout))
+        end
+    else
+        [Pointf(p) for p in ($(gp.layout))($graph)]
+    end
 
     sc = Makie.parent_scene(gp)
 

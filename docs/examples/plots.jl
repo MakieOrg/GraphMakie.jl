@@ -274,7 +274,7 @@ if `tangents` are given, but no `waypoints`, the `tangents` are ignored.
 g = SimpleDiGraph(1) #single node
 add_edge!(g, 1, 1) #add self loop
 f, ax, p = graphplot(g, 
-                     layout = _ -> [(0,0)], 
+                     layout = [(0,0)], 
                      waypoints = [[(1,-1),(1,1),(-1,1),(-1,-1)]])
 @save_reference f #hide
 
