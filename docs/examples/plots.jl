@@ -86,6 +86,19 @@ offsets[1] = Point2f(0, 0.3)
 p.nlabels_offset[] = offsets
 autolimits!(ax)
 @save_reference f #hide
+#=
+## Inner Node Labels
+Sometimes it is prefered to show the labels inside the node. For that you can use the `ilabels` keyword arguments.
+The Node sizes will be changed according to the size of the labels.
+=#
+g = cycle_digraph(3)
+f, ax, p = graphplot(g;
+                     ilabels=[1, L"\sum_{i=1}^n \alpha^i", "a label"],
+                     arrow_shift=:end)
+xlims!(ax, (-1.5, 1.3))
+ylims!(ax, (-2.3, 0.7))
+hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()
+f #hide
 
 # ## Adding Edge Labels
 g = barabasi_albert(6, 2; seed=42)
@@ -140,6 +153,14 @@ arrow_shift = range(0.1, 0.8, length=ne(g))
 f, ax, p = graphplot(g; arrow_size, arrow_shift)
 hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()
 @save_reference f #hide
+
+#=
+There is a special case for `arrow_shift=:end` which moves the arrows close to the next node:
+=#
+g = cycle_digraph(3)
+f, ax, p = graphplot(g; arrow_shift=:end, node_size=20, arrow_size=20)
+hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()
+f #hide
 
 #=
 ## Self edges
