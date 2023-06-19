@@ -42,7 +42,7 @@ end
     getattr(o::Observable, idx, default=nothing)
 
 If observable wraps an AbstractVector or AbstractDict return
-the value at idx. If dict has no key idx return default.
+the value at idx. If dict has no key idx returns default.
 Else return the one and only element.
 """
 getattr(o::Observable, idx, default=nothing) = getattr(o[], idx, default)
@@ -51,7 +51,7 @@ getattr(o::Observable, idx, default=nothing) = getattr(o[], idx, default)
     getattr(x, idx, default=nothing)
 
 If `x` wraps an AbstractVector or AbstractDict return
-the value at idx. If dict has no key idx return default.
+the value at idx. If dict has no key idx returns default.
 Else return the one and only element.
 """
 function getattr(x, idx, default=nothing)

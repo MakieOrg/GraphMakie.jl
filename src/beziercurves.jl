@@ -44,13 +44,13 @@ straighten(l::Line) = l
 straighten(p::BezierPath) = Line(interpolate(p,0.0), interpolate(p,1.0))
 
 ####
-#### Helper functions to work with bezier pathes
+#### Helper functions to work with bezier paths
 ####
 
 """
     interpolate(p::AbstractPath, t)
 
-Parametrize path `p` from `t ∈ [0, 1]`. Return postion at `t`.
+Parametrize path `p` from `t ∈ [0, 1]`. Return position at `t`.
 
 TODO: Points are not necessarily evenly spaced!
 """
@@ -194,7 +194,7 @@ _discretize!(v::Vector{<:AbstractPoint}, c::Union{MoveTo, LineTo}) = push!(v, c.
 function _discretize!(v::Vector{<:AbstractPoint}, c::CurveTo)
     N0 = length(v)
     p0 = v[end]
-    N = 60 # TODO: magic number of points for discrtization
+    N = 60 # TODO: magic number of points for discretization
     resize!(v, N0 + N)
     dt = 1.0/N
     for (i, t) in enumerate(dt:dt:1.0)
@@ -229,7 +229,7 @@ isline(p::BezierPath) = length(p.commands)==2 && p.commands[1] isa MoveTo && p.c
 
 
 ####
-#### Special constructors to create abstract pathes
+#### Special constructors to create abstract paths
 ####
 
 """
@@ -245,13 +245,13 @@ tangents.
 function Path(P::Vararg{PT, N}; tangents=nothing, tfactor=.5) where {PT<:AbstractPoint, N}
     @assert N>2
 
-    # cubic_spline will work for each dimension separatly
+    # cubic_spline will work for each dimension separately
     pxyz = _cubic_spline(map(p -> p[1], P)) # get first dimension
     for i in 2:length(PT) # append all other dims
         pxyz = hcat(pxyz, _cubic_spline(map(p -> p[i], P)))
     end
 
-    # create waypoints from waypoints in separat dementions
+    # create waypoints from waypoints in separate dimensions
     WP = SVector{length(P)-1, PT}(PT(p) for p in eachrow(pxyz))
 
     commands = Vector{PathCommand{PT}}(undef, N)
@@ -289,7 +289,7 @@ function Path(P::Vararg{PT, N}; tangents=nothing, tfactor=.5) where {PT<:Abstrac
     BezierPath(commands)
 end
 
-# same function as above but for just 2 points specificially
+# same function as above but for just 2 points specifically
 function Path(P::Vararg{PT, 2}; tangents=nothing, tfactor=.5) where {PT<:AbstractPoint}
     if tfactor isa NTuple{2, <:Number}
         tf1, tf2 = tfactor

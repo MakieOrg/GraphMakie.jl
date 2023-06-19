@@ -1,7 +1,7 @@
 #=
 # Dependency Graph of a Package
 In this example we'll plot a dependency graph of a package using
-[`PkgDeps.jl`](https://github.com/JuliaEcosystem/PkgDeps.jl) and
+[`RegistryInstances.jl`](https://github.com/GunnarFarneback/RegistryInstances.jl) and
 and a DAG layout from [`LayeredLayouts.jl`](https://github.com/oxinabox/LayeredLayouts.jl)
 =#
 using CairoMakie
@@ -10,28 +10,37 @@ set_theme!(resolution=(800, 600)) #hide
 using GraphMakie
 using Graphs
 using LayeredLayouts
-using PkgDeps
+using RegistryInstances
 using Makie.GeometryBasics
 using Makie.Colors
 
 #=
-First we need a small function which goes recursively through the dependencies of a package and
+First we need a small function which goes through the dependencies of a package and
 builds a `SimpleDiGraph` object.
 =#
 function depgraph(root)
+    registries=RegistryInstances.reachable_registries()
+    general = registries[findfirst(x->x.name=="General", registries)]
+
     packages = [root]
     connections = Vector{Pair{Int,Int}}()
 
     for pkg in packages
-
         pkgidx = findfirst(isequal(pkg), packages)
-        deps = try
-            direct_dependencies(pkg)
-        catch e
-            continue # in case of standard libs
-        end
+        uuids = uuids_from_name(general, pkg)
+        isempty(uuids) && continue
 
-        for dep in keys(deps)
+        deps = String[]
+        pkginfo = registry_info(general[only(uuids)])
+        version = maximum(keys(pkginfo.version_info))
+        for (vrange, dep) ∈ pkginfo.deps
+            if version ∈ vrange
+                append!(deps, keys(pkginfo.deps[vrange]))
+            end
+        end
+        filter!(!isequal("julia"), deps)
+
+        for dep in deps
             idx = findfirst(isequal(dep), packages)
             if idx === nothing
                 push!(packages, dep)
@@ -66,21 +75,21 @@ nothing #hide
 In `GraphMakie` the layout always needs to be function. So we're creating a dummy function...
 We will use the [Edge waypoints](@ref) attribute to get the graph with the least crossings.
 =#
-lay = _ -> Point.(zip(xs,ys))
+lay = Point.(zip(xs,ys))
 ## create a vector of Point2f per edge
 wp = [Point2f.(zip(paths[e]...)) for e in edges(g)]
 
-## manually tweak some of the lable aligns
+## manually tweak some of the label aligns
 align = [(:right, :center) for i in 1:N]
-align[1]  = (:left, :center)  # Revise
-align[3]  = (:right, :top)    # LoweredCodeUtils
-align[6]  = (:left, :bottom)  # CodeTracking
-align[10] = (:left, :bottom)  # JuliaInterpreter
-align[13] = (:left, :bottom)  # Requires
+align[findfirst(isequal("Revise"), packages)]           = (:left, :center)
+align[findfirst(isequal("LoweredCodeUtils"), packages)] = (:right, :top)
+align[findfirst(isequal("CodeTracking"), packages)]     = (:left, :bottom)
+align[findfirst(isequal("JuliaInterpreter"), packages)] = (:left, :bottom)
+align[findfirst(isequal("Requires"), packages)]         = (:left, :bottom)
 
 ## shift "JuliaInterpreter" node in data space
 offset = [Point2f(0,0) for i in 1:N]
-offset[10] = Point(-0.1, 0.1)
+offset[findfirst(isequal("JuliaInterpreter"), packages)] = Point(-0.1, 0.1)
 
 f, ax, p = graphplot(g; layout=lay,
                      arrow_size=15,

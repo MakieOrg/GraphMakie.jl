@@ -63,11 +63,11 @@ fixed = [1,4] # set fixed vertices
 nothing #hide
 
 # create networkdynamics object
-vertices = ODEVertex[vertex_free for i in 1:nv(g)]
+verts = ODEVertex[vertex_free for i in 1:nv(g)]
 for i in fixed
-    vertices[i] = vertex_fix # use the fixed vertex for the fixed
+    verts[i] = vertex_fix # use the fixed vertex for the fixed
 end
-nd = network_dynamics(vertices, edge, g);
+nd = network_dynamics(verts, edge, g);
 nothing #hide
 
 #=

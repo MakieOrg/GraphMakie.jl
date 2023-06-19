@@ -94,7 +94,7 @@ notify(gn)
 
 # ## Different combinations of edge width and edgelabel distance
 g = path_graph(3)
-layout(y) = _ -> Point2f.([(0,-y),(1,-y),(2,-y)])
+layout(y) = Point2f.([(0,-y),(1,-y),(2,-y)])
 elabels = ["Edge 1", "Edge 2"]
 node_color = :red
 
@@ -127,17 +127,17 @@ graphplot(fig[2,1],
           )
 @save_reference fig
 
-# ##self loop with waypoints
+# ## Self loop with waypoints
 g1 = SimpleDiGraph(1)
 add_edge!(g1, 1, 1) #add self loop
-fig, ax, p = graphplot(g1, layout = _ -> [(0,0)], waypoints = [[(1,-1),(1,1),(-1,1),(-1,-1)]])
+fig, ax, p = graphplot(g1, layout = [(0,0)], waypoints = [[(1,-1),(1,1),(-1,1),(-1,-1)]])
 @save_reference fig
 
-# ##shift arrows to nodes
+# ## Shift arrows to nodes
 fig, ax, p=graphplot(SimpleDiGraph(ones(2,2)),node_size=50,arrow_size=20,curve_distance=0.5,arrow_shift=:end)
 @save_reference fig
 
-# ##update shifts
+# ### update shifts
 g = SimpleDiGraph(3)
 add_edge!(g, 1, 1); add_edge!(g, 1, 2); add_edge!(g, 2, 1); add_edge!(g, 2, 3); add_edge!(g, 3, 1);
 
@@ -173,4 +173,25 @@ fig, ax, p = graphplot(g; arrow_shift=:end, layout=SquareGrid(cols=2),
                        arrow_attr=(color=:blue,),
                        edge_color=:red)
 xlims!(-.5,1.5); ylims!(-3.5,.5)
+@save_reference fig
+
+# ## Inner node labels
+
+fig, ax, p = graphplot(cycle_digraph(3), ilabels=[1, L"\sum_{i=1}^n \alpha^i", "a label"], node_marker=Circle)
+@save_reference fig
+
+# Interact with `arrow_shift=:end`
+
+fig, ax, p = graphplot(cycle_digraph(3), ilabels=[1, L"\sum_{i=1}^n \alpha^i", "a label"], node_marker=Circle, arrow_shift=:end)
+@save_reference fig
+
+# Update observables
+p[:ilabels][][1] = "1111"
+notify(p[:ilabels])
+@save_reference fig
+
+p[:ilabels_fontsize][] = 10
+@save_reference fig
+
+p[:node_color][] = :red
 @save_reference fig

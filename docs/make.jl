@@ -8,7 +8,7 @@ using JSServe
 using NetworkDynamics
 using LayeredLayouts
 using Graphs
-using PkgDeps
+using RegistryInstances
 
 DocMeta.setdocmeta!(GraphMakie, :DocTestSetup, :(using GraphMakie); recursive=true)
 
@@ -36,8 +36,21 @@ makedocs(; modules=[GraphMakie], authors="Simon Danisch, Hans Würfel",
                     "Stress on Truss" => "generated/truss.md",
                     "Julia AST" => "generated/syntaxtree.md",
                     "Reference Tests" => "generated/reftests.md",
-                ]
-                ])
+                ],
+                "🔗 Layouts (`NetworkLayout.jl`)" => "networklayout_forward.md",
+                ],
+         strict=[:autodocs_block,
+                 :cross_references,
+                 :docs_block,
+                 :doctest,
+                 :eval_block,
+                 :example_block,
+                 :footnote,
+                 :linkcheck,
+                 :meta_block,
+                 #:missing_docs,
+                 :parse_error,
+                 :setup_block])
 
 # if gh_pages branch gets to big, check out
 # https://juliadocs.github.io/Documenter.jl/stable/man/hosting/#gh-pages-Branch

@@ -26,10 +26,15 @@ underlying graph and therefore changing the number of Edges/Nodes.
 
 ## Attributes
 ### Main attributes
-- `layout=Spring()`: function `AbstractGraph->Vector{Point}` determines the base layout
-- `node_color=scatter_theme.color`
-- `node_size=scatter_theme.markersize`
-- `node_marker=scatter_theme.marker`
+- `layout=Spring()`: function `AbstractGraph->Vector{Point}` or `Vector{Point}` determines the base layout
+- `node_color=automatic`:
+  Defaults to `scatter_theme.color` in absence of `ilabels`.
+- `node_size=automatic`:
+  Defaults to `scatter_theme.markersize` in absence of `ilabels`. Otherwise choses node size based on `ilabels` size.
+- `node_marker=automatic`:
+  Defaults to `scatter_theme.marker` in absence of `ilabels`.
+- `node_strokewidth=automatic`
+  Defaults to `scatter_theme.strokewidth` in absence of `ilabels`.
 - `node_attr=(;)`: List of kw arguments which gets passed to the `scatter` command
 - `edge_color=lineseg_theme.color`: Color for edges.
 - `edge_width=lineseg_theme.linewidth`: Pass a vector with 2 width per edge to
@@ -56,8 +61,18 @@ data space.
 - `nlabels_fontsize=labels_theme.fontsize`
 - `nlabels_attr=(;)`: List of kw arguments which gets passed to the `text` command
 
+### Inner node labels
+Put labels inside the marker. If labels are provided, change default attributes to
+`node_marker=Circle`, `node_strokewidth=1` and `node_color=:gray80`.
+The `node_size` will match size of the `ilabels`.
+
+- `ilabels=nothing`: `Vector` with label for each node
+- `ilabels_color=labels_theme.color`
+- `ilabels_fontsize=labels_theme.fontsize`
+- `ilabels_attr=(;)`: List of kw arguments which gets passed to the `text` command
+
 ### Edge labels
-The base position of each label is determinded by `src + shift*(dst-src)`. The
+The base position of each label is determined by `src + shift*(dst-src)`. The
 additional `distance` parameter is given in pixels and shifts the text away from
 the edge.
 
@@ -89,7 +104,7 @@ High level interface for curvy edges:
 - `curve_distance=0.1`:
 
     Specify a distance of the (now curved) line to the straight line *in data
-    space*. Can be single value, array or dict. User proivded `tangents` or
+    space*. Can be single value, array or dict. User provided `tangents` or
     `waypoints` will overrule this property.
 
 - `curve_distance_usage=Makie.automatic()`:
@@ -134,9 +149,10 @@ Waypoints along edges:
     Attributes(
         layout = Spring(),
         # node attributes (Scatter)
-        node_color = scatter_theme.color,
-        node_size = scatter_theme.markersize,
-        node_marker = scatter_theme.marker,
+        node_color = automatic,
+        node_size = automatic,
+        node_marker = automatic,
+        node_strokewidth = automatic,
         node_attr = (;),
         # edge attributes (LineSegements)
         edge_color = lineseg_theme.color,
@@ -156,6 +172,11 @@ Waypoints along edges:
         nlabels_offset = nothing,
         nlabels_fontsize = labels_theme.fontsize,
         nlabels_attr = (;),
+        # inner node labels
+        ilabels = nothing,
+        ilabels_color = labels_theme.color,
+        ilabels_fontsize = labels_theme.fontsize,
+        ilabels_attr = (;),
         # edge label attributes (Text)
         elabels = nothing,
         elabels_align = (:center, :center),
@@ -188,7 +209,15 @@ function Makie.plot!(gp::GraphPlot)
 
     # create initial vertex positions, will be updated on changes to graph or layout
     # make node_position-Observable available as named attribute from the outside
-    gp[:node_pos] = @lift [Pointf(p) for p in ($(gp.layout))($graph)]
+    gp[:node_pos] = @lift if $(gp.layout) isa AbstractVector
+        if length($(gp.layout)) != nv($graph)
+            throw(ArgumentError("The length of the layout vector does not match the number of nodes in the graph!"))
+        else
+            Pointf.($(gp.layout))
+        end
+    else
+        [Pointf(p) for p in ($(gp.layout))($graph)]
+    end
 
     sc = Makie.parent_scene(gp)
 
@@ -207,10 +236,53 @@ function Makie.plot!(gp::GraphPlot)
 
     node_pos = gp[:node_pos]
 
+    # plot inside labels
+    scatter_theme = default_theme(sc, Scatter)
+
+    if gp[:ilabels][] !== nothing
+        positions = node_pos
+        
+        ilabels_plot = text!(gp, positions;
+            text=@lift(string.($(gp.ilabels))),
+            align=(:center, :center),
+            color=gp.ilabels_color,
+            fontsize=gp.ilabels_fontsize,
+            gp.ilabels_attr...)
+
+        translate!(ilabels_plot, 0, 0, 1)
+        
+        node_size = lift(ilabels_plot.plots[1][1], gp.ilabels_fontsize) do glyphcollections, ilabels_fontsize
+            map(glyphcollections) do gc
+                rect = Rect2f(boundingbox(gc, Quaternion((1,0,0,0))))
+                norm(rect.widths) + 0.1 * ilabels_fontsize
+            end
+        end
+    else
+        node_size = @lift $(gp.node_size) === automatic ? scatter_theme.markersize[] : gp.node_size[]
+    end
+
+    node_color = @lift if $(gp.node_color) === automatic
+        gp.ilabels[] !== nothing ? :gray80 : scatter_theme.color[]
+    else
+        $(gp.node_color)
+    end
+    
+    node_marker = @lift if $(gp.node_marker) === automatic
+        gp.ilabels[] !== nothing ? Circle : scatter_theme.marker[]
+    else
+        $(gp.node_marker)
+    end
+
+    node_strokewidth = @lift if $(gp.node_strokewidth) === automatic
+        gp.ilabels[] !== nothing ? 1.0 : scatter_theme.strokewidth[]
+    else
+        $(gp.node_strokewidth)
+    end
+
     # create array of pathes triggered by node_pos changes
     # in case of a graph change the node_position will change anyway
     gp[:edge_paths] = lift(node_pos, gp.selfedge_size,
-                      gp.selfedge_direction, gp.selfedge_width) do pos, s, d, w
+                      gp.selfedge_direction, gp.selfedge_width, gp.curve_distance_usage, gp.curve_distance) do pos, s, d, w, cdu, cd
         find_edge_paths(graph[], gp.attributes, pos)
     end
     edge_paths = gp[:edge_paths]
@@ -222,8 +294,8 @@ function Makie.plot!(gp::GraphPlot)
                           gp.edge_attr...)
 
     # plot arrow heads
-    arrow_shift = lift(edge_paths, to_px, gp.arrow_shift, gp.node_size, gp.arrow_size) do paths, tpx, shift, nsize, asize
-        update_arrow_shift(graph[], gp, paths, tpx)
+    arrow_shift = lift(edge_paths, to_px, gp.arrow_shift, node_marker, node_size, gp.arrow_size) do paths, tpx, shift, nmarker, nsize, asize
+        update_arrow_shift(graph[], gp, paths, tpx, node_marker, node_size)
     end
     arrow_pos = @lift if !isempty(edge_paths[])
         broadcast(interpolate, edge_paths[], $arrow_shift)
@@ -247,13 +319,14 @@ function Makie.plot!(gp::GraphPlot)
                            visible = arrow_show,
                            gp.arrow_attr...)
 
-    nodesize = prep_attributes(gp.node_size, @lift(vertices($graph)), dfth.node_size)
+    nodesize = prep_attributes(node_size, @lift(vertices($graph)), dfth.node_size)
 
     # plot vertices
     vertex_plot = scatter!(gp, node_pos;
-                           color=gp.node_color,
-                           marker=gp.node_marker,
+                           color=node_color,
+                           marker=node_marker,
                            markersize=nodesize,
+                           strokewidth=node_strokewidth,
                            gp.node_attr...)
 
     # plot node labels
@@ -675,7 +748,7 @@ end
 Checks `arrow_shift` attr so that `arrow_shift = :end` gets transformed so that the arrowhead for that edge
 lands on the surface of the destination node.
 """
-function update_arrow_shift(g, gp, edge_paths::Vector{<:AbstractPath{PT}}, to_px) where {PT}
+function update_arrow_shift(g, gp, edge_paths::Vector{<:AbstractPath{PT}}, to_px, node_markers, node_sizes) where {PT}
     arrow_shift = Vector{Float32}(undef, ne(g))
 
     for (i,e) in enumerate(edges(g))
@@ -683,8 +756,8 @@ function update_arrow_shift(g, gp, edge_paths::Vector{<:AbstractPath{PT}}, to_px
         if t === :end
             j = dst(e)
             p0 = getattr(gp.node_pos, j)
-            node_marker = getattr(gp.node_marker, j)
-            node_size = getattr(gp.node_size, j)
+            node_marker = getattr(node_markers, j)
+            node_size = getattr(node_sizes, j)
             arrow_marker = getattr(gp.arrow_marker, i)
             arrow_size = getattr(gp.arrow_size, i)
             d = distance_between_markers(node_marker, node_size, arrow_marker, arrow_size)
