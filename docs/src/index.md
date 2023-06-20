@@ -19,6 +19,13 @@ There are also [plot examples](generated/plots.md) and [interaction examples](ge
 graphplot
 ```
 
+## Passing arguments
+The recipe can handle a range of argument types.
+For all the arguments that support a collection of configurations per element, you pass-in a `Vector`.
+However you can also pass in a `Dict` or a `DefaultDict` to only specify a configuration for a specific element of interest, while the rest get the default value.
+The `keys` of the `Dict`ionaries are the `Int` index of the element or the `Edge` when reasonable.
+See some demonstration on [Changes of node and label sizes](@ref), [Dict and DefaultDict](@ref) and [Use Dict{Edge} for edge arguments](@ref).
+
 ## Network Layouts
 The layout algorithms are provided by [`NetworkLayout.jl`](https://github.com/JuliaGraphs/NetworkLayout.jl). See
 the [docs](https://juliagraphs.org/NetworkLayout.jl/stable/) for a list of available layouts.

@@ -204,6 +204,8 @@ end
 
 function Makie.plot!(gp::GraphPlot)
     graph = gp[:graph]
+    
+    dfth = default_theme(gp.parent, GraphPlot)
 
     # create initial vertex positions, will be updated on changes to graph or layout
     # make node_position-Observable available as named attribute from the outside
@@ -249,29 +251,29 @@ function Makie.plot!(gp::GraphPlot)
 
         translate!(ilabels_plot, 0, 0, 1)
         
-        node_size = lift(ilabels_plot.plots[1][1], gp.ilabels_fontsize) do glyphcollections, ilabels_fontsize
+        node_size_m = lift(ilabels_plot.plots[1][1], gp.ilabels_fontsize) do glyphcollections, ilabels_fontsize
             map(glyphcollections) do gc
                 rect = Rect2f(boundingbox(gc, Quaternion((1,0,0,0))))
                 norm(rect.widths) + 0.1 * ilabels_fontsize
             end
         end
     else
-        node_size = @lift $(gp.node_size) === automatic ? scatter_theme.markersize[] : gp.node_size[]
+        node_size_m = @lift $(gp.node_size) === automatic ? scatter_theme.markersize[] : $(gp.node_size)
     end
 
-    node_color = @lift if $(gp.node_color) === automatic
+    node_color_m = @lift if $(gp.node_color) === automatic
         gp.ilabels[] !== nothing ? :gray80 : scatter_theme.color[]
     else
         $(gp.node_color)
     end
     
-    node_marker = @lift if $(gp.node_marker) === automatic
+    node_marker_m = @lift if $(gp.node_marker) === automatic
         gp.ilabels[] !== nothing ? Circle : scatter_theme.marker[]
     else
         $(gp.node_marker)
     end
 
-    node_strokewidth = @lift if $(gp.node_strokewidth) === automatic
+    node_strokewidth_m = @lift if $(gp.node_strokewidth) === automatic
         gp.ilabels[] !== nothing ? 1.0 : scatter_theme.strokewidth[]
     else
         $(gp.node_strokewidth)
@@ -287,42 +289,43 @@ function Makie.plot!(gp::GraphPlot)
 
     # plot edges
     edge_plot = edgeplot!(gp, edge_paths;
-                          color=gp.edge_color,
-                          linewidth=gp.edge_width,
-                          gp.edge_attr...)
+        color=prep_edge_attributes(gp.edge_color, graph, dfth.edge_color),
+        linewidth=prep_edge_attributes(gp.edge_width, graph, dfth.edge_width),
+        gp.edge_attr...)
 
     # plot arrow heads
-    arrow_shift = lift(edge_paths, to_px, gp.arrow_shift, node_marker, node_size, gp.arrow_size) do paths, tpx, shift, nmarker, nsize, asize
-        update_arrow_shift(graph[], gp, paths, tpx, node_marker, node_size)
+    arrow_shift_m = lift(edge_paths, to_px, gp.arrow_shift, node_marker_m, node_size_m, gp.arrow_size) do paths, tpx, shift, nmarker, nsize, asize
+        update_arrow_shift(graph[], gp, paths, tpx, node_marker_m, node_size_m, shift)
     end
     arrow_pos = @lift if !isempty(edge_paths[])
-        broadcast(interpolate, edge_paths[], $arrow_shift)
+        broadcast(interpolate, edge_paths[], $arrow_shift_m)
     else # if no edges return (empty) vector of points, broadcast yields Vector{Any} which can't be plotted
         Vector{eltype(node_pos[])}()
     end
     arrow_rot = @lift if !isempty(edge_paths[])
-        Billboard(broadcast($to_angle, edge_paths[], $arrow_pos, arrow_shift[]))
+        Billboard(broadcast($to_angle, edge_paths[], $arrow_pos, $(arrow_shift_m)))
     else
         Billboard(Float32[])
     end
-    arrow_show = @lift $(gp.arrow_show) === automatic ? Graphs.is_directed($graph) : $(gp.arrow_show)
+    arrow_show_m = @lift $(gp.arrow_show) === automatic ? Graphs.is_directed($graph) : $(gp.arrow_show)
     arrow_heads = scatter!(gp,
-                           arrow_pos;
-                           marker = gp.arrow_marker,
-                           markersize = gp.arrow_size,
-                           color = gp.edge_color,
-                           rotations = arrow_rot,
-                           strokewidth = 0.0,
-                           markerspace = :pixel,
-                           visible = arrow_show,
-                           gp.arrow_attr...)
+        arrow_pos;
+        marker = prep_edge_attributes(gp.arrow_marker, graph, dfth.arrow_marker),
+        markersize = prep_edge_attributes(gp.arrow_size, graph, dfth.arrow_size),
+        color=prep_edge_attributes(gp.edge_color, graph, dfth.edge_color),
+        rotations = arrow_rot,
+        strokewidth = 0.0,
+        markerspace = :pixel,
+        visible = arrow_show_m,
+        gp.arrow_attr...)
+
     # plot vertices
     vertex_plot = scatter!(gp, node_pos;
-                           color=node_color,
-                           marker=node_marker,
-                           markersize=node_size,
-                           strokewidth=node_strokewidth,
-                           gp.node_attr...)
+        color=prep_vertex_attributes(node_color_m, graph, scatter_theme.color),
+        marker=prep_vertex_attributes(node_marker_m, graph, scatter_theme.marker),
+        markersize=prep_vertex_attributes(node_size_m, graph, scatter_theme.markersize),
+        strokewidth=prep_vertex_attributes(node_strokewidth_m, graph, scatter_theme.strokewidth),
+        gp.node_attr...)
 
     # plot node labels
     if gp.nlabels[] !== nothing
@@ -341,12 +344,12 @@ function Makie.plot!(gp::GraphPlot)
         end
 
         nlabels_plot = text!(gp, positions;
-                             text=gp.nlabels,
-                             align=gp.nlabels_align,
-                             color=gp.nlabels_color,
-                             offset=offset,
-                             fontsize=gp.nlabels_fontsize,
-                             gp.nlabels_attr...)
+            text=prep_vertex_attributes(gp.nlabels, graph, Observable("")),
+            align=prep_vertex_attributes(gp.nlabels_align, graph, dfth.nlabels_align),
+            color=prep_vertex_attributes(gp.nlabels_color, graph, dfth.nlabels_color),
+            offset=offset,
+            fontsize=prep_vertex_attributes(gp.nlabels_fontsize, graph, dfth.nlabels_fontsize),
+            gp.nlabels_attr...)
     end
 
     # plot edge labels
@@ -389,15 +392,14 @@ function Makie.plot!(gp::GraphPlot)
             offsets = map(p -> Point(-p.data[2], p.data[1])/norm(p), tangent_px)
             offsets .= elabels_distance_offset(graph[], gp.attributes) .* offsets
         end
-
         elabels_plot = text!(gp, positions;
-                             text=gp.elabels,
-                             rotation=rotation,
-                             offset=offsets,
-                             align=gp.elabels_align,
-                             color=gp.elabels_color,
-                             fontsize=gp.elabels_fontsize,
-                             gp.elabels_attr...)
+            text=prep_edge_attributes(gp.elabels, graph, Observable("")),
+            rotation=rotation,
+            offset=offsets,
+            align=prep_edge_attributes(gp.elabels_align, graph, dfth.elabels_align),
+            color=prep_edge_attributes(gp.elabels_color, graph, dfth.elabels_color),
+            fontsize=prep_edge_attributes(gp.elabels_fontsize, graph, dfth.elabels_fontsize),
+            gp.elabels_attr...)
     end
 
     return gp
@@ -742,11 +744,11 @@ end
 Checks `arrow_shift` attr so that `arrow_shift = :end` gets transformed so that the arrowhead for that edge
 lands on the surface of the destination node.
 """
-function update_arrow_shift(g, gp, edge_paths::Vector{<:AbstractPath{PT}}, to_px, node_markers, node_sizes) where {PT}
+function update_arrow_shift(g, gp, edge_paths::Vector{<:AbstractPath{PT}}, to_px, node_markers, node_sizes, shift) where {PT}
     arrow_shift = Vector{Float32}(undef, ne(g))
 
     for (i,e) in enumerate(edges(g))
-        t = getattr(gp.arrow_shift, i, 0.5)
+        t = getattr(shift, i, 0.5)
         if t === :end
             j = dst(e)
             p0 = getattr(gp.node_pos, j)
@@ -771,11 +773,11 @@ function update_arrow_shift(g, gp, edge_paths::Vector{<:AbstractPath{PT}}, to_px
     
     return arrow_shift
 end
-function update_arrow_shift(g, gp, edge_paths::Vector{<:AbstractPath{<:Point3}}, to_px)
+function update_arrow_shift(g, gp, edge_paths::Vector{<:AbstractPath{<:Point3}}, to_px, shift)
     arrow_shift = Vector{Float32}(undef, ne(g))
 
     for (i,e) in enumerate(edges(g))
-        t = getattr(gp.arrow_shift, i, 0.5)
+        t = getattr(shift, i, 0.5)
         if t === :end #not supported because to_px does not give pixels in 3D space (would need to map 3D coordinates to pixels...?)
             error("`arrow_shift = :end` not supported for 3D plots.")
         end
