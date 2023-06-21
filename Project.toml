@@ -15,11 +15,13 @@ SimpleTraits = "699a6c99-e7fa-54fc-8d76-47d257e15c1d"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 
 [compat]
+DataStructures = "0.17, 0.18"
 GeometryBasics = "0.4"
 Graphs = "1.4"
 Makie = "0.19"
 NetworkLayout = "0.4.3"
 PolynomialRoots = "1"
+SimpleTraits = "0.9"
 StaticArrays = "1.2"
 julia = "1"
 
