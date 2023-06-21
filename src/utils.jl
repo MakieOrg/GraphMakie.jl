@@ -39,21 +39,105 @@ function _get_label_plot(gp::GraphPlot, labels)
 end
 
 """
+    getedgekeys(gr::G, edgedat::D) where {G<:AbstractGraph, K<:AbstractEdge, D<:AbstractDict{K}, IsDirected{G}}
+
+Return enumeration of edges for directed graph
+"""
+@traitfn function getedgekeys(gr::G, edgedat::D) where {G<:AbstractGraph, K<:AbstractEdge, D<:AbstractDict{K}; IsDirected{G}}
+    return edges(gr)
+end
+
+"""
+    getedgekeys(gr::G, edgedat::D) where {G<:AbstractGraph, K<:AbstractEdge, D<:AbstractDict{K}, IsDirected{G}}
+
+Return enumeration of edges for undirected graph such that the user's keys are used
+
+# Extended help
+Wraps the `edges()` method such that the edges are referenced as the user defined them in the dictionary.
+"""
+@traitfn function getedgekeys(gr::G, edgedat::D) where {G<:AbstractGraph, K<:AbstractEdge, D<:AbstractDict{K}; !IsDirected{G}}
+    Iterators.map(e -> reverse(e) ∈ keys(edgedat) ? reverse(e) : e , edges(gr))
+end
+
+"""
+    getedgekeys(gr::AbstractGraph, <:AbstractDict{AbstractEdge})
+
+Return enumeration of edge indices
+"""
+getedgekeys(gr::AbstractGraph, _) = 1:ne(gr)
+
+"""
     getattr(o::Observable, idx, default=nothing)
 
 If observable wraps an AbstractVector or AbstractDict return
 the value at idx. If dict has no key idx returns default.
 Else return the one and only element.
 """
-function getattr(o::Observable, idx, default=nothing)
-    if o[] isa AbstractVector && !isa(o[], Point)
-        return o[][idx]
-    elseif o[] isa AbstractDict
-        return get(o[], idx, default)
+getattr(o::Observable, idx, default=nothing) = getattr(o[], idx, default)
+
+"""
+    getattr(x, idx, default=nothing)
+
+If `x` wraps an AbstractVector or AbstractDict return
+the value at idx. If dict has no key idx return default.
+Else return the one and only element.
+"""
+function getattr(x, idx, default=nothing)
+    if x isa AbstractVector && !isa(x, Point)
+        return x[idx]
+    elseif x isa DefaultDict || x isa DefaultOrderedDict
+        return getindex(x, idx)
+    elseif x isa AbstractDict
+        return get(x, idx, default)
     else
-        return o[] === nothing ? default : o[]
+        return x === nothing ? default : x
     end
 end
+
+"""
+    prep_vertex_attributes(oattr::Observable, ograph::Observable{<:AbstractGraph}, odefault::Observable)
+
+Prepare the vertex attributes to be forwarded to the internal recipes.
+If the attribute is a `Vector` or single value forward it as is (or the `odefault` value if isnothing).
+If it is an `AbstractDict` expand it to a `Vector` using `indices`.
+"""
+function prep_vertex_attributes(oattr::Observable, ograph::Observable{<:AbstractGraph}, odefault::Observable=Observable(nothing))
+    @lift begin
+        if issingleattribute($oattr)
+            isnothing($oattr) ? $odefault : $oattr
+        elseif $oattr isa AbstractVector
+            $oattr
+        else
+            [getattr($oattr, i, $odefault) for i in vertices($ograph)]
+        end
+    end
+end
+
+"""
+    prep_edge_attributes(oattr::Observable, ograph::Observable{<:AbstractGraph}, odefault::Observable)
+
+Prepare the edge attributes to be forwarded to the internal recipes.
+If the attribute is a `Vector` or single value forward it as is (or the `odefault` value if isnothing).
+If it is an `AbstractDict` expand it to a `Vector` using `indices`.
+"""
+function prep_edge_attributes(oattr::Observable, ograph::Observable{<:AbstractGraph}, odefault::Observable=Observable(nothing))
+    @lift begin
+        if issingleattribute($oattr)
+            isnothing($oattr) ? $odefault : $oattr
+        elseif $oattr isa AbstractVector
+            $oattr
+        else
+            [getattr($oattr, i, $odefault) for i in getedgekeys($ograph, $oattr)]
+        end
+    end
+end
+
+"""
+    issingleattribute(x)
+
+Return `true` if `x` represents a single attribute value
+"""
+issingleattribute(x) = isa(x, Point) || (!isa(x, AbstractVector) && !isa(x, AbstractDict))
 
 """
     Pointf(p::Point{N, T})

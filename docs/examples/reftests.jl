@@ -6,6 +6,8 @@ testing. They might be interesting but they are most probably not.
 =#
 # ## Test different `nlabels_align` modes
 using Graphs, GraphMakie, CairoMakie, NetworkLayout
+import DataStructures: DefaultDict
+
 CairoMakie.activate!(type="png") # hide
 set_theme!(resolution=(400, 400)) #hide
 g = SimpleGraph(9)
@@ -194,4 +196,95 @@ p[:ilabels_fontsize][] = 10
 @save_reference fig
 
 p[:node_color][] = :red
+@save_reference fig
+
+# ## Changes of node and label sizes
+gc = circular_ladder_graph(5);
+ons = Observable(30);
+onf = Observable(30);
+fig,ax,p = graphplot(gc; nlabels=repr.(vertices(gc)), node_size=ons, nlabels_fontsize=onf)
+@save_reference fig
+
+# Change node size
+ons[] = 10; # check changes
+@save_reference fig
+
+# Change label font size
+onf[] = 10; # check changes
+@save_reference fig
+
+
+# Do the same with a `Dict`
+onf = Observable(Dict(1=>30, 10=>30));
+ons = Observable(Dict(1=>30, 10=>30));
+fig,ax,p = graphplot(gc; nlabels=repr.(vertices(gc)), node_size=ons, nlabels_fontsize=onf)
+@save_reference fig
+
+# Change label font size
+onf[] = Dict(7=>30); # check changes
+@save_reference fig
+
+# Change node size
+ ons[] = Dict(7=>30); # check changes
+@save_reference fig
+
+# Do the same with a `DefaultDict`
+ons = Observable(DefaultDict(70, 1=>30, 10=>30));
+onf = Observable(DefaultDict(70, 1=>30, 10=>30));
+fig,ax,p = graphplot(gc; nlabels=repr.(vertices(gc)), node_size=ons, nlabels_fontsize=onf)
+@save_reference fig
+
+# Change node size
+ons[] = DefaultDict(20, 10=>70); # check changes
+@save_reference fig
+
+# Change label font size
+onf[] = DefaultDict(20, 10=>70); # check changes
+@save_reference fig
+
+# ## Dict and DefaultDict
+# Test out argument functionality with `Dict` and `DefaultDict`
+# First with a normal `Dict`
+gc = circular_ladder_graph(5);
+fig,ax,p = graphplot(gc, nlabels=Dict(1=>"One", 2 => "Two"))
+@save_reference fig
+
+# And also with a `DefaultDict`
+fig,ax,p = graphplot(gc, nlabels=DefaultDict("Unknown", 1=>"One", 2 => "Two"))
+@save_reference fig
+
+# ## Use Dict{Edge} for edge arguments
+fig,ax,p = graphplot(gc, edge_color=Dict(Edge(7,8)=>:blue))
+@save_reference fig
+
+# try out also the DefaultDict
+fig,ax,p = graphplot(gc, edge_color=DefaultDict(:green, Edge(7,8)=>:blue))
+@save_reference fig
+
+# Of course you can still use integers labeling
+ind = findfirst(==(Edge(7,8)) , collect(edges(gc)))
+fig,ax,p = graphplot(gc, edge_color=DefaultDict(:green, ind=>:blue))
+@save_reference fig
+
+# The same can be done with all enumerations of edge arguments
+fig,ax,p = graphplot(gc, elabels=DefaultDict("Unknown", Edge(1,2)=>"1-2", Edge(7,8) => "7-8"))
+@save_reference fig
+
+# directed and undirected graphs are handled appropriately.
+# For example for directed graphs
+gcd = SimpleDiGraph(gc)
+fig,ax,p = graphplot(gcd, elabels=DefaultDict("Unknown", Edge(8,7)=>"8-7", Edge(2,7) => "2-7"), nlabels=repr.(vertices(gcd)))
+@save_reference fig
+
+# and non-directed graphs
+fig,ax,p = graphplot(gc, elabels=DefaultDict("Unknown", Edge(8,7)=>"8-7", Edge(2,7) => "2-7"), nlabels=repr.(vertices(gc)))
+@save_reference fig
+
+# Test edge-specific updates
+ec = Observable(Dict(Edge(8,7)=>:blue))
+fig,ax,p = graphplot(gc, edge_color=ec, nlabels=repr.(vertices(gc)))
+@save_reference fig
+
+# update `Observable`
+ec[] = Dict(Edge(7,2)=> :green)
 @save_reference fig
