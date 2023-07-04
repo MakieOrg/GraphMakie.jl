@@ -7,9 +7,9 @@ Bucheim Layout from [`NetworkLayout.jl`](https://github.com/JuliaGraphs/NetworkL
 using CairoMakie
 using Graphs
 using GraphMakie
-using MLJ
+import MLJ
 using NetworkLayout
-
+using DecisionTree
 #=
 This following code, which walks the tree and creates a `SimpleDiGraph` was taken and slightly
 modified from [`syntaxtree.jl`](https://github.com/MakieOrg/GraphMakie.jl/blob/master/docs/examples/syntaxtree.jl). Thanks!
@@ -152,7 +152,9 @@ end
 Now finally we are ready to fit & visualize the tree
 =#
 	
-features, labels = load_data("iris")
+iris = MLJ.load_iris()
+features = hcat(iris[1],iris[2],iris[3],iris[4])
+labels = iris[5]
 model = DecisionTreeClassifier(max_depth=4)
 fit!(model, features, labels)
 graphplot(model)
