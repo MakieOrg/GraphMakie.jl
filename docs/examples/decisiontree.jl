@@ -9,6 +9,7 @@ using Graphs
 using GraphMakie
 using MLJ
 using NetworkLayout
+using DecisionTree
 
 #=
 This following code, which walks the tree and creates a `SimpleDiGraph` was taken and slightly
