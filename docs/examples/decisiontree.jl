@@ -1,23 +1,21 @@
-#=
-# Visual representation of a decision tree
 
-In this example we are going to plot a decision tree of type [`DecisionTree.jl`](https://github.com/JuliaAI/DecisionTree.jl) using the
-Bucheim Layout from [`NetworkLayout.jl`](https://github.com/JuliaGraphs/NetworkLayout.jl).
-=#
+# # Visual representation of a decision tree
+
+# In this example we are going to plot a decision tree of type [`DecisionTree.jl`](https://github.com/JuliaAI/DecisionTree.jl) using the
+# Bucheim Layout from [`NetworkLayout.jl`](https://github.com/JuliaGraphs/NetworkLayout.jl).
+
 using CairoMakie
 using Graphs
 using GraphMakie
 import MLJ
 using NetworkLayout
 using DecisionTree
-#=
-This following code, which walks the tree and creates a `SimpleDiGraph` was taken and slightly
-modified from [`syntaxtree.jl`](https://github.com/MakieOrg/GraphMakie.jl/blob/master/docs/examples/syntaxtree.jl). Thanks!
 
-The model is a DecisionTree object. 
-maxdepth defines the max Depth of the final tree generated.
-=#	
-begin
+# This following code, which walks the tree and creates a `SimpleDiGraph` was taken and slightly modified from [`syntaxtree.jl`](https://github.com/MakieOrg/GraphMakie.jl/blob/master/docs/examples/syntaxtree.jl). Thanks!
+
+# The model is a DecisionTree object. 
+# maxdepth defines the max Depth of the final tree generated.
+	
 		
 	import Base.convert
 	function Base.convert(::Type{SimpleDiGraph},model::DecisionTree.DecisionTreeClassifier; maxdepth=depth(model))
@@ -66,16 +64,11 @@ begin
 	    push!(properties,(Leaf,"$(leaf.majority)"))# : $(ratio)"))
 	    return vertices(g)[end]
 	end
-end
 
-#= 
-Ooof, quite a bit of code!
+# Ooof, quite a bit of code!
 
-## Makie @recipe
-
-Now let's define a MakieRecipe for the plot, to make plotting easy
-=# 
-begin
+# ## Makie @recipe
+# Now let's define a MakieRecipe for the plot, to make plotting easy
 
 	@recipe(PlotDecisionTree) do scene
 		Attributes(
@@ -87,7 +80,6 @@ begin
 		)
 	end
 
-	#function Makie.plot!(dt::PlotDecisionTree{<:DecisionTreeClassifier})
 	import GraphMakie.graphplot
 	import Makie.plot!	
 	function GraphMakie.graphplot(model::DecisionTreeClassifier;kwargs...)
@@ -102,24 +94,24 @@ begin
 		@extract plt leafcolor,textcolor,nodecolormap,nodecolor,maxdepth
 		model = plt[1]
 
-		# convert to graph
+		## convert to graph
 		tmpObs = @lift convert(SimpleDiGraph,$model;maxdepth=$maxdepth)
 		graph = @lift $tmpObs[1]
 		properties = @lift $tmpObs[2]
 
-		# extract labels
+		## extract labels
 		labels = @lift [string(p[2]) for p in $properties]
 
 		
 
-		# set the colors, first for nodes & cutoff-nodes, then for leaves
+		## set the colors, first for nodes & cutoff-nodes, then for leaves
 		nlabels_color = map(properties, labels, leafcolor,textcolor,nodecolormap) do properties,labels,leafcolor,textcolor,nodecolormap
 		
-		# set colors for the individual elements
+		## set colors for the individual elements
 		leaf_ix = findall([p[1] == Leaf for p in properties])
 		leafValues = [p[1] for p in split.(labels[leaf_ix]," : ")]
 	
-		# one color per category
+		## one color per category
 		uniqueLeafValues = unique(leafValues)
 		individual_leaf_colors = resample_cmap(nodecolormap,length(uniqueLeafValues))
 		nlabels_color = Any[p[1] == Node ? textcolor : leafcolor for p in properties]
@@ -130,33 +122,29 @@ begin
 		return nlabels_color
 	end
 	
-	# plot :)
+	## plot :)
 	graphplot!(plt,graph;layout=Buchheim(),
                        nlabels=labels,
 						node_size = 100,
 						node_color=nodecolor,
 						nlabels_color=nlabels_color,
                        nlabels_align=(:center,:center),
-                       #tangents=((0,-1),(0,-1))
+                       ##tangents=((0,-1),(0,-1))
 	)
 		return plt
 	end
 
 	
-end
-
-
-
-#=
-## Visualizing a DecisionTree
-Now finally we are ready to fit & visualize the tree
-=#
+# ## Visualizing a DecisionTree
+# Now finally we are ready to fit & visualize the tree
 	
 iris = MLJ.load_iris()
 features = hcat(iris[1],iris[2],iris[3],iris[4])
 labels = iris[5]
 model = DecisionTreeClassifier(max_depth=4)
 fit!(model, features, labels)
+
+# now we are ready to plot
 graphplot(model)
 
 # you can also specify depth, or modify colors
