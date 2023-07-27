@@ -165,7 +165,7 @@ hidespines!(ax); hidedecorations!(ax); p[:node_pos][]=to_pos(u0); ax.aspect = Da
 limits!(ax, -0.1, pos0[end][1]+0.3, pos0[end][2]-0.5, 1.15)
 
 ## draw colorbar
-fig[3,1] = cb = Colorbar(fig, p.plots[1], label = "Axial force", vertical=false)
+fig[3,1] = cb = Colorbar(fig, p.plots[1].plots[1], label = "Axial force", vertical=false)
 
 T = tspan[2]
 fps = 30
