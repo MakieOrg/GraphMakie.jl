@@ -261,4 +261,12 @@ end
     )
 end
 
+@testset "pan in scene after removal of plot" begin
+    g = wheel_graph(10)
+    fig, ax, p = graphplot(g)
+    delete!(ax, p)
+    rem_edge!(g, 1, 2)
+    ax.scene.camera.projectionview[] = ax.scene.camera.projectionview.val # Simlulate panning the screen
+end
+
 include("referencetests.jl")
