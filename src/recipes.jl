@@ -251,11 +251,16 @@ function Makie.plot!(gp::GraphPlot)
             gp.ilabels_attr...)
 
         translate!(ilabels_plot, 0, 0, 1)
-        
-        node_size_m = lift(ilabels_plot.plots[1][1], gp.ilabels_fontsize) do glyphcollections, ilabels_fontsize
-            map(glyphcollections) do gc
-                rect = Rect2f(boundingbox(gc, Quaternion((1,0,0,0))))
-                norm(rect.widths) + 0.1 * ilabels_fontsize
+
+        node_size_m = lift(ilabels_plot.plots[1][1], gp.ilabels_fontsize, gp.node_size) do glyphcollections, ilabels_fontsize, node_size
+            map(enumerate(glyphcollections)) do (i, gc)
+                _ns = getattr(node_size, i)
+                if _ns == automatic
+                    rect = Rect2f(boundingbox(gc, Quaternion((1,0,0,0))))
+                    norm(rect.widths) + 0.1 * ilabels_fontsize
+                else
+                    _ns
+                end
             end
         end
     else
