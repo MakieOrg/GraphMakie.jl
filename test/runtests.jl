@@ -248,7 +248,7 @@ end
 
 @testset "separate linestyle per edge" begin
     p = Point2f[(0,0), (0, 1), (0,0), (1,0)]
-    @test_broken linesegments(p; linestyle = [:dot, :dash])
+    @test_broken display(linesegments(p; linestyle = [:dot, :dash]))
 
     @test_throws ArgumentError graphplot(
         DiGraph([Edge(1 => 2), Edge(2 => 1)]),

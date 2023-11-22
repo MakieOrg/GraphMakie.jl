@@ -29,7 +29,7 @@ macro save_reference(fig)
     end
     quote
         path = joinpath(TMPDIR, $f*"-"*lpad($postfix, 2, "0")*".png")
-        save(path, $(esc(fig)))
+        save(path, $(esc(fig)), px_per_unit=1)
         println("   saved fig $path")
     end
 end

@@ -6,7 +6,7 @@ Bucheim Layout from [`NetworkLayout.jl`](https://github.com/JuliaGraphs/NetworkL
 =#
 using CairoMakie
 CairoMakie.activate!(type="png") #hide
-set_theme!(resolution=(800, 600)) #hide
+set_theme!(size=(800, 600)) #hide
 using Graphs
 using GraphMakie
 using NetworkLayout

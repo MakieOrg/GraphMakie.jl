@@ -222,7 +222,7 @@ function Makie.plot!(gp::GraphPlot)
     sc = Makie.parent_scene(gp)
 
     # function which projects the point in px space
-    to_px = lift(gp, sc.px_area, sc.camera.projectionview) do pxa, pv
+    to_px = lift(gp, sc.viewport, sc.camera.projectionview) do pxa, pv
         # project should transform to 2d point in px space
         (point) -> project(sc, point)
     end

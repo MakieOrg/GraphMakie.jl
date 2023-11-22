@@ -6,7 +6,7 @@ is as simple as
 =#
 using CairoMakie
 CairoMakie.activate!(type="png") # hide
-set_theme!(resolution=(800, 400)) #hide
+set_theme!(size=(800, 400)) #hide
 using GraphMakie
 using Graphs
 
@@ -254,7 +254,7 @@ using natural cubic spline interpolation. If the supply a radius the waypoints w
 instead they will be connected with straight lines which bend in the given radius around the
 waypoints.
 =#
-set_theme!(resolution=(800, 800)) #hide
+set_theme!(size=(800, 800)) #hide
 g = SimpleGraph(8); add_edge!(g, 1, 2); add_edge!(g, 3, 4); add_edge!(g, 5, 6); add_edge!(g, 7, 8)
 
 waypoints = Dict(1 => [(.25,  0.25), (.75, -0.25)],
@@ -304,7 +304,7 @@ f, ax, p = graphplot(g,
 If the layout returns points in 3 dimensions, the plot will be in 3D. However this is a bit
 experimental. Feel free to file an issue if there are any problems.
 =#
-set_theme!(resolution=(800, 800)) #hide
+set_theme!(size=(800, 800)) #hide
 g = smallgraph(:cubical)
 elabels_shift = [0.5 for i in 1:ne(g)]
 elabels_shift[[2,7,8,9]] .= 0.3
@@ -329,6 +329,6 @@ Page(exportable=true, offline=true) #md
 #
 using WGLMakie #md
 WGLMakie.activate!() #md
-set_theme!(resolution=(800, 600)) #md
+set_theme!(size=(800, 600)) #md
 g = smallgraph(:dodecahedral) #md
 graphplot(g, layout=Spring(dim=3)) #md

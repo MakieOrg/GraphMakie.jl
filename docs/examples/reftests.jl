@@ -9,7 +9,7 @@ using Graphs, GraphMakie, CairoMakie, NetworkLayout
 import DataStructures: DefaultDict
 
 CairoMakie.activate!(type="png") # hide
-set_theme!(resolution=(400, 400)) #hide
+set_theme!(size=(400, 400)) #hide
 g = SimpleGraph(9)
 nlabels_align = [(:right, :bottom),
                  (:center, :bottom),

@@ -139,7 +139,7 @@ nothing #hide
 ## Plot the solution
 =#
 
-fig = Figure(resolution=(1000,550))
+fig = Figure(size=(1000,550))
 fig[1,1] = title = Label(fig, "Stress on truss", fontsize=30)
 title.tellwidth = false
 
