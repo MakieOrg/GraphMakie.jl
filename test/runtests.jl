@@ -269,4 +269,22 @@ end
     ax.scene.camera.projectionview[] = ax.scene.camera.projectionview.val # Simlulate panning the screen
 end
 
+@testset "get correct axis type for arguments" begin
+    g = smallgraph(:petersen)
+    _, ax, _ = graphplot(g)
+    @test ax isa Axis
+    _, ax, _ = graphplot(g; layout=Stress(dim=3))
+    @test ax isa LScene
+    _, ax, _ = graphplot(g; layout=Stress(dim=2))
+    @test ax isa Axis
+    _, ax, _ = graphplot(g; layout=rand(Point2, nv(g)))
+    @test ax isa Axis
+    _, ax, _ = graphplot(g; layout=rand(Point3, nv(g)))
+    @test ax isa LScene
+    _, ax, _ = graphplot(g; layout=_->rand(Point2, nv(g)))
+    @test ax isa Axis
+    _, ax, _ = graphplot(g; layout=_->rand(Point3, nv(g)))
+    @test ax isa LScene
+end
+
 include("referencetests.jl")

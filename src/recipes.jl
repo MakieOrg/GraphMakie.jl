@@ -1,4 +1,5 @@
 using LinearAlgebra: normalize, ⋅, norm
+using NetworkLayout: AbstractLayout, dim
 export GraphPlot, graphplot, graphplot!, Arrow
 
 const Arrow = Makie.Polygon(Point2f.([(-0.5,-0.5),(0.5,0),(-0.5,0.5),(-0.25,0)]))
@@ -773,6 +774,7 @@ function update_arrow_shift(g, gp, edge_paths::Vector{<:AbstractPath{PT}}, to_px
     
     return arrow_shift
 end
+
 function update_arrow_shift(g, gp, edge_paths::Vector{<:AbstractPath{<:Point3}}, to_px, shift)
     arrow_shift = Vector{Float32}(undef, ne(g))
 
@@ -786,3 +788,17 @@ function update_arrow_shift(g, gp, edge_paths::Vector{<:AbstractPath{<:Point3}},
 
     return arrow_shift
 end
+
+function Makie.preferred_axis_type(plot::Plot{GraphMakie.graphplot})
+    if haskey(plot.kw, :layout)
+        layout = plot.kw[:layout]
+        dim = _dimensionality(layout, plot[1][])
+        dim == 3 && return LScene
+        dim == 2 && return Axis
+    end
+    Axis
+end
+
+_dimensionality(layout::AbstractLayout, _) = dim(layout)
+_dimensionality(layout::AbstractArray, _) = length(first(layout))
+_dimensionality(layout, g) = length(first(layout(g)))
