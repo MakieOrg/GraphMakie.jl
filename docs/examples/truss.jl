@@ -37,7 +37,7 @@ end
 
 edge = StaticEdge(f = edge_f!, dim=2, coupling=:antisymmetric)
 vertex_free = ODEVertex(f = vertex_free!, dim=4, sym=[:x, :y, :v, :w])
-vertex_fix  = ODEVertex(f = vertex_fixed!, dim=2, sym=[:x, :y, :v, :w])
+vertex_fix  = ODEVertex(f = vertex_fixed!, dim=2, sym=[:x, :y])
 nothing #hide
 
 #=

@@ -124,7 +124,7 @@ graphplot(fig[1,2],
 
 graphplot(fig[2,1],
           DiGraph([Edge(1 => 2), Edge(2 => 3), Edge(3=>4), Edge(4=>1)]),
-          edge_attr = (; linestyle = [0.5, 1.0, 1.5, 2.5]),
+          edge_attr = (; linestyle = Linestyle([0.5, 1.0, 1.5, 2.5])),
           edge_plottype = :beziersegments,
           )
 @save_reference fig
