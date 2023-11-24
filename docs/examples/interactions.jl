@@ -11,7 +11,7 @@ because we want to change them later in the interactions for individual nodes/ed
 =#
 using CairoMakie
 CairoMakie.activate!(type="png") # hide
-set_theme!(resolution=(800, 400)) #hide
+set_theme!(size=(800, 400)) #hide
 using GraphMakie
 using Graphs
 using CairoMakie.Colors

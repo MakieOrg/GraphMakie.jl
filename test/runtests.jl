@@ -248,7 +248,7 @@ end
 
 @testset "separate linestyle per edge" begin
     p = Point2f[(0,0), (0, 1), (0,0), (1,0)]
-    @test_broken linesegments(p; linestyle = [:dot, :dash])
+    @test_broken display(linesegments(p; linestyle = [:dot, :dash]))
 
     @test_throws ArgumentError graphplot(
         DiGraph([Edge(1 => 2), Edge(2 => 1)]),
@@ -267,6 +267,24 @@ end
     delete!(ax, p)
     rem_edge!(g, 1, 2)
     ax.scene.camera.projectionview[] = ax.scene.camera.projectionview.val # Simlulate panning the screen
+end
+
+@testset "get correct axis type for arguments" begin
+    g = smallgraph(:petersen)
+    _, ax, _ = graphplot(g)
+    @test ax isa Axis
+    _, ax, _ = graphplot(g; layout=Stress(dim=3))
+    @test ax isa LScene
+    _, ax, _ = graphplot(g; layout=Stress(dim=2))
+    @test ax isa Axis
+    _, ax, _ = graphplot(g; layout=rand(Point2, nv(g)))
+    @test ax isa Axis
+    _, ax, _ = graphplot(g; layout=rand(Point3, nv(g)))
+    @test ax isa LScene
+    _, ax, _ = graphplot(g; layout=_->rand(Point2, nv(g)))
+    @test ax isa Axis
+    _, ax, _ = graphplot(g; layout=_->rand(Point3, nv(g)))
+    @test ax isa LScene
 end
 
 include("referencetests.jl")

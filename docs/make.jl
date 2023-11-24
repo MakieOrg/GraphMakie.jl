@@ -27,7 +27,8 @@ makedocs(; modules=[GraphMakie], authors="Simon Danisch, Hans Würfel",
          repo="https://github.com/MakieOrg/GraphMakie.jl/blob/{commit}{path}#{line}",
          sitename="GraphMakie.jl",
          format=Documenter.HTML(; prettyurls=get(ENV, "CI", "false") == "true",
-                                canonical="https://graph.makie.org", assets=String[]),
+                                canonical="https://graph.makie.org", assets=String[],
+                                size_threshold_ignore=["generated/plots.md"]),
          pages=["Home" => "index.md",
                 "Examples" => [
                     "Feature Walkthrough" => "generated/plots.md",
@@ -40,18 +41,7 @@ makedocs(; modules=[GraphMakie], authors="Simon Danisch, Hans Würfel",
                 ],
                 "🔗 Layouts (`NetworkLayout.jl`)" => "networklayout_forward.md",
                 ],
-         strict=[:autodocs_block,
-                 :cross_references,
-                 :docs_block,
-                 :doctest,
-                 :eval_block,
-                 :example_block,
-                 :footnote,
-                 :linkcheck,
-                 :meta_block,
-                 #:missing_docs,
-                 :parse_error,
-                 :setup_block])
+         warnonly=[:missing_docs])
 
 # if gh_pages branch gets to big, check out
 # https://juliadocs.github.io/Documenter.jl/stable/man/hosting/#gh-pages-Branch
