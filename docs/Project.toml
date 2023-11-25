@@ -18,6 +18,7 @@ RegistryInstances = "2792f1a3-b283-48e8-9a74-f99dce5104f3"
 WGLMakie = "276b4fcb-3e11-5398-bf8b-a0c2d153d008"
 
 [compat]
+DecisionTree = "0.12"
 Documenter = "1"
 LayeredLayouts = "0.2"
 NetworkDynamics = "0.8"
