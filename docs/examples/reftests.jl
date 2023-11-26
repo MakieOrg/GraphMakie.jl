@@ -189,6 +189,7 @@ fig, ax, p = graphplot(cycle_digraph(3), ilabels=[1, L"\sum_{i=1}^n \alpha^i", "
 
 # Update observables
 p[:ilabels][][1] = "1111"
+p.node_size[] = DefaultDict(Makie.automatic, Dict{Int, Any}(2=>100))
 notify(p[:ilabels])
 @save_reference fig
 

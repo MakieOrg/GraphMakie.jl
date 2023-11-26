@@ -4,7 +4,6 @@ using GraphMakie.Graphs
 using GraphMakie.NetworkLayout
 using Makie.Colors
 using StaticArrays
-# using GLMakie
 using Test
 
 include("beziercurves_test.jl")
