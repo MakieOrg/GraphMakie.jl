@@ -10,7 +10,7 @@ export NodeDrag, EdgeDrag
 """
     convert_selection(element, idx)
 
-`mouse_selection` returns the basic plot type. In case of `Lines` check if it is
+`pick` returns the basic plot type. In case of `Lines` check if it is
 part of a `BezierSegments` and convert selection accordingly. In case of `LineSegments`
 check if it is part of a `EdgePlot` and convert idx.
 """
@@ -72,7 +72,7 @@ set_edgeplot!(h::HoverHandler{EdgePlot}, plot) = h.plot = plot
 
 function process_interaction(handler::HoverHandler, event::MouseEvent, axis)
     if event.type === MouseEventTypes.over
-        (element, idx) = convert_selection(mouse_selection(axis.scene)...)
+        (element, idx) = convert_selection(pick(axis.scene)...)
         if element == handler.plot
             if handler.idx === nothing
                 handler.idx = idx
@@ -227,7 +227,7 @@ function process_interaction(handler::DragHandler, event::MouseEvent, axis)
     if handler.dragstate == false # not in drag state
         if event.type === MouseEventTypes.leftdown
             # on leftdown save idx if happens to be on right element/plot
-            (element, idx) = convert_selection(mouse_selection(axis.scene)...)
+            (element, idx) = convert_selection(pick(axis.scene)...)
             handler.idx = element === handler.plot ? idx : 0
         elseif event.type === MouseEventTypes.leftdragstart && handler.idx != 0
             # if idx!=0 the last leftdown was on right element!
@@ -370,7 +370,7 @@ set_edgeplot!(h::ClickHandler{EdgePlot}, plot) = h.plot = plot
 
 function process_interaction(handler::ClickHandler, event::MouseEvent, axis)
     if event.type === MouseEventTypes.leftclick
-        (element, idx) = convert_selection(mouse_selection(axis.scene)...)
+        (element, idx) = convert_selection(pick(axis.scene)...)
         if element == handler.plot
             ret = handler.fun(idx, event, axis)
             return ret isa Bool ? ret : false
