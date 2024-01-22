@@ -89,7 +89,7 @@ Method: Calculates the square distance between `pt` and path `p` and minimizes (
     let a = p0 - pt, b = p - p0
     t = -(a[1]*b[1] + a[2]*b[2]) / (b[1]^2 + b[2]^2)
 """
-function inverse_interpolate(p::BezierPath{<:Point2}, pt)
+function inverse_interpolate(p::BezierPath{<:Point2}, pt::Point2)
     p0 = p.commands[end-1].p
     c = p.commands[end]
     N = length(p.commands) - 1
@@ -103,7 +103,7 @@ function inverse_interpolate(p::BezierPath{<:Point2}, pt)
     return t
 end
 
-function inverse_interpolate(l::Line{PT}, pt) where PT
+function inverse_interpolate(l::Line{PT}, pt::PT) where PT
     a = l.p0 - pt
     b = l.p - l.p0
     t = -(a[1]*b[1] + a[2]*b[2]) / (b[1]^2 + b[2]^2)
