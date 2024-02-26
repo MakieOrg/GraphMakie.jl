@@ -285,31 +285,25 @@ function Makie.plot!(gp::GraphPlot)
         $(gp.node_strokewidth)
     end
 
+    # compute initial edge paths; will be adjusted later if arrow_shift = :end
     # create array of pathes triggered by node_pos changes
     # in case of a graph change the node_position will change anyway
-    gp[:edge_paths] = lift(node_pos, gp.selfedge_size,
+    init_edge_paths = lift(node_pos, gp.selfedge_size,
                       gp.selfedge_direction, gp.selfedge_width, gp.curve_distance_usage, gp.curve_distance) do pos, s, d, w, cdu, cd
         find_edge_paths(graph[], gp.attributes, pos)
     end
-    edge_paths = gp[:edge_paths]
-
-    # plot edges
-    edge_plot = edgeplot!(gp, edge_paths;
-        color=prep_edge_attributes(gp.edge_color, graph, dfth.edge_color),
-        linewidth=prep_edge_attributes(gp.edge_width, graph, dfth.edge_width),
-        gp.edge_attr...)
 
     # plot arrow heads
-    arrow_shift_m = lift(edge_paths, to_px, gp.arrow_shift, node_marker_m, node_size_m, gp.arrow_size) do paths, tpx, shift, nmarker, nsize, asize
+    arrow_shift_m = lift(init_edge_paths, to_px, gp.arrow_shift, node_marker_m, node_size_m, gp.arrow_size) do paths, tpx, shift, nmarker, nsize, asize
         update_arrow_shift(graph[], gp, paths, tpx, node_marker_m, node_size_m, shift)
     end
-    arrow_pos = @lift if !isempty(edge_paths[])
-        broadcast(interpolate, edge_paths[], $arrow_shift_m)
+    arrow_pos = @lift if !isempty(init_edge_paths[])
+        broadcast(interpolate, init_edge_paths[], $arrow_shift_m)
     else # if no edges return (empty) vector of points, broadcast yields Vector{Any} which can't be plotted
         Vector{eltype(node_pos[])}()
     end
-    arrow_rot = @lift if !isempty(edge_paths[])
-        Billboard(broadcast($to_angle, edge_paths[], $arrow_pos, $(arrow_shift_m)))
+    arrow_rot = @lift if !isempty(init_edge_paths[])
+        Billboard(broadcast($to_angle, init_edge_paths[], $arrow_pos, $(arrow_shift_m)))
     else
         Billboard(Float32[])
     end
@@ -324,6 +318,22 @@ function Makie.plot!(gp::GraphPlot)
         markerspace = :pixel,
         visible = arrow_show_m,
         gp.arrow_attr...)
+
+
+    # update edge paths to line up with arrow heads if arrow_shift = :end
+    edge_paths = gp[:edge_paths] = @lift map($init_edge_paths, $arrow_pos, eachindex($arrow_pos)) do ep, ap, i
+        if getattr($(gp.arrow_shift), i) == :end
+            adjust_endpoint(ep, ap)
+        else
+            ep
+        end
+    end
+
+    # actually plot edges
+    edge_plot = edgeplot!(gp, edge_paths;
+        color=prep_edge_attributes(gp.edge_color, graph, dfth.edge_color),
+        linewidth=prep_edge_attributes(gp.edge_width, graph, dfth.edge_width),
+        gp.edge_attr...)
 
     # plot vertices
     vertex_plot = scatter!(gp, node_pos;
@@ -477,7 +487,7 @@ function find_edge_paths(g, attr, pos::AbstractVector{PT}) where {PT}
 
         if !isnothing(waypoints) && !isempty(waypoints) #there are waypoints
             radius = getattr(attr.waypoint_radius, i, nothing)
-            if radius === nothing || radius === :spline 
+            if radius === nothing || radius === :spline
                 paths[i] = Path(p1, waypoints..., p2; tangents, tfactor)
             elseif radius isa Real
                 paths[i] = Path(radius, p1, waypoints..., p2)
@@ -751,6 +761,36 @@ Checks `arrow_shift` attr so that `arrow_shift = :end` gets transformed so that 
 lands on the surface of the destination node.
 """
 function update_arrow_shift(g, gp, edge_paths::Vector{<:AbstractPath{PT}}, to_px, node_markers, node_sizes, shift) where {PT}
+    arrow_shift = Vector{Float32}(undef, ne(g))
+
+    for (i,e) in enumerate(edges(g))
+        t = getattr(shift, i, 0.5)
+        if t === :end
+            j = dst(e)
+            p0 = getattr(gp.node_pos, j)
+            node_marker = getattr(node_markers, j)
+            node_size = getattr(node_sizes, j)
+            arrow_marker = getattr(gp.arrow_marker, i)
+            arrow_size = getattr(gp.arrow_size, i)
+            d = distance_between_markers(node_marker, node_size, arrow_marker, arrow_size)
+            p1 = point_near_dst(edge_paths[i], p0, d, to_px)
+            t = inverse_interpolate(edge_paths[i], p1)
+            if isnan(t)
+                @warn """
+                    Shifting arrowheads to destination nodes failed.
+                    This can happen when the markers are inadequately scaled (e.g., when zooming out too far).
+                    Arrow shift has been reset to 0.5.
+                """
+                t = 0.5
+            end
+        end
+        arrow_shift[i] = t
+    end
+
+    return arrow_shift
+end
+
+function update_paths_ends(g, gp, edge_paths::Vector{<:AbstractPath{PT}}, arrow_pos) where {PT}
     arrow_shift = Vector{Float32}(undef, ne(g))
 
     for (i,e) in enumerate(edges(g))
