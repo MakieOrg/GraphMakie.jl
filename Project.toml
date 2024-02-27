@@ -15,17 +15,25 @@ SimpleTraits = "699a6c99-e7fa-54fc-8d76-47d257e15c1d"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 
 [compat]
+Aqua = "0.8"
+CairoMakie = "0.11"
 DataStructures = "0.17, 0.18"
+FileIO = "1"
 GeometryBasics = "0.4"
 Graphs = "1.4"
+LinearAlgebra="1"
+Literate = "2"
 Makie = "0.20"
 NetworkLayout = "0.4.3"
 PolynomialRoots = "1"
+ReferenceTests = "0.10"
 SimpleTraits = "0.9"
 StaticArrays = "1.2"
+Test = "1"
 julia = "1"
 
 [extras]
+Aqua = "4c88cf16-eb10-579e-8560-4a9242c79595"
 CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
 FileIO = "5789e2e9-d7fb-5bc7-8068-2c6fae9b9549"
 Literate = "98b081ad-f1c9-55d3-8b20-4c87d4299306"
@@ -33,4 +41,4 @@ ReferenceTests = "324d217c-45ce-50fc-942e-d289b448e8cf"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["CairoMakie", "FileIO", "Literate", "ReferenceTests", "Test"]
+test = ["Aqua", "CairoMakie", "FileIO", "Literate", "ReferenceTests", "Test"]

@@ -6,6 +6,8 @@ using Makie.Colors
 using StaticArrays
 using Test
 
+include("Aqua.jl")
+
 include("beziercurves_test.jl")
 
 @testset "GraphMakie.jl" begin

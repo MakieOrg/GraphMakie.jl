@@ -753,30 +753,42 @@ lands on the surface of the destination node.
 function update_arrow_shift(g, gp, edge_paths::Vector{<:AbstractPath{PT}}, to_px, node_markers, node_sizes, shift) where {PT}
     arrow_shift = Vector{Float32}(undef, ne(g))
 
+    warn_nan = false
+    warn_3d = false
     for (i,e) in enumerate(edges(g))
         t = getattr(shift, i, 0.5)
         if t === :end
-            j = dst(e)
-            p0 = getattr(gp.node_pos, j)
-            node_marker = getattr(node_markers, j)
-            node_size = getattr(node_sizes, j)
-            arrow_marker = getattr(gp.arrow_marker, i)
-            arrow_size = getattr(gp.arrow_size, i)
-            d = distance_between_markers(node_marker, node_size, arrow_marker, arrow_size)
-            p1 = point_near_dst(edge_paths[i], p0, d, to_px)
-            t = inverse_interpolate(edge_paths[i], p1)
-            if isnan(t)
-                @warn """
-                    Shifting arrowheads to destination nodes failed.
-                    This can happen when the markers are inadequately scaled (e.g., when zooming out too far).
-                    Arrow shift has been reset to 0.5.
-                """
+            if PT <: Point2
+                j = dst(e)
+                p0 = getattr(gp.node_pos, j)
+                node_marker = getattr(node_markers, j)
+                node_size = getattr(node_sizes, j)
+                arrow_marker = getattr(gp.arrow_marker, i)
+                arrow_size = getattr(gp.arrow_size, i)
+                d = distance_between_markers(node_marker, node_size, arrow_marker, arrow_size)
+                p1 = point_near_dst(edge_paths[i], p0, d, to_px)
+                t = inverse_interpolate(edge_paths[i], p1)
+                if isnan(t)
+                    warn_nan = true
+                    t = 0.5
+                end
+            else
+                warn_3d = true
                 t = 0.5
             end
         end
         arrow_shift[i] = t
     end
-    
+    if warn_nan
+        @warn """
+        Shifting arrowheads to destination nodes failed.
+        This can happen when the markers are inadequately scaled (e.g., when zooming out too far).
+        Arrow shift has been reset to 0.5.
+        """
+    end
+    if warn_3d
+        @warn "`arrow_shift=:end` not implemented for 3d plot!"
+    end
     return arrow_shift
 end
 
