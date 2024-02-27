@@ -308,7 +308,8 @@ function Makie.plot!(gp::GraphPlot)
         Billboard(Float32[])
     end
     arrow_show_m = @lift $(gp.arrow_show) === automatic ? Graphs.is_directed($graph) : $(gp.arrow_show)
-    arrow_heads = scatter!(gp,
+
+    arrow_plot = gp[:arrow_plot] = scatter!(gp,
         arrow_pos;
         marker = prep_edge_attributes(gp.arrow_marker, graph, dfth.arrow_marker),
         markersize = prep_edge_attributes(gp.arrow_size, graph, dfth.arrow_size),
@@ -330,13 +331,13 @@ function Makie.plot!(gp::GraphPlot)
     end
 
     # actually plot edges
-    edge_plot = edgeplot!(gp, edge_paths;
+    edge_plot = gp[:edge_plot] = edgeplot!(gp, edge_paths;
         color=prep_edge_attributes(gp.edge_color, graph, dfth.edge_color),
         linewidth=prep_edge_attributes(gp.edge_width, graph, dfth.edge_width),
         gp.edge_attr...)
 
     # plot vertices
-    vertex_plot = scatter!(gp, node_pos;
+    vertex_plot = gp[:node_plot] = scatter!(gp, node_pos;
         color=prep_vertex_attributes(node_color_m, graph, scatter_theme.color),
         marker=prep_vertex_attributes(node_marker_m, graph, scatter_theme.marker),
         markersize=prep_vertex_attributes(node_size_m, graph, scatter_theme.markersize),
@@ -359,7 +360,7 @@ function Makie.plot!(gp::GraphPlot)
             $(gp.nlabels_distance) .* align_to_dir($(gp.nlabels_align))
         end
 
-        nlabels_plot = text!(gp, positions;
+        nlabels_plot = gp[:nlabels_plot] = text!(gp, positions;
             text=prep_vertex_attributes(gp.nlabels, graph, Observable("")),
             align=prep_vertex_attributes(gp.nlabels_align, graph, dfth.nlabels_align),
             color=prep_vertex_attributes(gp.nlabels_color, graph, dfth.nlabels_color),
@@ -408,7 +409,7 @@ function Makie.plot!(gp::GraphPlot)
             offsets = map(p -> Point(-p.data[2], p.data[1])/norm(p), tangent_px)
             offsets .= elabels_distance_offset(graph[], gp.attributes) .* offsets
         end
-        elabels_plot = text!(gp, positions;
+        elabels_plot = gp[:elabels_plot] = text!(gp, positions;
             text=prep_edge_attributes(gp.elabels, graph, Observable("")),
             rotation=rotation,
             offset=offsets,
@@ -787,36 +788,6 @@ function update_arrow_shift(g, gp, edge_paths::Vector{<:AbstractPath{PT}}, to_px
         arrow_shift[i] = t
     end
 
-    return arrow_shift
-end
-
-function update_paths_ends(g, gp, edge_paths::Vector{<:AbstractPath{PT}}, arrow_pos) where {PT}
-    arrow_shift = Vector{Float32}(undef, ne(g))
-
-    for (i,e) in enumerate(edges(g))
-        t = getattr(shift, i, 0.5)
-        if t === :end
-            j = dst(e)
-            p0 = getattr(gp.node_pos, j)
-            node_marker = getattr(node_markers, j)
-            node_size = getattr(node_sizes, j)
-            arrow_marker = getattr(gp.arrow_marker, i)
-            arrow_size = getattr(gp.arrow_size, i)
-            d = distance_between_markers(node_marker, node_size, arrow_marker, arrow_size)
-            p1 = point_near_dst(edge_paths[i], p0, d, to_px)
-            t = inverse_interpolate(edge_paths[i], p1)
-            if isnan(t)
-                @warn """
-                    Shifting arrowheads to destination nodes failed.
-                    This can happen when the markers are inadequately scaled (e.g., when zooming out too far).
-                    Arrow shift has been reset to 0.5.
-                """
-                t = 0.5
-            end
-        end
-        arrow_shift[i] = t
-    end
-    
     return arrow_shift
 end
 

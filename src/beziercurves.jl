@@ -43,11 +43,14 @@ ptype(::Union{AbstractPath{PT}, Type{<:AbstractPath{PT}}}) where {PT} = PT
 straighten(l::Line) = l
 straighten(p::BezierPath) = Line(interpolate(p,0.0), interpolate(p,1.0))
 
-adjust_endpoint(line::Line, p) = Line(line.p0, p)
+adjust_endpoint(l::Line, p) = Line(l.p0, p)
+adjust_endpoint(::MoveTo, p) = MoveTo(p)
+adjust_endpoint(::LineTo, p) = LineTo(p)
+adjust_endpoint(c::CurveTo, p) = CurveTo(c.c1, c.c2, p)
+
 function adjust_endpoint(path::BezierPath, p)
     commands = copy(path.commands)
-    c = commands[end]
-    commands[end] = CurveTo(c.c1, c.c2, p)
+    commands[end] = adjust_endpoint(commands[end], p)
     BezierPath(commands)
 end
 

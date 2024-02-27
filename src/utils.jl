@@ -1,42 +1,18 @@
 export get_edge_plot, get_arrow_plot, get_node_plot, get_nlabel_plot, get_elabel_plot
 
 "Get the `EdgePlot` subplot from a `GraphPlot`."
-function get_edge_plot(gp::GraphPlot)
-    p = gp.plots[1]
-    @assert p isa EdgePlot
-    return p
-end
+get_edge_plot(gp::GraphPlot) = gp.edge_plot[]
 
 "Get the scatter plot of the arrow heads from a `GraphPlot`."
-function get_arrow_plot(gp::GraphPlot)
-    p = gp.plots[2]
-    @assert p isa Scatter
-    return p
-end
+get_arrow_plot(gp::GraphPlot) = gp.arrow_plot[]
 
 "Get the scatter plot of the nodes from a `GraphPlot`."
-function get_node_plot(gp::GraphPlot)
-    p = gp.plots[3]
-    @assert p isa Scatter
-    @assert p[1][] == gp[:node_pos][]
-    return p
-end
+get_node_plot(gp::GraphPlot) = gp.node_plot[]
 
 "Get the text plot of the node labels from a `GraphPlot`."
-get_nlabel_plot(gp::GraphPlot) = _get_label_plot(gp, gp.nlabels[])
+get_nlabel_plot(gp::GraphPlot) = hasproperty(gp, :nlabels_plot) ? gp.nlabels_plot[] : nothing
 "Get the text plot of the edge labels from a `GraphPlot`."
-get_elabel_plot(gp::GraphPlot) = _get_label_plot(gp, gp.elabels[])
-
-function _get_label_plot(gp::GraphPlot, labels)
-    ps = filter(p -> p isa Makie.Text && p[:text][] == labels, gp.plots)
-    if isempty(ps)
-        return nothing
-    elseif length(ps) == 1
-        return ps[1]
-    else
-        error("Could not determine plot $ps")
-    end
-end
+get_elabel_plot(gp::GraphPlot) = hasproperty(gp, :elabels_plot) ? gp.elabels_plot[] : nothing
 
 """
     getedgekeys(gr::G, edgedat::D) where {G<:AbstractGraph, K<:AbstractEdge, D<:AbstractDict{K}, IsDirected{G}}
