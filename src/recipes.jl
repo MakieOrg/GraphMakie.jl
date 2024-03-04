@@ -332,6 +332,7 @@ function Makie.plot!(gp::GraphPlot)
 
     # actually plot edges
     edge_plot = gp[:edge_plot] = edgeplot!(gp, edge_paths;
+        plottype=gp[:edge_plottype][],
         color=prep_edge_attributes(gp.edge_color, graph, dfth.edge_color),
         linewidth=prep_edge_attributes(gp.edge_width, graph, dfth.edge_width),
         gp.edge_attr...)
@@ -642,13 +643,16 @@ draw using bezier segments.
 All attributes are passed down to the actual recipe.
 """
 @recipe(EdgePlot, paths) do scene
-    Attributes()
+    Attributes(plottype=automatic)
 end
 
 function Makie.plot!(p::EdgePlot)
     N = length(p[:paths][])
 
-    if eltype(p[:paths][]) <: Line
+    plottype = pop!(p.attributes, :plottype)[]
+    alllines = eltype(p[:paths][]) <: Line
+
+    if alllines && plottype != :beziersegments
         PT = ptype(eltype(p[:paths][]))
         segs = Observable(Vector{PT}(undef, 2*N))
 
@@ -658,8 +662,10 @@ function Makie.plot!(p::EdgePlot)
         end
 
         linesegments!(p, segs; p.attributes...)
-    else
+    elseif plottype != :linesegments
         beziersegments!(p, p[:paths]; p.attributes...)
+    else
+        error("Impossible combination of plottype=$plottype and alllines=$alllines.")
     end
 
     return p
