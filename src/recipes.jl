@@ -307,19 +307,6 @@ function Makie.plot!(gp::GraphPlot)
     else
         Billboard(Float32[])
     end
-    arrow_show_m = @lift $(gp.arrow_show) === automatic ? Graphs.is_directed($graph) : $(gp.arrow_show)
-
-    arrow_plot = gp[:arrow_plot] = scatter!(gp,
-        arrow_pos;
-        marker = prep_edge_attributes(gp.arrow_marker, graph, dfth.arrow_marker),
-        markersize = prep_edge_attributes(gp.arrow_size, graph, dfth.arrow_size),
-        color=prep_edge_attributes(gp.edge_color, graph, dfth.edge_color),
-        rotations = arrow_rot,
-        strokewidth = 0.0,
-        markerspace = :pixel,
-        visible = arrow_show_m,
-        gp.arrow_attr...)
-
 
     # update edge paths to line up with arrow heads if arrow_shift = :end
     edge_paths = gp[:edge_paths] = @lift map($init_edge_paths, $arrow_pos, eachindex($arrow_pos)) do ep, ap, i
@@ -336,6 +323,20 @@ function Makie.plot!(gp::GraphPlot)
         color=prep_edge_attributes(gp.edge_color, graph, dfth.edge_color),
         linewidth=prep_edge_attributes(gp.edge_width, graph, dfth.edge_width),
         gp.edge_attr...)
+
+    # arrow plots
+    arrow_show_m = @lift $(gp.arrow_show) === automatic ? Graphs.is_directed($graph) : $(gp.arrow_show)
+    arrow_plot = gp[:arrow_plot] = scatter!(gp,
+        arrow_pos;
+        marker = prep_edge_attributes(gp.arrow_marker, graph, dfth.arrow_marker),
+        markersize = prep_edge_attributes(gp.arrow_size, graph, dfth.arrow_size),
+        color=prep_edge_attributes(gp.edge_color, graph, dfth.edge_color),
+        rotations = arrow_rot,
+        strokewidth = 0.0,
+        markerspace = :pixel,
+        visible = arrow_show_m,
+        gp.arrow_attr...)
+
 
     # plot vertices
     vertex_plot = gp[:node_plot] = scatter!(gp, node_pos;
