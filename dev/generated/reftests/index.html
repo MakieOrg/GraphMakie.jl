@@ -46,9 +46,11 @@ fig</code></pre><img src="0a1f658f.png" alt="Example block output"/><h2 id="Chan
 elabels = repr.(edges(g))
 nlabels = repr.(1:nv(g))
 fig, ax, p = graphplot(g; elabels, nlabels, elabels_fontsize=10)
-fig</code></pre><img src="3f6eb672.png" alt="Example block output"/><pre><code class="language-julia hljs">limits!(ax, ax.finallimits[]) # freeze the limits
+hidedecorations!(ax)
+fig</code></pre><img src="97b67012.png" alt="Example block output"/><pre><code class="language-julia hljs">limits!(ax, ax.finallimits[]) # freeze the limits
 p[:node_pos][] = Point2f.([(1., -.5), (-1.,0.), (-1.,-1.)])
-fig</code></pre><img src="8daab195.png" alt="Example block output"/><h2 id="Change-of-the-underlying-graph"><a class="docs-heading-anchor" href="#Change-of-the-underlying-graph">Change of the underlying graph</a><a id="Change-of-the-underlying-graph-1"></a><a class="docs-heading-anchor-permalink" href="#Change-of-the-underlying-graph" title="Permalink"></a></h2><pre><code class="language-julia hljs">gn = Observable(SimpleDiGraph(3))
+hidedecorations!(ax)
+fig</code></pre><img src="03659691.png" alt="Example block output"/><h2 id="Change-of-the-underlying-graph"><a class="docs-heading-anchor" href="#Change-of-the-underlying-graph">Change of the underlying graph</a><a id="Change-of-the-underlying-graph-1"></a><a class="docs-heading-anchor-permalink" href="#Change-of-the-underlying-graph" title="Permalink"></a></h2><pre><code class="language-julia hljs">gn = Observable(SimpleDiGraph(3))
 fig, ax, p = graphplot(gn)
 hidedecorations!(ax)
 fig
@@ -77,26 +79,32 @@ graphplot(fig[1,1],
           edge_attr = (; linestyle = [:dot, :dash]),
           edge_plottype = :beziersegments,
           )
+hidedecorations!(current_axis())
 
 graphplot(fig[1,2],
           DiGraph([Edge(1 =&gt; 2), Edge(2 =&gt; 1)]),
           edge_attr = (; linestyle = [:dot, :dash]),
           edge_plottype = :beziersegments,
           )
+hidedecorations!(current_axis())
 
 graphplot(fig[2,1],
           DiGraph([Edge(1 =&gt; 2), Edge(2 =&gt; 3), Edge(3=&gt;4), Edge(4=&gt;1)]),
           edge_attr = (; linestyle = Linestyle([0.5, 1.0, 1.5, 2.5])),
           edge_plottype = :beziersegments,
           )
-fig</code></pre><img src="c1d4ab8b.png" alt="Example block output"/><h2 id="Self-loop-with-waypoints"><a class="docs-heading-anchor" href="#Self-loop-with-waypoints">Self loop with waypoints</a><a id="Self-loop-with-waypoints-1"></a><a class="docs-heading-anchor-permalink" href="#Self-loop-with-waypoints" title="Permalink"></a></h2><pre><code class="language-julia hljs">g1 = SimpleDiGraph(1)
+hidedecorations!(current_axis())
+fig</code></pre><img src="59130dfa.png" alt="Example block output"/><h2 id="Self-loop-with-waypoints"><a class="docs-heading-anchor" href="#Self-loop-with-waypoints">Self loop with waypoints</a><a id="Self-loop-with-waypoints-1"></a><a class="docs-heading-anchor-permalink" href="#Self-loop-with-waypoints" title="Permalink"></a></h2><pre><code class="language-julia hljs">g1 = SimpleDiGraph(1)
 add_edge!(g1, 1, 1) #add self loop
 fig, ax, p = graphplot(g1, layout = [(0,0)], waypoints = [[(1,-1),(1,1),(-1,1),(-1,-1)]])
-fig</code></pre><img src="e96173b6.png" alt="Example block output"/><h2 id="Shift-arrows-to-nodes"><a class="docs-heading-anchor" href="#Shift-arrows-to-nodes">Shift arrows to nodes</a><a id="Shift-arrows-to-nodes-1"></a><a class="docs-heading-anchor-permalink" href="#Shift-arrows-to-nodes" title="Permalink"></a></h2><pre><code class="language-julia hljs">fig, ax, p=graphplot(SimpleDiGraph(ones(2,2)),node_size=50,arrow_size=20,curve_distance=0.5,arrow_shift=:end)
-fig</code></pre><img src="10e06f96.png" alt="Example block output"/><h3 id="update-shifts"><a class="docs-heading-anchor" href="#update-shifts">update shifts</a><a id="update-shifts-1"></a><a class="docs-heading-anchor-permalink" href="#update-shifts" title="Permalink"></a></h3><pre><code class="language-julia hljs">g = SimpleDiGraph(3)
+hidedecorations!(ax)
+fig</code></pre><img src="9c068e5a.png" alt="Example block output"/><h2 id="Shift-arrows-to-nodes"><a class="docs-heading-anchor" href="#Shift-arrows-to-nodes">Shift arrows to nodes</a><a id="Shift-arrows-to-nodes-1"></a><a class="docs-heading-anchor-permalink" href="#Shift-arrows-to-nodes" title="Permalink"></a></h2><pre><code class="language-julia hljs">fig, ax, p=graphplot(SimpleDiGraph(ones(2,2)),node_size=50,arrow_size=20,curve_distance=0.5,arrow_shift=:end)
+hidedecorations!(ax)
+fig</code></pre><img src="4540c690.png" alt="Example block output"/><h3 id="update-shifts"><a class="docs-heading-anchor" href="#update-shifts">update shifts</a><a id="update-shifts-1"></a><a class="docs-heading-anchor-permalink" href="#update-shifts" title="Permalink"></a></h3><pre><code class="language-julia hljs">g = SimpleDiGraph(3)
 add_edge!(g, 1, 1); add_edge!(g, 1, 2); add_edge!(g, 2, 1); add_edge!(g, 2, 3); add_edge!(g, 3, 1);</code></pre><p>test update of  node and arrow size, and node position</p><pre><code class="language-julia hljs">fig, ax, p = graphplot(g; arrow_shift=:end,
                        node_size=[20 for _ in 1:nv(g)],
                        arrow_size=[20 for _ in 1:ne(g)])
+hidedecorations!(ax)
 fig
 
 p.node_size[][1] = 40
@@ -109,7 +117,7 @@ fig
 
 p.node_pos[][1] = (0,0)
 notify(p.node_pos)
-fig</code></pre><img src="29a6d092.png" alt="Example block output"/><p>test large nodes</p><pre><code class="language-julia hljs">using GraphMakie: SquareGrid
+fig</code></pre><img src="269b9927.png" alt="Example block output"/><p>test large nodes</p><pre><code class="language-julia hljs">using GraphMakie: SquareGrid
 g = SimpleDiGraph(8)
 add_edge!(g, 1, 2)
 add_edge!(g, 3, 4)
@@ -122,9 +130,12 @@ fig, ax, p = graphplot(g; arrow_shift=:end, layout=SquareGrid(cols=2),
                        arrow_attr=(color=:blue,),
                        edge_color=:red)
 xlims!(-.5,1.5); ylims!(-3.5,.5)
-fig</code></pre><img src="b158e0f5.png" alt="Example block output"/><h2 id="Inner-node-labels"><a class="docs-heading-anchor" href="#Inner-node-labels">Inner node labels</a><a id="Inner-node-labels-1"></a><a class="docs-heading-anchor-permalink" href="#Inner-node-labels" title="Permalink"></a></h2><pre><code class="language-julia hljs">fig, ax, p = graphplot(cycle_digraph(3), ilabels=[1, L&quot;\sum_{i=1}^n \alpha^i&quot;, &quot;a label&quot;], node_marker=Circle)
-fig</code></pre><img src="bdccab79.png" alt="Example block output"/><p>Interact with <code>arrow_shift=:end</code></p><pre><code class="language-julia hljs">fig, ax, p = graphplot(cycle_digraph(3), ilabels=[1, L&quot;\sum_{i=1}^n \alpha^i&quot;, &quot;a label&quot;], node_marker=Circle, arrow_shift=:end)
-fig</code></pre><img src="9f20c770.png" alt="Example block output"/><p>Update observables</p><pre><code class="language-julia hljs">p[:ilabels][][1] = &quot;1111&quot;
+hidedecorations!(ax)
+fig</code></pre><img src="3e9b1984.png" alt="Example block output"/><h2 id="Inner-node-labels"><a class="docs-heading-anchor" href="#Inner-node-labels">Inner node labels</a><a id="Inner-node-labels-1"></a><a class="docs-heading-anchor-permalink" href="#Inner-node-labels" title="Permalink"></a></h2><pre><code class="language-julia hljs">fig, ax, p = graphplot(cycle_digraph(3), ilabels=[1, L&quot;\sum_{i=1}^n \alpha^i&quot;, &quot;a label&quot;], node_marker=Circle)
+hidedecorations!(ax)
+fig</code></pre><img src="8d6da12c.png" alt="Example block output"/><p>Interact with <code>arrow_shift=:end</code></p><pre><code class="language-julia hljs">fig, ax, p = graphplot(cycle_digraph(3), ilabels=[1, L&quot;\sum_{i=1}^n \alpha^i&quot;, &quot;a label&quot;], node_marker=Circle, arrow_shift=:end)
+hidedecorations!(ax)
+fig</code></pre><img src="70a0d29b.png" alt="Example block output"/><p>Update observables</p><pre><code class="language-julia hljs">p[:ilabels][][1] = &quot;1111&quot;
 p.node_size[] = DefaultDict(Makie.automatic, Dict{Int, Any}(2=&gt;100))
 notify(p[:ilabels])
 fig
@@ -133,34 +144,46 @@ p[:ilabels_fontsize][] = 10
 fig
 
 p[:node_color][] = :red
-fig</code></pre><img src="94b8b3bb.png" alt="Example block output"/><h2 id="Changes-of-node-and-label-sizes"><a class="docs-heading-anchor" href="#Changes-of-node-and-label-sizes">Changes of node and label sizes</a><a id="Changes-of-node-and-label-sizes-1"></a><a class="docs-heading-anchor-permalink" href="#Changes-of-node-and-label-sizes" title="Permalink"></a></h2><pre><code class="language-julia hljs">gc = circular_ladder_graph(5);
+fig</code></pre><img src="138ea098.png" alt="Example block output"/><h2 id="Changes-of-node-and-label-sizes"><a class="docs-heading-anchor" href="#Changes-of-node-and-label-sizes">Changes of node and label sizes</a><a id="Changes-of-node-and-label-sizes-1"></a><a class="docs-heading-anchor-permalink" href="#Changes-of-node-and-label-sizes" title="Permalink"></a></h2><pre><code class="language-julia hljs">gc = circular_ladder_graph(5);
 ons = Observable(30);
 onf = Observable(30);
 fig,ax,p = graphplot(gc; nlabels=repr.(vertices(gc)), node_size=ons, nlabels_fontsize=onf)
-fig</code></pre><img src="894f3c4d.png" alt="Example block output"/><p>Change node size</p><pre><code class="language-julia hljs">ons[] = 10; # check changes
-fig</code></pre><img src="eef875e5.png" alt="Example block output"/><p>Change label font size</p><pre><code class="language-julia hljs">onf[] = 10; # check changes
-fig</code></pre><img src="6af321ff.png" alt="Example block output"/><p>Do the same with a <code>Dict</code></p><pre><code class="language-julia hljs">onf = Observable(Dict(1=&gt;30, 10=&gt;30));
+hidedecorations!(ax)
+fig</code></pre><img src="1e04bee1.png" alt="Example block output"/><p>Change node size</p><pre><code class="language-julia hljs">ons[] = 10; # check changes
+fig</code></pre><img src="f1dc9459.png" alt="Example block output"/><p>Change label font size</p><pre><code class="language-julia hljs">onf[] = 10; # check changes
+fig</code></pre><img src="5971fb93.png" alt="Example block output"/><p>Do the same with a <code>Dict</code></p><pre><code class="language-julia hljs">onf = Observable(Dict(1=&gt;30, 10=&gt;30));
 ons = Observable(Dict(1=&gt;30, 10=&gt;30));
 fig,ax,p = graphplot(gc; nlabels=repr.(vertices(gc)), node_size=ons, nlabels_fontsize=onf)
-fig</code></pre><img src="436e338f.png" alt="Example block output"/><p>Change label font size</p><pre><code class="language-julia hljs">onf[] = Dict(7=&gt;30); # check changes
-fig</code></pre><img src="504bcb0b.png" alt="Example block output"/><p>Change node size</p><pre><code class="language-julia hljs"> ons[] = Dict(7=&gt;30); # check changes
-fig</code></pre><img src="67a5f973.png" alt="Example block output"/><p>Do the same with a <code>DefaultDict</code></p><pre><code class="language-julia hljs">ons = Observable(DefaultDict(70, 1=&gt;30, 10=&gt;30));
+hidedecorations!(ax)
+fig</code></pre><img src="d70132e8.png" alt="Example block output"/><p>Change label font size</p><pre><code class="language-julia hljs">onf[] = Dict(7=&gt;30); # check changes
+fig</code></pre><img src="a8b397ea.png" alt="Example block output"/><p>Change node size</p><pre><code class="language-julia hljs"> ons[] = Dict(7=&gt;30); # check changes
+fig</code></pre><img src="8c104bca.png" alt="Example block output"/><p>Do the same with a <code>DefaultDict</code></p><pre><code class="language-julia hljs">ons = Observable(DefaultDict(70, 1=&gt;30, 10=&gt;30));
 onf = Observable(DefaultDict(70, 1=&gt;30, 10=&gt;30));
 fig,ax,p = graphplot(gc; nlabels=repr.(vertices(gc)), node_size=ons, nlabels_fontsize=onf)
-fig</code></pre><img src="96c5cac0.png" alt="Example block output"/><p>Change node size</p><pre><code class="language-julia hljs">ons[] = DefaultDict(20, 10=&gt;70); # check changes
-fig</code></pre><img src="7ff06a26.png" alt="Example block output"/><p>Change label font size</p><pre><code class="language-julia hljs">onf[] = DefaultDict(20, 10=&gt;70); # check changes
-fig</code></pre><img src="910e5815.png" alt="Example block output"/><h2 id="Dict-and-DefaultDict"><a class="docs-heading-anchor" href="#Dict-and-DefaultDict">Dict and DefaultDict</a><a id="Dict-and-DefaultDict-1"></a><a class="docs-heading-anchor-permalink" href="#Dict-and-DefaultDict" title="Permalink"></a></h2><p>Test out argument functionality with <code>Dict</code> and <code>DefaultDict</code> First with a normal <code>Dict</code></p><pre><code class="language-julia hljs">gc = circular_ladder_graph(5);
+hidedecorations!(ax)
+fig</code></pre><img src="99dbb683.png" alt="Example block output"/><p>Change node size</p><pre><code class="language-julia hljs">ons[] = DefaultDict(20, 10=&gt;70); # check changes
+fig</code></pre><img src="3a6c9879.png" alt="Example block output"/><p>Change label font size</p><pre><code class="language-julia hljs">onf[] = DefaultDict(20, 10=&gt;70); # check changes
+fig</code></pre><img src="59f11196.png" alt="Example block output"/><h2 id="Dict-and-DefaultDict"><a class="docs-heading-anchor" href="#Dict-and-DefaultDict">Dict and DefaultDict</a><a id="Dict-and-DefaultDict-1"></a><a class="docs-heading-anchor-permalink" href="#Dict-and-DefaultDict" title="Permalink"></a></h2><p>Test out argument functionality with <code>Dict</code> and <code>DefaultDict</code> First with a normal <code>Dict</code></p><pre><code class="language-julia hljs">gc = circular_ladder_graph(5);
 fig,ax,p = graphplot(gc, nlabels=Dict(1=&gt;&quot;One&quot;, 2 =&gt; &quot;Two&quot;))
-fig</code></pre><img src="e3d4175d.png" alt="Example block output"/><p>And also with a <code>DefaultDict</code></p><pre><code class="language-julia hljs">fig,ax,p = graphplot(gc, nlabels=DefaultDict(&quot;Unknown&quot;, 1=&gt;&quot;One&quot;, 2 =&gt; &quot;Two&quot;))
-fig</code></pre><img src="ae653669.png" alt="Example block output"/><h2 id="Use-Dict{Edge}-for-edge-arguments"><a class="docs-heading-anchor" href="#Use-Dict{Edge}-for-edge-arguments">Use Dict{Edge} for edge arguments</a><a id="Use-Dict{Edge}-for-edge-arguments-1"></a><a class="docs-heading-anchor-permalink" href="#Use-Dict{Edge}-for-edge-arguments" title="Permalink"></a></h2><pre><code class="language-julia hljs">fig,ax,p = graphplot(gc, edge_color=Dict(Edge(7,8)=&gt;:blue))
-fig</code></pre><img src="950a332e.png" alt="Example block output"/><p>try out also the DefaultDict</p><pre><code class="language-julia hljs">fig,ax,p = graphplot(gc, edge_color=DefaultDict(:green, Edge(7,8)=&gt;:blue))
-fig</code></pre><img src="1d08630c.png" alt="Example block output"/><p>Of course you can still use integers labeling</p><pre><code class="language-julia hljs">ind = findfirst(==(Edge(7,8)) , collect(edges(gc)))
+hidedecorations!(ax)
+fig</code></pre><img src="5d6ea421.png" alt="Example block output"/><p>And also with a <code>DefaultDict</code></p><pre><code class="language-julia hljs">fig,ax,p = graphplot(gc, nlabels=DefaultDict(&quot;Unknown&quot;, 1=&gt;&quot;One&quot;, 2 =&gt; &quot;Two&quot;))
+hidedecorations!(ax)
+fig</code></pre><img src="e6f4364b.png" alt="Example block output"/><h2 id="Use-Dict{Edge}-for-edge-arguments"><a class="docs-heading-anchor" href="#Use-Dict{Edge}-for-edge-arguments">Use Dict{Edge} for edge arguments</a><a id="Use-Dict{Edge}-for-edge-arguments-1"></a><a class="docs-heading-anchor-permalink" href="#Use-Dict{Edge}-for-edge-arguments" title="Permalink"></a></h2><pre><code class="language-julia hljs">fig,ax,p = graphplot(gc, edge_color=Dict(Edge(7,8)=&gt;:blue))
+hidedecorations!(ax)
+fig</code></pre><img src="c727bf87.png" alt="Example block output"/><p>try out also the DefaultDict</p><pre><code class="language-julia hljs">fig,ax,p = graphplot(gc, edge_color=DefaultDict(:green, Edge(7,8)=&gt;:blue))
+hidedecorations!(ax)
+fig</code></pre><img src="bd7db9c0.png" alt="Example block output"/><p>Of course you can still use integers labeling</p><pre><code class="language-julia hljs">ind = findfirst(==(Edge(7,8)) , collect(edges(gc)))
 fig,ax,p = graphplot(gc, edge_color=DefaultDict(:green, ind=&gt;:blue))
-fig</code></pre><img src="1d08630c-001.png" alt="Example block output"/><p>The same can be done with all enumerations of edge arguments</p><pre><code class="language-julia hljs">fig,ax,p = graphplot(gc, elabels=DefaultDict(&quot;Unknown&quot;, Edge(1,2)=&gt;&quot;1-2&quot;, Edge(7,8) =&gt; &quot;7-8&quot;))
-fig</code></pre><img src="18fa54ff.png" alt="Example block output"/><p>directed and undirected graphs are handled appropriately. For example for directed graphs</p><pre><code class="language-julia hljs">gcd = SimpleDiGraph(gc)
+hidedecorations!(ax)
+fig</code></pre><img src="bd7db9c0-001.png" alt="Example block output"/><p>The same can be done with all enumerations of edge arguments</p><pre><code class="language-julia hljs">fig,ax,p = graphplot(gc, elabels=DefaultDict(&quot;Unknown&quot;, Edge(1,2)=&gt;&quot;1-2&quot;, Edge(7,8) =&gt; &quot;7-8&quot;))
+hidedecorations!(ax)
+fig</code></pre><img src="41abdc4d.png" alt="Example block output"/><p>directed and undirected graphs are handled appropriately. For example for directed graphs</p><pre><code class="language-julia hljs">gcd = SimpleDiGraph(gc)
 fig,ax,p = graphplot(gcd, elabels=DefaultDict(&quot;Unknown&quot;, Edge(8,7)=&gt;&quot;8-7&quot;, Edge(2,7) =&gt; &quot;2-7&quot;), nlabels=repr.(vertices(gcd)))
-fig</code></pre><img src="17b3fea5.png" alt="Example block output"/><p>and non-directed graphs</p><pre><code class="language-julia hljs">fig,ax,p = graphplot(gc, elabels=DefaultDict(&quot;Unknown&quot;, Edge(8,7)=&gt;&quot;8-7&quot;, Edge(2,7) =&gt; &quot;2-7&quot;), nlabels=repr.(vertices(gc)))
-fig</code></pre><img src="01516f4c.png" alt="Example block output"/><p>Test edge-specific updates</p><pre><code class="language-julia hljs">ec = Observable(Dict(Edge(8,7)=&gt;:blue))
+hidedecorations!(ax)
+fig</code></pre><img src="a1e24f3d.png" alt="Example block output"/><p>and non-directed graphs</p><pre><code class="language-julia hljs">fig,ax,p = graphplot(gc, elabels=DefaultDict(&quot;Unknown&quot;, Edge(8,7)=&gt;&quot;8-7&quot;, Edge(2,7) =&gt; &quot;2-7&quot;), nlabels=repr.(vertices(gc)))
+hidedecorations!(ax)
+fig</code></pre><img src="c81b5938.png" alt="Example block output"/><p>Test edge-specific updates</p><pre><code class="language-julia hljs">ec = Observable(Dict(Edge(8,7)=&gt;:blue))
 fig,ax,p = graphplot(gc, edge_color=ec, nlabels=repr.(vertices(gc)))
-fig</code></pre><img src="371eba28.png" alt="Example block output"/><p>update <code>Observable</code></p><pre><code class="language-julia hljs">ec[] = Dict(Edge(7,2)=&gt; :green)
-fig</code></pre><img src="64cdcba8.png" alt="Example block output"/><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../decisiontree/">« Decision Tree</a><a class="docs-footer-nextpage" href="../../networklayout_forward/">🔗 Layouts (<code>NetworkLayout.jl</code>) »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.3.0 on <span class="colophon-date" title="Thursday 21 March 2024 17:10">Thursday 21 March 2024</span>. Using Julia version 1.10.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+hidedecorations!(ax)
+fig</code></pre><img src="e7b3f5e8.png" alt="Example block output"/><p>update <code>Observable</code></p><pre><code class="language-julia hljs">ec[] = Dict(Edge(7,2)=&gt; :green)
+fig</code></pre><img src="a943a517.png" alt="Example block output"/><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../decisiontree/">« Decision Tree</a><a class="docs-footer-nextpage" href="../../networklayout_forward/">🔗 Layouts (<code>NetworkLayout.jl</code>) »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.3.0 on <span class="colophon-date" title="Thursday 21 March 2024 17:11">Thursday 21 March 2024</span>. Using Julia version 1.10.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
