@@ -17,7 +17,7 @@ check if it is part of a `EdgePlot` and convert idx.
 convert_selection(element, idx) = (element, idx)
 function convert_selection(element::LineSegments, idx)
     if element.parent isa EdgePlot
-        return (element.parent, Int(idx / 2))
+        return (element.parent, ceil(Int, idx / 2)) 
     end
     return (element, idx)
 end
