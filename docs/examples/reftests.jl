@@ -70,10 +70,12 @@ g = complete_digraph(3)
 elabels = repr.(edges(g))
 nlabels = repr.(1:nv(g))
 fig, ax, p = graphplot(g; elabels, nlabels, elabels_fontsize=10)
+hidedecorations!(ax)
 @save_reference fig
 #
 limits!(ax, ax.finallimits[]) # freeze the limits
 p[:node_pos][] = Point2f.([(1., -.5), (-1.,0.), (-1.,-1.)])
+hidedecorations!(ax)
 @save_reference fig
 
 # ## Change of the underlying graph
@@ -115,28 +117,33 @@ graphplot(fig[1,1],
           edge_attr = (; linestyle = [:dot, :dash]),
           edge_plottype = :beziersegments,
           )
+hidedecorations!(current_axis())
 
 graphplot(fig[1,2],
           DiGraph([Edge(1 => 2), Edge(2 => 1)]),
           edge_attr = (; linestyle = [:dot, :dash]),
           edge_plottype = :beziersegments,
           )
+hidedecorations!(current_axis())
 
 graphplot(fig[2,1],
           DiGraph([Edge(1 => 2), Edge(2 => 3), Edge(3=>4), Edge(4=>1)]),
           edge_attr = (; linestyle = Linestyle([0.5, 1.0, 1.5, 2.5])),
           edge_plottype = :beziersegments,
           )
+hidedecorations!(current_axis())
 @save_reference fig
 
 # ## Self loop with waypoints
 g1 = SimpleDiGraph(1)
 add_edge!(g1, 1, 1) #add self loop
 fig, ax, p = graphplot(g1, layout = [(0,0)], waypoints = [[(1,-1),(1,1),(-1,1),(-1,-1)]])
+hidedecorations!(ax)
 @save_reference fig
 
 # ## Shift arrows to nodes
 fig, ax, p=graphplot(SimpleDiGraph(ones(2,2)),node_size=50,arrow_size=20,curve_distance=0.5,arrow_shift=:end)
+hidedecorations!(ax)
 @save_reference fig
 
 # ### update shifts
@@ -147,6 +154,7 @@ add_edge!(g, 1, 1); add_edge!(g, 1, 2); add_edge!(g, 2, 1); add_edge!(g, 2, 3); 
 fig, ax, p = graphplot(g; arrow_shift=:end,
                        node_size=[20 for _ in 1:nv(g)],
                        arrow_size=[20 for _ in 1:ne(g)])
+hidedecorations!(ax)
 @save_reference fig
 
 p.node_size[][1] = 40
@@ -175,16 +183,19 @@ fig, ax, p = graphplot(g; arrow_shift=:end, layout=SquareGrid(cols=2),
                        arrow_attr=(color=:blue,),
                        edge_color=:red)
 xlims!(-.5,1.5); ylims!(-3.5,.5)
+hidedecorations!(ax)
 @save_reference fig
 
 # ## Inner node labels
 
 fig, ax, p = graphplot(cycle_digraph(3), ilabels=[1, L"\sum_{i=1}^n \alpha^i", "a label"], node_marker=Circle)
+hidedecorations!(ax)
 @save_reference fig
 
 # Interact with `arrow_shift=:end`
 
 fig, ax, p = graphplot(cycle_digraph(3), ilabels=[1, L"\sum_{i=1}^n \alpha^i", "a label"], node_marker=Circle, arrow_shift=:end)
+hidedecorations!(ax)
 @save_reference fig
 
 # Update observables
@@ -204,6 +215,7 @@ gc = circular_ladder_graph(5);
 ons = Observable(30);
 onf = Observable(30);
 fig,ax,p = graphplot(gc; nlabels=repr.(vertices(gc)), node_size=ons, nlabels_fontsize=onf)
+hidedecorations!(ax)
 @save_reference fig
 
 # Change node size
@@ -219,6 +231,7 @@ onf[] = 10; # check changes
 onf = Observable(Dict(1=>30, 10=>30));
 ons = Observable(Dict(1=>30, 10=>30));
 fig,ax,p = graphplot(gc; nlabels=repr.(vertices(gc)), node_size=ons, nlabels_fontsize=onf)
+hidedecorations!(ax)
 @save_reference fig
 
 # Change label font size
@@ -233,6 +246,7 @@ onf[] = Dict(7=>30); # check changes
 ons = Observable(DefaultDict(70, 1=>30, 10=>30));
 onf = Observable(DefaultDict(70, 1=>30, 10=>30));
 fig,ax,p = graphplot(gc; nlabels=repr.(vertices(gc)), node_size=ons, nlabels_fontsize=onf)
+hidedecorations!(ax)
 @save_reference fig
 
 # Change node size
@@ -248,42 +262,51 @@ onf[] = DefaultDict(20, 10=>70); # check changes
 # First with a normal `Dict`
 gc = circular_ladder_graph(5);
 fig,ax,p = graphplot(gc, nlabels=Dict(1=>"One", 2 => "Two"))
+hidedecorations!(ax)
 @save_reference fig
 
 # And also with a `DefaultDict`
 fig,ax,p = graphplot(gc, nlabels=DefaultDict("Unknown", 1=>"One", 2 => "Two"))
+hidedecorations!(ax)
 @save_reference fig
 
 # ## Use Dict{Edge} for edge arguments
 fig,ax,p = graphplot(gc, edge_color=Dict(Edge(7,8)=>:blue))
+hidedecorations!(ax)
 @save_reference fig
 
 # try out also the DefaultDict
 fig,ax,p = graphplot(gc, edge_color=DefaultDict(:green, Edge(7,8)=>:blue))
+hidedecorations!(ax)
 @save_reference fig
 
 # Of course you can still use integers labeling
 ind = findfirst(==(Edge(7,8)) , collect(edges(gc)))
 fig,ax,p = graphplot(gc, edge_color=DefaultDict(:green, ind=>:blue))
+hidedecorations!(ax)
 @save_reference fig
 
 # The same can be done with all enumerations of edge arguments
 fig,ax,p = graphplot(gc, elabels=DefaultDict("Unknown", Edge(1,2)=>"1-2", Edge(7,8) => "7-8"))
+hidedecorations!(ax)
 @save_reference fig
 
 # directed and undirected graphs are handled appropriately.
 # For example for directed graphs
 gcd = SimpleDiGraph(gc)
 fig,ax,p = graphplot(gcd, elabels=DefaultDict("Unknown", Edge(8,7)=>"8-7", Edge(2,7) => "2-7"), nlabels=repr.(vertices(gcd)))
+hidedecorations!(ax)
 @save_reference fig
 
 # and non-directed graphs
 fig,ax,p = graphplot(gc, elabels=DefaultDict("Unknown", Edge(8,7)=>"8-7", Edge(2,7) => "2-7"), nlabels=repr.(vertices(gc)))
+hidedecorations!(ax)
 @save_reference fig
 
 # Test edge-specific updates
 ec = Observable(Dict(Edge(8,7)=>:blue))
 fig,ax,p = graphplot(gc, edge_color=ec, nlabels=repr.(vertices(gc)))
+hidedecorations!(ax)
 @save_reference fig
 
 # update `Observable`

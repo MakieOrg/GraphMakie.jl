@@ -297,6 +297,7 @@ add_edge!(g, 1, 1) #add self loop
 f, ax, p = graphplot(g, 
                      layout = [(0,0)], 
                      waypoints = [[(1,-1),(1,1),(-1,1),(-1,-1)]])
+hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()
 @save_reference f #hide
 
 #=

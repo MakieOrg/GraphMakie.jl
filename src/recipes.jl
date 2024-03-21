@@ -285,36 +285,48 @@ function Makie.plot!(gp::GraphPlot)
         $(gp.node_strokewidth)
     end
 
+    # compute initial edge paths; will be adjusted later if arrow_shift = :end
     # create array of pathes triggered by node_pos changes
     # in case of a graph change the node_position will change anyway
-    gp[:edge_paths] = lift(node_pos, gp.selfedge_size,
+    init_edge_paths = lift(node_pos, gp.selfedge_size,
                       gp.selfedge_direction, gp.selfedge_width, gp.curve_distance_usage, gp.curve_distance) do pos, s, d, w, cdu, cd
         find_edge_paths(graph[], gp.attributes, pos)
     end
-    edge_paths = gp[:edge_paths]
 
-    # plot edges
-    edge_plot = edgeplot!(gp, edge_paths;
+    # plot arrow heads
+    arrow_shift_m = lift(init_edge_paths, to_px, gp.arrow_shift, node_marker_m, node_size_m, gp.arrow_size) do paths, tpx, shift, nmarker, nsize, asize
+        update_arrow_shift(graph[], gp, paths, tpx, node_marker_m, node_size_m, shift)
+    end
+    arrow_pos = @lift if !isempty(init_edge_paths[])
+        broadcast(interpolate, init_edge_paths[], $arrow_shift_m)
+    else # if no edges return (empty) vector of points, broadcast yields Vector{Any} which can't be plotted
+        Vector{eltype(node_pos[])}()
+    end
+    arrow_rot = @lift if !isempty(init_edge_paths[])
+        Billboard(broadcast($to_angle, init_edge_paths[], $arrow_pos, $(arrow_shift_m)))
+    else
+        Billboard(Float32[])
+    end
+
+    # update edge paths to line up with arrow heads if arrow_shift = :end
+    edge_paths = gp[:edge_paths] = @lift map($init_edge_paths, $arrow_pos, eachindex($arrow_pos)) do ep, ap, i
+        if getattr($(gp.arrow_shift), i) == :end
+            adjust_endpoint(ep, ap)
+        else
+            ep
+        end
+    end
+
+    # actually plot edges
+    edge_plot = gp[:edge_plot] = edgeplot!(gp, edge_paths;
+        plottype=gp[:edge_plottype][],
         color=prep_edge_attributes(gp.edge_color, graph, dfth.edge_color),
         linewidth=prep_edge_attributes(gp.edge_width, graph, dfth.edge_width),
         gp.edge_attr...)
 
-    # plot arrow heads
-    arrow_shift_m = lift(edge_paths, to_px, gp.arrow_shift, node_marker_m, node_size_m, gp.arrow_size) do paths, tpx, shift, nmarker, nsize, asize
-        update_arrow_shift(graph[], gp, paths, tpx, node_marker_m, node_size_m, shift)
-    end
-    arrow_pos = @lift if !isempty(edge_paths[])
-        broadcast(interpolate, edge_paths[], $arrow_shift_m)
-    else # if no edges return (empty) vector of points, broadcast yields Vector{Any} which can't be plotted
-        Vector{eltype(node_pos[])}()
-    end
-    arrow_rot = @lift if !isempty(edge_paths[])
-        Billboard(broadcast($to_angle, edge_paths[], $arrow_pos, $(arrow_shift_m)))
-    else
-        Billboard(Float32[])
-    end
+    # arrow plots
     arrow_show_m = @lift $(gp.arrow_show) === automatic ? Graphs.is_directed($graph) : $(gp.arrow_show)
-    arrow_heads = scatter!(gp,
+    arrow_plot = gp[:arrow_plot] = scatter!(gp,
         arrow_pos;
         marker = prep_edge_attributes(gp.arrow_marker, graph, dfth.arrow_marker),
         markersize = prep_edge_attributes(gp.arrow_size, graph, dfth.arrow_size),
@@ -325,8 +337,9 @@ function Makie.plot!(gp::GraphPlot)
         visible = arrow_show_m,
         gp.arrow_attr...)
 
+
     # plot vertices
-    vertex_plot = scatter!(gp, node_pos;
+    vertex_plot = gp[:node_plot] = scatter!(gp, node_pos;
         color=prep_vertex_attributes(node_color_m, graph, scatter_theme.color),
         marker=prep_vertex_attributes(node_marker_m, graph, scatter_theme.marker),
         markersize=prep_vertex_attributes(node_size_m, graph, scatter_theme.markersize),
@@ -349,7 +362,7 @@ function Makie.plot!(gp::GraphPlot)
             $(gp.nlabels_distance) .* align_to_dir($(gp.nlabels_align))
         end
 
-        nlabels_plot = text!(gp, positions;
+        nlabels_plot = gp[:nlabels_plot] = text!(gp, positions;
             text=prep_vertex_attributes(gp.nlabels, graph, Observable("")),
             align=prep_vertex_attributes(gp.nlabels_align, graph, dfth.nlabels_align),
             color=prep_vertex_attributes(gp.nlabels_color, graph, dfth.nlabels_color),
@@ -398,7 +411,7 @@ function Makie.plot!(gp::GraphPlot)
             offsets = map(p -> Point(-p.data[2], p.data[1])/norm(p), tangent_px)
             offsets .= elabels_distance_offset(graph[], gp.attributes) .* offsets
         end
-        elabels_plot = text!(gp, positions;
+        elabels_plot = gp[:elabels_plot] = text!(gp, positions;
             text=prep_edge_attributes(gp.elabels, graph, Observable("")),
             rotation=rotation,
             offset=offsets,
@@ -477,7 +490,7 @@ function find_edge_paths(g, attr, pos::AbstractVector{PT}) where {PT}
 
         if !isnothing(waypoints) && !isempty(waypoints) #there are waypoints
             radius = getattr(attr.waypoint_radius, i, nothing)
-            if radius === nothing || radius === :spline 
+            if radius === nothing || radius === :spline
                 paths[i] = Path(p1, waypoints..., p2; tangents, tfactor)
             elseif radius isa Real
                 paths[i] = Path(radius, p1, waypoints..., p2)
@@ -631,13 +644,16 @@ draw using bezier segments.
 All attributes are passed down to the actual recipe.
 """
 @recipe(EdgePlot, paths) do scene
-    Attributes()
+    Attributes(plottype=automatic)
 end
 
 function Makie.plot!(p::EdgePlot)
     N = length(p[:paths][])
 
-    if eltype(p[:paths][]) <: Line
+    plottype = pop!(p.attributes, :plottype)[]
+    alllines = eltype(p[:paths][]) <: Line
+
+    if alllines && plottype != :beziersegments
         PT = ptype(eltype(p[:paths][]))
         segs = Observable(Vector{PT}(undef, 2*N))
 
@@ -647,8 +663,10 @@ function Makie.plot!(p::EdgePlot)
         end
 
         linesegments!(p, segs; p.attributes...)
-    else
+    elseif plottype != :linesegments
         beziersegments!(p, p[:paths]; p.attributes...)
+    else
+        error("Impossible combination of plottype=$plottype and alllines=$alllines.")
     end
 
     return p
@@ -776,7 +794,7 @@ function update_arrow_shift(g, gp, edge_paths::Vector{<:AbstractPath{PT}}, to_px
         end
         arrow_shift[i] = t
     end
-    
+
     return arrow_shift
 end
 
