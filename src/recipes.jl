@@ -331,7 +331,7 @@ function Makie.plot!(gp::GraphPlot)
         marker = prep_edge_attributes(gp.arrow_marker, graph, dfth.arrow_marker),
         markersize = prep_edge_attributes(gp.arrow_size, graph, dfth.arrow_size),
         color=prep_edge_attributes(gp.edge_color, graph, dfth.edge_color),
-        rotations = arrow_rot,
+        rotation = arrow_rot,
         strokewidth = 0.0,
         markerspace = :pixel,
         visible = arrow_show_m,
