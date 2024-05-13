@@ -256,7 +256,7 @@ function Makie.plot!(gp::GraphPlot)
             map(enumerate(glyphcollections)) do (i, gc)
                 _ns = getattr(node_size, i)
                 if _ns == automatic
-                    rect = Rect2f(boundingbox(gc, Quaternion((1,0,0,0))))
+                    rect = Rect2f(Makie.unchecked_boundingbox(gc, Quaternion((1,0,0,0))))
                     norm(rect.widths) + 0.1 * ilabels_fontsize
                 else
                     _ns
@@ -331,7 +331,7 @@ function Makie.plot!(gp::GraphPlot)
         marker = prep_edge_attributes(gp.arrow_marker, graph, dfth.arrow_marker),
         markersize = prep_edge_attributes(gp.arrow_size, graph, dfth.arrow_size),
         color=prep_edge_attributes(gp.edge_color, graph, dfth.edge_color),
-        rotations = arrow_rot,
+        rotation = arrow_rot,
         strokewidth = 0.0,
         markerspace = :pixel,
         visible = arrow_show_m,
