@@ -256,7 +256,7 @@ function Makie.plot!(gp::GraphPlot)
             map(enumerate(glyphcollections)) do (i, gc)
                 _ns = getattr(node_size, i)
                 if _ns == automatic
-                    rect = Rect2f(boundingbox(gc, Quaternion((1,0,0,0))))
+                    rect = Rect2f(Makie.unchecked_boundingbox(gc, Quaternion((1,0,0,0))))
                     norm(rect.widths) + 0.1 * ilabels_fontsize
                 else
                     _ns
