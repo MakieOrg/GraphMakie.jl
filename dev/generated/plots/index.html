@@ -23,13 +23,13 @@ f, ax, p = graphplot(g, layout=Shell(),
                      edge_color=edgecolors)
 
 hidedecorations!(ax); hidespines!(ax)
-ax.aspect = DataAspect()</code></pre><img src="73e8396f.png" alt="Example block output"/><p>We can interactively change the attributes as usual with Makie.</p><pre><code class="language-julia hljs">fixed_layout(_) = [(0,0), (0,1), (0.5, 1.5), (1,1), (1,0)]
+ax.aspect = DataAspect()</code></pre><img src="e8245a03.png" alt="Example block output"/><p>We can interactively change the attributes as usual with Makie.</p><pre><code class="language-julia hljs">fixed_layout(_) = [(0,0), (0,1), (0.5, 1.5), (1,1), (1,0)]
 # set new layout
 p.layout = fixed_layout; autolimits!(ax)
 # change edge width &amp; color
 p.edge_width = 5.0
 p.edge_color[][3] = :green;
-p.edge_color = p.edge_color[] # trigger observable</code></pre><img src="984e3633.png" alt="Example block output"/><h2 id="Adding-Node-Labels"><a class="docs-heading-anchor" href="#Adding-Node-Labels">Adding Node Labels</a><a id="Adding-Node-Labels-1"></a><a class="docs-heading-anchor-permalink" href="#Adding-Node-Labels" title="Permalink"></a></h2><pre><code class="language-julia hljs">g = wheel_graph(10)
+p.edge_color = p.edge_color[] # trigger observable</code></pre><img src="95120009.png" alt="Example block output"/><h2 id="Adding-Node-Labels"><a class="docs-heading-anchor" href="#Adding-Node-Labels">Adding Node Labels</a><a id="Adding-Node-Labels-1"></a><a class="docs-heading-anchor-permalink" href="#Adding-Node-Labels" title="Permalink"></a></h2><pre><code class="language-julia hljs">g = wheel_graph(10)
 
 colors = [:black for i in 1:nv(g)]
 colors[1] = :red
@@ -54,7 +54,7 @@ labels =  repr.(1:ne(g))
 f, ax, p = graphplot(g, elabels=labels,
                      elabels_color=[:black for i in 1:ne(g)],
                      edge_color=[:black for i in 1:ne(g)])
-hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()</code></pre><img src="74287fba.png" alt="Example block output"/><p>The position of the edge labels is determined by several plot arguments. All possible arguments are described in the docs of the <a href="../../#GraphMakie.graphplot"><code>graphplot</code></a> function.</p><p>By default, each label is placed in the middle of the edge and rotated to match the edge rotation. The rotation for each label can be overwritten with the <code>elabels_rotation</code> argument.</p><pre><code class="language-julia hljs">p.elabels_rotation[] = Dict(i =&gt; i == 5 ? 0.0 : Makie.automatic for i in 1:ne(g))</code></pre><p>One can shift the label along the edge with the <code>elabels_shift</code> argument and determine the distance in pixels using the <code>elabels_distance</code> argument.</p><pre><code class="language-julia hljs">p.elabels_side[] = Dict(i =&gt; :right for i in [1,2,8,6])
+hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()</code></pre><img src="e432c852.png" alt="Example block output"/><p>The position of the edge labels is determined by several plot arguments. All possible arguments are described in the docs of the <a href="../../#GraphMakie.graphplot"><code>graphplot</code></a> function.</p><p>By default, each label is placed in the middle of the edge and rotated to match the edge rotation. The rotation for each label can be overwritten with the <code>elabels_rotation</code> argument.</p><pre><code class="language-julia hljs">p.elabels_rotation[] = Dict(i =&gt; i == 5 ? 0.0 : Makie.automatic for i in 1:ne(g))</code></pre><p>One can shift the label along the edge with the <code>elabels_shift</code> argument and determine the distance in pixels using the <code>elabels_distance</code> argument.</p><pre><code class="language-julia hljs">p.elabels_side[] = Dict(i =&gt; :right for i in [1,2,8,6])
 p.elabels_offset[] = [Point2f(0.0, 0.0) for i in 1:ne(g)]
 p.elabels_offset[][5] = Point2f(-0.4,0)
 p.elabels_offset[] = p.elabels_offset[]
@@ -64,7 +64,7 @@ p.elabels_shift[][1] = 0.6
 p.elabels_shift[][7] = 0.4
 p.elabels_shift[] = p.elabels_shift[]
 
-p.elabels_distance[] = Dict(8 =&gt; 30)</code></pre><img src="d29ed3f0.png" alt="Example block output"/><h2 id="Indicate-Edge-Direction"><a class="docs-heading-anchor" href="#Indicate-Edge-Direction">Indicate Edge Direction</a><a id="Indicate-Edge-Direction-1"></a><a class="docs-heading-anchor-permalink" href="#Indicate-Edge-Direction" title="Permalink"></a></h2><p>It is possible to put arrows on the edges using the <code>arrow_show</code> parameter. This parameter is <code>true</code> for <code>SimpleDiGraph</code> by default. The position and size of each arrowhead can be change using the <code>arrow_shift</code> and <code>arrow_size</code> parameters.</p><pre><code class="language-julia hljs">g = wheel_digraph(10)
+p.elabels_distance[] = Dict(8 =&gt; 30)</code></pre><img src="766a869a.png" alt="Example block output"/><h2 id="Indicate-Edge-Direction"><a class="docs-heading-anchor" href="#Indicate-Edge-Direction">Indicate Edge Direction</a><a id="Indicate-Edge-Direction-1"></a><a class="docs-heading-anchor-permalink" href="#Indicate-Edge-Direction" title="Permalink"></a></h2><p>It is possible to put arrows on the edges using the <code>arrow_show</code> parameter. This parameter is <code>true</code> for <code>SimpleDiGraph</code> by default. The position and size of each arrowhead can be change using the <code>arrow_shift</code> and <code>arrow_size</code> parameters.</p><pre><code class="language-julia hljs">g = wheel_digraph(10)
 arrow_size = [10+i for i in 1:ne(g)]
 arrow_shift = range(0.1, 0.8, length=ne(g))
 f, ax, p = graphplot(g; arrow_size, arrow_shift)
@@ -76,19 +76,19 @@ add_edge!(g, 2, 2)
 add_edge!(g, 3, 3)
 f, ax, p = graphplot(g)
 
-hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()</code></pre><img src="897ff8f2.png" alt="Example block output"/><p>It is possible to change the appearance using the <code>selfedge_</code> attributes:</p><pre><code class="language-julia hljs">p.selfedge_size = Dict(1=&gt;Makie.automatic, 4=&gt;3.6, 6=&gt;0.5) #idx as in edges(g)
+hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()</code></pre><img src="b42fd444.png" alt="Example block output"/><p>It is possible to change the appearance using the <code>selfedge_</code> attributes:</p><pre><code class="language-julia hljs">p.selfedge_size = Dict(1=&gt;Makie.automatic, 4=&gt;3.6, 6=&gt;0.5) #idx as in edges(g)
 p.selfedge_direction = Point2f(0.3, 1)
 p.selfedge_width = Any[Makie.automatic for i in 1:ne(g)]
 p.selfedge_width[][4] = 0.6*π; notify(p.selfedge_width)
 autolimits!(ax)</code></pre><img src="12f3f05c.png" alt="Example block output"/><h2 id="Curvy-edges"><a class="docs-heading-anchor" href="#Curvy-edges">Curvy edges</a><a id="Curvy-edges-1"></a><a class="docs-heading-anchor-permalink" href="#Curvy-edges" title="Permalink"></a></h2><h3 id="curve_distance-interface"><a class="docs-heading-anchor" href="#curve_distance-interface"><code>curve_distance</code> interface</a><a id="curve_distance-interface-1"></a><a class="docs-heading-anchor-permalink" href="#curve_distance-interface" title="Permalink"></a></h3><p>The easiest way to enable curvy edges is to use the <code>curve_distance</code> parameter which lets you add a &quot;distance&quot; parameter. The parameter changes the maximum distance of the bent line to a straight line. Per default, only two way edges will be drawn as a curve:</p><pre><code class="language-julia hljs">g = SimpleDiGraph(3); add_edge!(g, 1, 2); add_edge!(g, 2, 3); add_edge!(g, 3, 1); add_edge!(g, 1, 3)
 
 f, ax, p = graphplot(g)
-hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()</code></pre><img src="69a6698d.png" alt="Example block output"/><p>This behaviour may be changed by using the <code>curve_distance_usage=Makie.automatic</code> parameter.</p><ul><li><code>Makie.automatic</code>: Only apply <code>curve_distance</code> to double edges.</li><li><code>true</code>: Use on all edges.</li><li><code>false</code>: Don&#39;t use.</li></ul><pre><code class="language-julia hljs">f, ax, p = graphplot(g; curve_distance=-.5, curve_distance_usage=true)
-hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()</code></pre><img src="dbadc393.png" alt="Example block output"/><p>It is also possible to specify the distance on a per edge base:</p><pre><code class="language-julia hljs">g = complete_digraph(3)
+hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()</code></pre><img src="de00545c.png" alt="Example block output"/><p>This behaviour may be changed by using the <code>curve_distance_usage=Makie.automatic</code> parameter.</p><ul><li><code>Makie.automatic</code>: Only apply <code>curve_distance</code> to double edges.</li><li><code>true</code>: Use on all edges.</li><li><code>false</code>: Don&#39;t use.</li></ul><pre><code class="language-julia hljs">f, ax, p = graphplot(g; curve_distance=-.5, curve_distance_usage=true)
+hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()</code></pre><img src="4fa263fa.png" alt="Example block output"/><p>It is also possible to specify the distance on a per edge base:</p><pre><code class="language-julia hljs">g = complete_digraph(3)
 distances = collect(0.05:0.05:ne(g)*0.05)
 elabels = &quot;d = &quot;.* repr.(round.(distances, digits=2))
 f, ax, p = graphplot(g; curve_distance=distances, elabels, arrow_size=20)
-hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()</code></pre><img src="da439b11.png" alt="Example block output"/><h3 id="tangents-interface"><a class="docs-heading-anchor" href="#tangents-interface"><code>tangents</code> interface</a><a id="tangents-interface-1"></a><a class="docs-heading-anchor-permalink" href="#tangents-interface" title="Permalink"></a></h3><p>Curvy edges are also possible using the low level interface of passing tangent vectors and a <code>tfactor</code>. The tangent vectors can be <code>nothing</code> (straight line) or two vectors per edge (one for src vertex, one for dst vertex). The <code>tfactor</code> scales the distance of the bezier control point relative to the distance of src and dst nodes. For real world usage see the <a href="../syntaxtree/#AST-of-a-Julia-function">AST of a Julia function</a> example.</p><pre><code class="language-julia hljs">using GraphMakie: plot_controlpoints!, SquareGrid
+hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()</code></pre><img src="9baa6880.png" alt="Example block output"/><h3 id="tangents-interface"><a class="docs-heading-anchor" href="#tangents-interface"><code>tangents</code> interface</a><a id="tangents-interface-1"></a><a class="docs-heading-anchor-permalink" href="#tangents-interface" title="Permalink"></a></h3><p>Curvy edges are also possible using the low level interface of passing tangent vectors and a <code>tfactor</code>. The tangent vectors can be <code>nothing</code> (straight line) or two vectors per edge (one for src vertex, one for dst vertex). The <code>tfactor</code> scales the distance of the bezier control point relative to the distance of src and dst nodes. For real world usage see the <a href="../syntaxtree/#AST-of-a-Julia-function">AST of a Julia function</a> example.</p><pre><code class="language-julia hljs">using GraphMakie: plot_controlpoints!, SquareGrid
 g = complete_graph(3)
 tangents = Dict(1 =&gt; ((1,1),(0,-1)),
                 2 =&gt; ((0,1),(0,-1)),
@@ -98,7 +98,7 @@ f, ax, p = graphplot(g; layout=SquareGrid(cols=3), tangents, tfactor,
                      arrow_size=20, arrow_show=true, edge_color=[:red, :green, :blue],
                      elabels=&quot;Edge &quot;.*repr.(1:ne(g)), elabels_distance=20)
 hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()
-plot_controlpoints!(ax, p) # show control points for demonstration</code></pre><img src="2127674d.png" alt="Example block output"/><h2 id="Edge-waypoints"><a class="docs-heading-anchor" href="#Edge-waypoints">Edge waypoints</a><a id="Edge-waypoints-1"></a><a class="docs-heading-anchor-permalink" href="#Edge-waypoints" title="Permalink"></a></h2><p>It is possible to specify waypoints per edge which needs to be crossed. See the <a href="../depgraph/#Dependency-Graph-of-a-Package">Dependency Graph of a Package</a> example.</p><p>If the attribute <code>waypoint_radius</code> is <code>nothing</code> or <code>:spline</code> the waypoints will be crossed using natural cubic spline interpolation. If the supply a radius the waypoints won&#39;t be reached, instead they will be connected with straight lines which bend in the given radius around the waypoints.</p><pre><code class="language-julia hljs">g = SimpleGraph(8); add_edge!(g, 1, 2); add_edge!(g, 3, 4); add_edge!(g, 5, 6); add_edge!(g, 7, 8)
+plot_controlpoints!(ax, p) # show control points for demonstration</code></pre><img src="74b2fbbc.png" alt="Example block output"/><h2 id="Edge-waypoints"><a class="docs-heading-anchor" href="#Edge-waypoints">Edge waypoints</a><a id="Edge-waypoints-1"></a><a class="docs-heading-anchor-permalink" href="#Edge-waypoints" title="Permalink"></a></h2><p>It is possible to specify waypoints per edge which needs to be crossed. See the <a href="../depgraph/#Dependency-Graph-of-a-Package">Dependency Graph of a Package</a> example.</p><p>If the attribute <code>waypoint_radius</code> is <code>nothing</code> or <code>:spline</code> the waypoints will be crossed using natural cubic spline interpolation. If the supply a radius the waypoints won&#39;t be reached, instead they will be connected with straight lines which bend in the given radius around the waypoints.</p><pre><code class="language-julia hljs">g = SimpleGraph(8); add_edge!(g, 1, 2); add_edge!(g, 3, 4); add_edge!(g, 5, 6); add_edge!(g, 7, 8)
 
 waypoints = Dict(1 =&gt; [(.25,  0.25), (.75, -0.25)],
                  2 =&gt; [(.25, -0.25), (.75, -0.75)],
@@ -119,12 +119,12 @@ p = graphplot!(ax, g; layout=SquareGrid(cols=2, dy=-0.5),
                         &quot;&quot;,&quot;r = 0.1&quot;],
                nlabels_distance=30, nlabels_align=(:left,:center))
 
-xlims!(ax, (-0.1, 2.25)), hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()</code></pre><img src="517ec256.png" alt="Example block output"/><p>Specifying <code>waypoints</code> for self-edges will override any <code>selfedge_</code> attributes. If <code>waypoints</code> are specified on an edge, <code>tangents</code> can also be added. However, if <code>tangents</code> are given, but no <code>waypoints</code>, the <code>tangents</code> are ignored.</p><pre><code class="language-julia hljs">g = SimpleDiGraph(1) #single node
+xlims!(ax, (-0.1, 2.25)), hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()</code></pre><img src="60ef1d61.png" alt="Example block output"/><p>Specifying <code>waypoints</code> for self-edges will override any <code>selfedge_</code> attributes. If <code>waypoints</code> are specified on an edge, <code>tangents</code> can also be added. However, if <code>tangents</code> are given, but no <code>waypoints</code>, the <code>tangents</code> are ignored.</p><pre><code class="language-julia hljs">g = SimpleDiGraph(1) #single node
 add_edge!(g, 1, 1) #add self loop
 f, ax, p = graphplot(g,
                      layout = [(0,0)],
                      waypoints = [[(1,-1),(1,1),(-1,1),(-1,-1)]])
-hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()</code></pre><img src="e291d2d0.png" alt="Example block output"/><h2 id="Plot-Graphs-in-3D"><a class="docs-heading-anchor" href="#Plot-Graphs-in-3D">Plot Graphs in 3D</a><a id="Plot-Graphs-in-3D-1"></a><a class="docs-heading-anchor-permalink" href="#Plot-Graphs-in-3D" title="Permalink"></a></h2><p>If the layout returns points in 3 dimensions, the plot will be in 3D. However this is a bit experimental. Feel free to file an issue if there are any problems.</p><pre><code class="language-julia hljs">g = smallgraph(:cubical)
+hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()</code></pre><img src="24ecf94b.png" alt="Example block output"/><h2 id="Plot-Graphs-in-3D"><a class="docs-heading-anchor" href="#Plot-Graphs-in-3D">Plot Graphs in 3D</a><a id="Plot-Graphs-in-3D-1"></a><a class="docs-heading-anchor-permalink" href="#Plot-Graphs-in-3D" title="Permalink"></a></h2><p>If the layout returns points in 3 dimensions, the plot will be in 3D. However this is a bit experimental. Feel free to file an issue if there are any problems.</p><pre><code class="language-julia hljs">g = smallgraph(:cubical)
 elabels_shift = [0.5 for i in 1:ne(g)]
 elabels_shift[[2,7,8,9]] .= 0.3
 elabels_shift[10] = 0.25
@@ -133,31 +133,31 @@ f, ax, p = graphplot(g; layout=Spring(dim=3, seed=5),
     elabels_shift,
     arrow_show=true,
     arrow_shift=0.9,
-    arrow_size=15)</code></pre><img src="de12f30c.png" alt="Example block output"/><p>Using <a href="https://github.com/SimonDanisch/JSServe.jl"><code>JSServe.jl</code></a> and <a href="https://github.com/MakieOrg/Makie.jl/tree/master/WGLMakie"><code>WGLMakie.jl</code></a> we can also add some interactivity:</p><pre><code class="language-julia hljs">using JSServe
+    arrow_size=15)</code></pre><img src="a2ac8dfc.png" alt="Example block output"/><p>Using <a href="https://github.com/SimonDanisch/JSServe.jl"><code>JSServe.jl</code></a> and <a href="https://github.com/MakieOrg/Makie.jl/tree/master/WGLMakie"><code>WGLMakie.jl</code></a> we can also add some interactivity:</p><pre><code class="language-julia hljs">using JSServe
 Page(exportable=true, offline=true)</code></pre><pre><code class="language-julia hljs">using WGLMakie
 WGLMakie.activate!()
 set_theme!(size=(800, 600))
 g = smallgraph(:dodecahedral)
 graphplot(g, layout=Spring(dim=3))</code></pre><div>
-  <div class="bonito-fragment" id="0efe037a-b72e-4f10-813a-116e20122ab8" data-jscall-id="root">
+  <div class="bonito-fragment" id="959ac2e3-8bfe-43ab-8dde-0990c13b5ce1" data-jscall-id="root">
     <div>
-      <script src="../../../../.julia/packages/Bonito/AipWx/js_dependencies/Bonito.bundled.js" type="module"></script>
+      <script src="../../../../.julia/packages/Bonito/mxgrs/js_dependencies/Bonito.bundled.js" type="module"></script>
       <style></style>
       <div></div>
     </div>
     <div>
-      <script type="module">Bonito.lock_loading(() => Bonito.init_session('0efe037a-b72e-4f10-813a-116e20122ab8', null, 'root'))</script>
+      <script type="module">Bonito.lock_loading(() => Bonito.init_session('959ac2e3-8bfe-43ab-8dde-0990c13b5ce1', null, 'root'))</script>
       <span></span>
     </div>
   </div>
-  <div class="bonito-fragment" id="0de69a8b-6c7b-4f79-abd2-07b3f5f8e782" data-jscall-id="subsession-application-dom">
+  <div class="bonito-fragment" id="58028df1-51f9-4e61-b1b6-03823abf1e45" data-jscall-id="subsession-application-dom">
     <div>
       <style></style>
       <div></div>
     </div>
     <div>
       <script type="module">    Bonito.lock_loading(() => {
-        return Bonito.fetch_binary('bonito/bin/0f2ccadc22550dda3eb4bc5d59cd7c2cf8d2cbe2-1560411618253719446.bin').then(msgs=> Bonito.init_session('0de69a8b-6c7b-4f79-abd2-07b3f5f8e782', msgs, 'sub'));
+        return Bonito.fetch_binary('bonito/bin/9b9d6ad01000e0025fd6a561fe347474c8c40c54-13970276495859236801.bin').then(msgs=> Bonito.init_session('58028df1-51f9-4e61-b1b6-03823abf1e45', msgs, 'sub'));
     })
 </script>
       <div style="width: 100%; height: 100%" data-jscall-id="1">
@@ -165,4 +165,4 @@ graphplot(g, layout=Spring(dim=3))</code></pre><div>
       </div>
     </div>
   </div>
-</div><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../">« Home</a><a class="docs-footer-nextpage" href="../interactions/">Interaction Examples »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.3.0 on <span class="colophon-date" title="Monday 8 April 2024 14:57">Monday 8 April 2024</span>. Using Julia version 1.10.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+</div><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../">« Home</a><a class="docs-footer-nextpage" href="../interactions/">Interaction Examples »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.4.1 on <span class="colophon-date" title="Monday 13 May 2024 20:05">Monday 13 May 2024</span>. Using Julia version 1.10.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
