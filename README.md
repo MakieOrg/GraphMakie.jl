@@ -29,6 +29,5 @@ g = complete_graph(10)
 graphplot(g)
 ```
 
-
 ----------------------------
 ¹the networky type with nodes and edges
