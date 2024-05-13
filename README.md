@@ -29,6 +29,7 @@ g = complete_graph(10)
 graphplot(g)
 ```
 
+# add random change to check if documenter CI fails on old version too
 
 ----------------------------
 ¹the networky type with nodes and edges
