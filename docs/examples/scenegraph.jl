@@ -13,7 +13,10 @@ using Graphs
 # ## Extracting the scene graph
 
 # First, we extract the scene graph by "walking" down the tree.  This uses multiple dispatch to dispatch based on scenes and plots.
+# Scenes and Plots can both hold plots, and the leaf nodes can be either Scenes with no plots (empty Scenes) or atomic plots, i.e., 
+# plots which can be rendered directly by the backend.
 
+# This function simply initializes the graph and labels, and begins the traversal.
 function walk_tree(scene)
     g = SimpleDiGraph()
     labels = Any[]
@@ -21,6 +24,9 @@ function walk_tree(scene)
     return (g, labels)
 end
 
+# Now, we can walk down the Scene tree.  Scenes can have child Scenes as well as child Plots, 
+# but in terms of semantic order we walk down the Scene tree before looking at the Scene's attached
+# plots.
 function walk_tree!(g, labels, scene::Scene)
     add_vertex!(g)
     top_vertex = vertices(g)[end]
@@ -40,7 +46,6 @@ function walk_tree!(g, labels, scene::Scene)
     return top_vertex
 end
 
-
 function walk_tree!(g, labels, plot)
     add_vertex!(g)
     top_vertex = vertices(g)[end]
@@ -55,17 +60,18 @@ function walk_tree!(g, labels, plot)
     return top_vertex
 end
 
-## This is a utility function for the label:
+## This is a utility function for the label, to avoid
+## the cruft that comes from excessive type printing.
 label_str(::Scene) = "Scene"
-label_str(::Makie.Combined{F, T}) where {F, T} = string(F)
+label_str(::Makie.Combined{F, T}) where {F, T} = string(F) # get only the plot func, not the argument type
 
 
 # ## Creating the plot
 
 # This is a simple streamplot in an LScene, which has the simplest axis (Axis3 is more complex!)
 
-fig, ax, plt = streamplot(-2..2, -2..2; axis = (type = LScene, ),) do x::Point2
-    Point2f(x[2], 4x[1])
+fig, ax, plt = streamplot(-2..2, -2..2; axis = (type = LScene,),) do x::Point2
+    Point2(x[2], 4x[1])
 end
 
 # Let's walk down the tree with our previous `walk_tree` function:
@@ -82,7 +88,7 @@ f, a, p = graphplot(
     nlabels_fontsize=30,
     nlabels_align,
     tangents=((0,-1),(0,-1)),
-    figure = (; resolution = (900, 600)),
+    figure = (; size = (900, 600)),
     axis = (limits = (-2.5, 2, -16, 2),)
 )
 hidedecorations!(a); hidespines!(a)
@@ -110,4 +116,5 @@ for v in vertices(newg)
     end
 end
 p.nlabels_align = nlabels_align
-@save_reference fig
+# ### Final figure
+@save_reference f
