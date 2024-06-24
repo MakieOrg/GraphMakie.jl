@@ -23,6 +23,7 @@ function walk_tree(scene)
     walk_tree!(g, labels, scene)
     return (g, labels)
 end
+nothing #hide
 
 # Now, we can walk down the Scene tree.  Scenes can have child Scenes as well as child Plots, 
 # but in terms of semantic order we walk down the Scene tree before looking at the Scene's attached
@@ -64,6 +65,7 @@ end
 ## the cruft that comes from excessive type printing.
 label_str(::Scene) = "Scene"
 label_str(::Makie.Combined{F, T}) where {F, T} = string(F) # get only the plot func, not the argument type
+nothing #hide
 
 
 # ## Creating the plot
@@ -79,6 +81,7 @@ end
 newg, newl = walk_tree(fig.scene)
 ## This is for convenience later:
 nlabels_align = [(:left, :center) for v in vertices(newg)]
+nothing #hide
 # We start out by plotting the graph itself.
 f, a, p = graphplot(
     newg; 
@@ -102,10 +105,8 @@ fig
 
 for v in vertices(newg)
     if isempty(inneighbors(newg, v)) # root
-        println("Found root")
         nlabels_align[v] = (:center,:bottom)
     elseif isempty(outneighbors(newg, v)) #leaf
-        println("Found leaf")
         nlabels_align[v] = (:center,:top)
     else
         self = p[:node_pos][][v]
@@ -116,5 +117,6 @@ for v in vertices(newg)
     end
 end
 p.nlabels_align = nlabels_align
+nothing #hide
 # ### Final figure
 @save_reference f
