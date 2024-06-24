@@ -6,7 +6,7 @@ using Graphs</code></pre><h2 id="Extracting-the-scene-graph"><a class="docs-head
     labels = Any[]
     walk_tree!(g, labels, scene)
     return (g, labels)
-end</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">walk_tree (generic function with 1 method)</code></pre><p>Now, we can walk down the Scene tree.  Scenes can have child Scenes as well as child Plots, but in terms of semantic order we walk down the Scene tree before looking at the Scene&#39;s attached plots.</p><pre><code class="language-julia hljs">function walk_tree!(g, labels, scene::Scene)
+end</code></pre><p>Now, we can walk down the Scene tree.  Scenes can have child Scenes as well as child Plots, but in terms of semantic order we walk down the Scene tree before looking at the Scene&#39;s attached plots.</p><pre><code class="language-julia hljs">function walk_tree!(g, labels, scene::Scene)
     add_vertex!(g)
     top_vertex = vertices(g)[end]
 
@@ -66,10 +66,8 @@ fig
 
 for v in vertices(newg)
     if isempty(inneighbors(newg, v)) # root
-        println(&quot;Found root&quot;)
         nlabels_align[v] = (:center,:bottom)
     elseif isempty(outneighbors(newg, v)) #leaf
-        println(&quot;Found leaf&quot;)
         nlabels_align[v] = (:center,:top)
     else
         self = p[:node_pos][][v]
@@ -79,9 +77,4 @@ for v in vertices(newg)
         end
     end
 end
-p.nlabels_align = nlabels_align</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Found root
-Found leaf
-Found leaf
-Found leaf
-Found leaf
-Found leaf</code></pre><h3 id="Final-figure"><a class="docs-heading-anchor" href="#Final-figure">Final figure</a><a id="Final-figure-1"></a><a class="docs-heading-anchor-permalink" href="#Final-figure" title="Permalink"></a></h3><pre><code class="language-julia hljs">f</code></pre><img src="9da5b8ee.svg" alt="Example block output"/><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../syntaxtree/">« Julia AST</a><a class="docs-footer-nextpage" href="../decisiontree/">Decision Tree »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.4.1 on <span class="colophon-date" title="Monday 24 June 2024 11:36">Monday 24 June 2024</span>. Using Julia version 1.10.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+p.nlabels_align = nlabels_align</code></pre><h3 id="Final-figure"><a class="docs-heading-anchor" href="#Final-figure">Final figure</a><a id="Final-figure-1"></a><a class="docs-heading-anchor-permalink" href="#Final-figure" title="Permalink"></a></h3><pre><code class="language-julia hljs">f</code></pre><img src="9da5b8ee.svg" alt="Example block output"/><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../syntaxtree/">« Julia AST</a><a class="docs-footer-nextpage" href="../decisiontree/">Decision Tree »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.4.1 on <span class="colophon-date" title="Monday 24 June 2024 12:19">Monday 24 June 2024</span>. Using Julia version 1.10.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
