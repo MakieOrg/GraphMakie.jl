@@ -59,11 +59,13 @@ function walk_tree!(g, labels, plot)
 
     return top_vertex
 end
+nothing #hide
 
 ## This is a utility function for the label, to avoid
 ## the cruft that comes from excessive type printing.
 label_str(::Scene) = "Scene"
 label_str(::Makie.Combined{F, T}) where {F, T} = string(F) # get only the plot func, not the argument type
+nothing #hide
 
 
 # ## Creating the plot
@@ -79,6 +81,7 @@ end
 newg, newl = walk_tree(fig.scene)
 ## This is for convenience later:
 nlabels_align = [(:left, :center) for v in vertices(newg)]
+nothing #hide
 # We start out by plotting the graph itself.
 f, a, p = graphplot(
     newg; 
@@ -116,5 +119,6 @@ for v in vertices(newg)
     end
 end
 p.nlabels_align = nlabels_align
+nothing #hide
 # ### Final figure
 @save_reference f
