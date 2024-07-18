@@ -10,6 +10,8 @@ using LayeredLayouts
 using Graphs
 using RegistryInstances
 
+NetworkLayout.DEFAULT_RNG[] = StableRNG
+
 DocMeta.setdocmeta!(GraphMakie, :DocTestSetup, :(using GraphMakie); recursive=true)
 
 # generate examples

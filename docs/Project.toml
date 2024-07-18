@@ -15,6 +15,7 @@ NetworkDynamics = "22e9dc34-2a0d-11e9-0de0-8588d035468b"
 NetworkLayout = "46757867-2c16-5918-afeb-47bfcb05e46a"
 OrdinaryDiffEq = "1dea7af3-3e70-54e6-95c3-0bf5283fa5ed"
 RegistryInstances = "2792f1a3-b283-48e8-9a74-f99dce5104f3"
+StableRNGs = "860ef19b-820b-49d6-a774-d7a799459cd3"
 WGLMakie = "276b4fcb-3e11-5398-bf8b-a0c2d153d008"
 
 [compat]

@@ -5,6 +5,9 @@ using GraphMakie.NetworkLayout
 using Makie.Colors
 using StaticArrays
 using Test
+using StableRNGs
+
+NetworkLayout.DEFAULT_RNG[] = StableRNG
 
 include("beziercurves_test.jl")
 
