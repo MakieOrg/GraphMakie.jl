@@ -231,6 +231,7 @@ function Makie.plot!(gp::GraphPlot)
     to_angle = @lift (path, p0, t) -> begin
         # TODO: maybe shorter tangent? For some perspectives this might give wrong angles in 3d
         p1 = p0 + tangent(path, t)
+        any(isnan, p1) && return 0.0  # lines with zero lengths might lead to NaN tangents
         tpx = $to_px(p1) - $to_px(p0)
         atan(tpx[2], tpx[1])
     end
