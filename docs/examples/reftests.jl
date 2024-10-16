@@ -126,12 +126,13 @@ graphplot(fig[1,2],
           )
 hidedecorations!(current_axis())
 
-graphplot(fig[2,1],
+graphplot(fig[2,1], layout=Stress(),
           DiGraph([Edge(1 => 2), Edge(2 => 3), Edge(3=>4), Edge(4=>1)]),
           edge_attr = (; linestyle = Linestyle([0.5, 1.0, 1.5, 2.5])),
           edge_plottype = :beziersegments,
           )
 hidedecorations!(current_axis())
+fig
 @save_reference fig
 
 # ## Self loop with waypoints

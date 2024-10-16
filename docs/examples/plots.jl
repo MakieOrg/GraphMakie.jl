@@ -82,7 +82,7 @@ hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()
 # This is not very nice, lets change the offsets based on the `node_positions`
 
 offsets = 0.15 * (p[:node_pos][] .- p[:node_pos][][1])
-offsets[1] = Point2f(0, 0.3)
+offsets[1] = Point2f(0.1, 0.3)
 p.nlabels_offset[] = offsets
 autolimits!(ax)
 @save_reference f #hide
@@ -98,10 +98,10 @@ f, ax, p = graphplot(g;
 xlims!(ax, (-1.5, 1.3))
 ylims!(ax, (-2.3, 0.7))
 hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()
-f #hide
+@save_reference f #hide
 
 # ## Adding Edge Labels
-g = barabasi_albert(6, 2; seed=42)
+g = barabasi_albert(6, 2; rng=StableRNGs.StableRNG(1))
 
 labels =  repr.(1:ne(g))
 
@@ -109,7 +109,7 @@ f, ax, p = graphplot(g, elabels=labels,
                      elabels_color=[:black for i in 1:ne(g)],
                      edge_color=[:black for i in 1:ne(g)])
 hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()
-@save_reference f #hide
+f #hide
 
 #=
 The position of the edge labels is determined by several plot arguments.
@@ -118,7 +118,7 @@ All possible arguments are described in the docs of the [`graphplot`](@ref) func
 By default, each label is placed in the middle of the edge and rotated to match the edge rotation.
 The rotation for each label can be overwritten with the `elabels_rotation` argument.
 =#
-p.elabels_rotation[] = Dict(i => i == 5 ? 0.0 : Makie.automatic for i in 1:ne(g))
+p.elabels_rotation[] = Dict(i => i == 2 ? 0.0 : Makie.automatic for i in 1:ne(g))
 nothing #hide
 
 #=
@@ -126,7 +126,7 @@ One can shift the label along the edge with the `elabels_shift` argument and det
 in pixels using the `elabels_distance` argument.
 =#
 
-p.elabels_side[] = Dict(i => :right for i in [1,2,8,6])
+p.elabels_side[] = Dict(i => :right for i in [6,7])
 p.elabels_offset[] = [Point2f(0.0, 0.0) for i in 1:ne(g)]
 p.elabels_offset[][5] = Point2f(-0.4,0)
 p.elabels_offset[] = p.elabels_offset[]
@@ -181,7 +181,7 @@ hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()
 
 # It is possible to change the appearance using the `selfedge_` attributes:
 p.selfedge_size = Dict(1=>Makie.automatic, 4=>3.6, 6=>0.5) #idx as in edges(g)
-p.selfedge_direction = Point2f(0.3, 1)
+p.selfedge_direction = Point2f(-0.25, -0.3)
 p.selfedge_width = Any[Makie.automatic for i in 1:ne(g)]
 p.selfedge_width[][4] = 0.6*π; notify(p.selfedge_width)
 autolimits!(ax)
@@ -218,7 +218,7 @@ It is also possible to specify the distance on a per edge base:
 g = complete_digraph(3)
 distances = collect(0.05:0.05:ne(g)*0.05)
 elabels = "d = ".* repr.(round.(distances, digits=2))
-f, ax, p = graphplot(g; curve_distance=distances, elabels, arrow_size=20)
+f, ax, p = graphplot(g; curve_distance=distances, elabels, arrow_size=20, elabels_distance=15)
 hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()
 @save_reference f #hide
 
@@ -307,12 +307,8 @@ experimental. Feel free to file an issue if there are any problems.
 =#
 set_theme!(size=(800, 800)) #hide
 g = smallgraph(:cubical)
-elabels_shift = [0.5 for i in 1:ne(g)]
-elabels_shift[[2,7,8,9]] .= 0.3
-elabels_shift[10] = 0.25
 f, ax, p = graphplot(g; layout=Spring(dim=3, seed=5),
     elabels="Edge ".*repr.(1:ne(g)),
-    elabels_shift,
     arrow_show=true,
     arrow_shift=0.9,
     arrow_size=15)

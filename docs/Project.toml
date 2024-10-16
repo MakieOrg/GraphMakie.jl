@@ -1,3 +1,5 @@
+name = "GraphMakie docs"
+
 [deps]
 CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
 Cbc = "9961bab8-2fa3-5c5a-9d89-47fab24efd76"
@@ -32,7 +34,7 @@ Literate = "2"
 MLJ = "0.20"
 Makie = "0.21"
 NetworkDynamics = "0.8.3"
-NetworkLayout = "0.4"
+NetworkLayout = "0.4.7"
 OrdinaryDiffEq = "6"
 RegistryInstances = "0.1"
 WGLMakie = "0.10"
