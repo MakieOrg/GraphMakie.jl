@@ -9,6 +9,7 @@ CairoMakie.activate!(type="png") # hide
 set_theme!(size=(800, 400)) #hide
 using GraphMakie
 using Graphs
+using StableRNGs
 
 g = wheel_graph(10)
 f, ax, p = graphplot(g)
