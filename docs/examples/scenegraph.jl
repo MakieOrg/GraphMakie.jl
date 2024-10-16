@@ -64,7 +64,7 @@ end
 ## This is a utility function for the label, to avoid
 ## the cruft that comes from excessive type printing.
 label_str(::Scene) = "Scene"
-label_str(::Makie.Combined{F, T}) where {F, T} = string(F) # get only the plot func, not the argument type
+label_str(::Plot{F}) where {F} = string(F) # get only the plot func, not the argument type
 nothing #hide
 
 
