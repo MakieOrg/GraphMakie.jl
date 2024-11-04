@@ -27,7 +27,7 @@ underlying graph and therefore changing the number of Edges/Nodes.
 
 ## Attributes
 ### Main attributes
-- `layout=Spring()`: function `AbstractGraph->Vector{Point}` or `Vector{Point}` determines the base layout
+- `layout=Spring()`: function `AbstractGraph->Vector{Point}` or `Vector{Point}` that determines the base layout.  Can also be any network layout from [NetworkLayout.jl](https://https://github.com/JuliaGraphs/NetworkLayout.jl), like `Spring`, `Stress`, `Spectral`, etc.
 - `node_color=automatic`:
   Defaults to `scatter_theme.color` in absence of `ilabels`.
 - `node_size=automatic`:
