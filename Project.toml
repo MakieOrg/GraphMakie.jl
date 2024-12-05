@@ -16,7 +16,7 @@ StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 
 [compat]
 DataStructures = "0.17, 0.18"
-GeometryBasics = "0.4"
+GeometryBasics = "0.4, 0.5"
 Graphs = "1.4"
 Makie = "0.21"
 NetworkLayout = "0.4.7"
