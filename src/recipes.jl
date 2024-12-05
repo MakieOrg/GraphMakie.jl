@@ -251,7 +251,8 @@ function Makie.plot!(gp::GraphPlot)
             fontsize=gp.ilabels_fontsize,
             gp.ilabels_attr...)
 
-        translate!(ilabels_plot, 0, 0, 1)
+        # only shift very litte to mess less with 3d plots
+        translate!(ilabels_plot, 0f32, 0f32, nextfloat(0f32))
 
         node_size_m = lift(ilabels_plot.plots[1][1], gp.ilabels_fontsize, gp.node_size) do glyphcollections, ilabels_fontsize, node_size
             map(enumerate(glyphcollections)) do (i, gc)
