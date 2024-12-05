@@ -313,3 +313,8 @@ hidedecorations!(ax)
 # update `Observable`
 ec[] = Dict(Edge(7,2)=> :green)
 @save_reference fig
+
+# test 3d plots with i-labels
+g = complete_graph(4)
+fig,ax,p = graphplot(g; ilabels=["a", "b", "c", "d"], layout=NetworkLayout.Stress(dim=3))
+@save_reference fig
