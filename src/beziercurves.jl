@@ -1,4 +1,5 @@
 using GeometryBasics
+using GeometryBasics: AbstractPoint
 using StaticArrays
 using LinearAlgebra: normalize, ⋅
 using PolynomialRoots
