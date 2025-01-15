@@ -7,7 +7,7 @@
 
 Plotting graphs¹... with [Makie](https://github.com/MakieOrg/Makie.jl)!
 
-This package is just a plotting recipe, you still need to use one of the Makie backends.
+This package is just a plotting recipe; you still need to use one of the Makie backends. `GraphMakie.jl` uses graph datatypes from [`Graphs.jl`](https://github.com/JuliaGraphs/Graphs.jl) and layout algorithms from [`NetworkLayout.jl`](https://github.com/JuliaGraphs/NetworkLayout.jl). Check out [our docs](http://graph.makie.org/stable) for detailed information on how to use this package.
 
 ## Installation
 ``` julia
