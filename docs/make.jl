@@ -1,4 +1,3 @@
-using Pkg; Pkg.instantiate()
 using GraphMakie
 using Documenter
 using Literate
