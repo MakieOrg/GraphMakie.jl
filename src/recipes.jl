@@ -824,6 +824,7 @@ function Makie.preferred_axis_type(plot::Plot{GraphMakie.graphplot})
     Axis
 end
 
+_dimensionality(obs::Observable, g) = _dimensionality(obs[], g)
 _dimensionality(layout::AbstractLayout, _) = dim(layout)
 _dimensionality(layout::AbstractArray, _) = length(first(layout))
 _dimensionality(layout, g) = length(first(layout(g)))
