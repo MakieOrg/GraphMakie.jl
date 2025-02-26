@@ -1,7 +1,7 @@
 name = "GraphMakie"
 uuid = "1ecd5474-83a3-4783-bb4f-06765db800d2"
 authors = ["Simon Danisch", "Hans Würfel"]
-version = "0.5.13"
+version = "0.5.14"
 
 [deps]
 DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
