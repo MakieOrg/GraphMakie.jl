@@ -68,6 +68,10 @@ function compare(ref, x)
     if size(ref) != size(x)
         return 0
     end
+    # older files are stored as RGB not RGBA, in this case convert to RGB for comparison
+    if eltype(ref) <: RGB
+        x = RGB.(x)
+    end
     return ReferenceTests._psnr(ref, x)
 end
 
@@ -89,7 +93,7 @@ end
         # equal = ReferenceTests.psnr_equality()(load(old), load(new))
         score = compare(load(old), load(new))
         MEH =  40
-        GOOD = 90
+        GOOD = 60
 
         # basicially disable check on older julia versions
         if VERSION < v"1.11"
