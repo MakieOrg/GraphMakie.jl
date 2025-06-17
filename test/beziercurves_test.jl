@@ -21,9 +21,6 @@ using GraphMakie: BezierPath, MoveTo, LineTo, CurveTo, interpolate, discretize, 
     pos = map(t->interpolate(path,t), ts)
     tan = map(t->tangent(path,t), ts)
 
-    scatter!(pos)
-    arrows!(pos, tan; lengthscale=0.1)
-
     path = BezierPath([
         MoveTo(Point3f(0,0,0)),
         LineTo(Point3f(1,0,0)),
@@ -34,7 +31,6 @@ using GraphMakie: BezierPath, MoveTo, LineTo, CurveTo, interpolate, discretize, 
     pos = map(t->interpolate(path,t), ts)
     tan = map(t->tangent(path,t), ts)
     fig, ax, p = scatter(pos)
-    arrows!(pos, tan; lengthscale=0.1)
 end
 
 @testset "natural spline constructor" begin

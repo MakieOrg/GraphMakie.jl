@@ -44,8 +44,25 @@ nhover = NodeHoverHandler(node_hover_action)
 register_interaction!(ax, :nhover, nhover)
 
 function set_cursor!(p) #hide
-    direction = Point2f(-0.1, 0.2) #hide
-    arrows!([p-direction], [direction], linewidth=3, arrowsize=20, lengthscale=0.7) #hide
+    θ = π/8  # rotation angle #hide
+    R = Float32[cos(θ) -sin(θ); sin(θ) cos(θ)] #hide
+    scale = 3 #hide
+    full_height = 0.8 #hide
+    head_height = 0.6 #hide
+    inner_height = 0.5 #hide
+    head_width = 0.6 #hide
+    tail_width = 0.15 #hide
+    arrow = scale * Point2f.([ #hide
+        ( 0.0, 0.0), #hide
+        (-head_width/2, -head_height),  #hide
+        (-tail_width/2, -inner_height), #hide
+        (-tail_width/2, -full_height),  #hide
+        ( tail_width/2, -full_height),  #hide
+        ( tail_width/2, -inner_height), #hide
+        ( head_width/2, -head_height),  #hide
+    ]) #hide
+    rotated_arrow = Makie.Polygon([Point2f(R * Vec(p)) for p in arrow]) #hide
+    scatter!(p; marker=rotated_arrow, color=:black, strokecolor=:white, strokewidth=1) #hide
 end #hide
 nodepos = copy(p[:node_pos][]) #hide
 set_cursor!(nodepos[5] + Point2f(0.05, 0)) #hide
