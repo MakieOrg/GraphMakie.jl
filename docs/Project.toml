@@ -21,7 +21,7 @@ StableRNGs = "860ef19b-820b-49d6-a774-d7a799459cd3"
 WGLMakie = "276b4fcb-3e11-5398-bf8b-a0c2d153d008"
 
 [compat]
-CairoMakie = "0.14"
+CairoMakie = "0.14, 0.15"
 Cbc = "1"
 DataStructures = "0.18"
 DecisionTree = "0.12"
