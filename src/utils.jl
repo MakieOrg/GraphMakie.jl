@@ -58,7 +58,8 @@ If `x` wraps an AbstractVector or AbstractDict return
 the value at idx. If dict has no key idx return default.
 Else return the one and only element.
 """
-function getattr(x, idx, default=nothing)
+function getattr(computed, idx, default=nothing)
+    x = to_value(computed)
     if x isa AbstractVector && !isa(x, Point)
         return x[idx]
     elseif x isa DefaultDict || x isa DefaultOrderedDict
@@ -232,7 +233,7 @@ end
 """
     point_near_dst(edge_path, p0::PT, d, to_px) where {PT}
 
-Find point near destination node along `edge_path` a 
+Find point near destination node along `edge_path` a
 distance `d` pixels along the tangent line.
 """
 function point_near_dst(edge_path, p0::PT, d, to_px) where {PT}
