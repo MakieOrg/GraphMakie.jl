@@ -45,8 +45,8 @@ underlying graph and therefore changing the number of Edges/Nodes.
   Defaults to `Graphs.is_directed(graph)`.
 - `arrow_marker='➤'`
 - `arrow_size=scatter_theme.markersize`: Size of arrowheads.
-- `arrow_shift=0.5`: Shift arrow position from source (0) to dest (1) node. 
-  If `arrow_shift=:end`, the arrowhead will be placed on the surface of the destination node 
+- `arrow_shift=0.5`: Shift arrow position from source (0) to dest (1) node.
+  If `arrow_shift=:end`, the arrowhead will be placed on the surface of the destination node
   (assuming the destination node is circular).
 - `arrow_attr=(;)`: List of kw arguments which gets passed to the `scatter` command
 
@@ -93,7 +93,7 @@ the edge.
 - `edge_plottype=Makie.automatic()`: Either `automatic`, `:linesegments` or
   `:beziersegments`. `:beziersegments` are much slower for big graphs!
 
-Self edges / loops: 
+Self edges / loops:
 
 - `selfedge_size=Makie.automatic()`: Size of selfloop (dict/vector possible).
 - `selfedge_direction=Makie.automatic()`: Direction of center of the selfloop as `Point2` (dict/vector possible).
@@ -137,9 +137,9 @@ Waypoints along edges:
 
 - `waypoint_radius=nothing`
 
-    If the attribute `waypoint_radius` is `nothing` or `:spline` the waypoints will 
-    be crossed using natural cubic spline interpolation. If number (dict/vector 
-    possible), the waypoints won't be reached, instead they will be connected with 
+    If the attribute `waypoint_radius` is `nothing` or `:spline` the waypoints will
+    be crossed using natural cubic spline interpolation. If number (dict/vector
+    possible), the waypoints won't be reached, instead they will be connected with
     straight lines which bend in the given radius around the waypoints.
 """
 @recipe(GraphPlot, graph) do scene
@@ -205,12 +205,12 @@ end
 
 function Makie.plot!(gp::GraphPlot)
     graph = gp[:graph]
-    
+
     dfth = default_theme(gp.parent, GraphPlot)
 
     # create initial vertex positions, will be updated on changes to graph or layout
     # make node_position-Observable available as named attribute from the outside
-    gp[:node_pos] = @lift if $(gp.layout) isa AbstractVector
+    node_pos = @lift if $(gp.layout) isa AbstractVector
         if length($(gp.layout)) != nv($graph)
             throw(ArgumentError("The length of the layout vector does not match the number of nodes in the graph!"))
         else
@@ -219,7 +219,7 @@ function Makie.plot!(gp::GraphPlot)
     else
         [Pointf(p) for p in ($(gp.layout))($graph)]
     end
-
+    Makie.add_input!(gp.attributes, :node_pos, node_pos)
     sc = Makie.parent_scene(gp)
 
     # function which projects the point in px space
@@ -236,14 +236,13 @@ function Makie.plot!(gp::GraphPlot)
         atan(tpx[2], tpx[1])
     end
 
-    node_pos = gp[:node_pos]
 
     # plot inside labels
     scatter_theme = default_theme(sc, Scatter)
 
     if gp[:ilabels][] !== nothing
         positions = node_pos
-        
+
         ilabels_plot = text!(gp, positions;
             text=@lift(string.($(gp.ilabels))),
             align=(:center, :center),
@@ -270,19 +269,18 @@ function Makie.plot!(gp::GraphPlot)
     end
 
     node_color_m = @lift if $(gp.node_color) === automatic
-        gp.ilabels[] !== nothing ? :gray80 : scatter_theme.color[]
+        gp.ilabels[] !== nothing ? :gray80 : scatter_theme.color
     else
         $(gp.node_color)
     end
-    
     node_marker_m = @lift if $(gp.node_marker) === automatic
-        gp.ilabels[] !== nothing ? Circle : scatter_theme.marker[]
+        gp.ilabels[] !== nothing ? Circle : scatter_theme.marker
     else
         $(gp.node_marker)
     end
 
     node_strokewidth_m = @lift if $(gp.node_strokewidth) === automatic
-        gp.ilabels[] !== nothing ? 1.0 : scatter_theme.strokewidth[]
+        gp.ilabels[] !== nothing ? 1.0 : scatter_theme.strokewidth
     else
         $(gp.node_strokewidth)
     end
@@ -311,14 +309,14 @@ function Makie.plot!(gp::GraphPlot)
     end
 
     # update edge paths to line up with arrow heads if arrow_shift = :end
-    edge_paths = gp[:edge_paths] = @lift map($init_edge_paths, $arrow_pos, eachindex($arrow_pos)) do ep, ap, i
+    edge_paths = @lift map($init_edge_paths, $arrow_pos, eachindex($arrow_pos)) do ep, ap, i
         if getattr($(gp.arrow_shift), i) == :end
             adjust_endpoint(ep, ap)
         else
             ep
         end
     end
-
+    Makie.add_input!(gp.attributes, :edge_paths, edge_paths)
     # actually plot edges
     edge_plot = gp[:edge_plot] = edgeplot!(gp, edge_paths;
         plottype=gp[:edge_plottype][],
@@ -466,12 +464,14 @@ this returns either arbitrary bezier curves or just lines.
 """
 function find_edge_paths(g, attr, pos::AbstractVector{PT}) where {PT}
     paths = Vector{AbstractPath{PT}}(undef, ne(g))
-
+    _tangents = attr.tangents
+    _tfactor = attr.tfactor
+    _waypoints = attr.waypoints
     for (i, e) in enumerate(edges(g))
         p1, p2 = pos[src(e)], pos[dst(e)]
-        tangents = getattr(attr.tangents, i)
-        tfactor = getattr(attr.tfactor, i)
-        waypoints::Vector{PT} = getattr(attr.waypoints, i, PT[])
+        tangents = getattr(_tangents, i)
+        tfactor = getattr(_tfactor, i)
+        waypoints::Vector{PT} = getattr(_waypoints, i, PT[])
         if !isnothing(waypoints) && !isempty(waypoints) #remove p1 and p2 from waypoints if these are given
             waypoints[begin] == p1 && popfirst!(waypoints)
             waypoints[end] == p2 && pop!(waypoints)
@@ -540,17 +540,17 @@ function find_edge_paths(g, attr, pos::AbstractVector{PT}) where {PT}
         T = isempty(paths) ? Line{PT} : mapreduce(typeof, promote_type, paths)
 
         if T <: Line
-            attr[:edge_plottype][] = :linesegments
+            attr[:edge_plottype] = :linesegments
             return convert(Vector{T}, paths)
         elseif ne(g) > 500
-            attr[:edge_plottype][] = :linesegments
+            attr[:edge_plottype] = :linesegments
             @warn "Since there are a lot of edges ($(ne(g)) > 500), they will be drawn as straight lines "*
                 "even though they contain curvy edges. If you really want to plot them as "*
                 "bezier curves pass `edge_plottype=:beziersegments` explicitly. This will have "*
                 "much worse performance!"
             return straighten.(paths)
         else
-            attr[:edge_plottype][] = :beziersegments
+            attr[:edge_plottype] = :beziersegments
             return paths
         end
     else
