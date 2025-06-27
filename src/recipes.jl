@@ -270,9 +270,17 @@ function Makie.plot!(gp::GraphPlot)
     end
 
     node_color_m = @lift if $(gp.node_color) === automatic
-        gp.ilabels[] !== nothing ? :gray80 : to_value(scatter_theme.color)
+        if gp.ilabels[] !== nothing 
+            colorant"gray80"
+        else
+            # Ensure we always return a color type, not a symbol
+            default_color = to_value(scatter_theme.color)
+            default_color isa Symbol ? colorant"black" : default_color
+        end
     else
-        $(gp.node_color)
+        # Ensure user-provided values are also color types when they're symbols
+        user_color = $(gp.node_color)
+        user_color isa Symbol ? parse(Makie.Colors.Colorant, user_color) : user_color
     end
     
     node_marker_m = @lift if $(gp.node_marker) === automatic
@@ -319,7 +327,8 @@ function Makie.plot!(gp::GraphPlot)
     # Convert arrow_rot to ComputeGraph
     map!(gp.attributes, [:init_edge_paths, :arrow_pos, :arrow_shift_m], :arrow_rot) do paths, pos, shift_m
         if !isempty(paths)
-            Billboard(broadcast(to_angle[], paths, pos, shift_m))
+            to_angle_val = to_angle[]  # Get current value
+            Billboard(broadcast(to_angle_val, paths, pos, shift_m))
         else
             Billboard(Float32[])
         end
@@ -339,13 +348,12 @@ function Makie.plot!(gp::GraphPlot)
     edge_paths = gp.attributes[:edge_paths]
 
     # actually plot edges
-    # Convert ComputeGraph values to Observables for prep_edge_attributes
-    edge_color_obs = Observable(gp.edge_color[])
-    edge_width_obs = Observable(gp.edge_width[])
-    graph_obs = Observable(graph[])
-    edge_paths_obs = Observable(edge_paths[])
+    # Create Observable wrappers that stay connected to ComputeGraph values
+    edge_color_obs = map(identity, gp.edge_color)
+    edge_width_obs = map(identity, gp.edge_width)
+    graph_obs = map(identity, graph)
     
-    edge_plot = edgeplot!(gp, edge_paths_obs;
+    edge_plot = edgeplot!(gp, edge_paths;
         plottype=gp[:edge_plottype][],
         color=prep_edge_attributes(edge_color_obs, graph_obs, dfth.edge_color),
         linewidth=prep_edge_attributes(edge_width_obs, graph_obs, dfth.edge_width),
@@ -358,9 +366,9 @@ function Makie.plot!(gp::GraphPlot)
     end
     arrow_show_m = gp.attributes[:arrow_show_m]
     
-    # Convert additional attributes to Observables for prep_edge_attributes
-    arrow_marker_obs = Observable(gp.arrow_marker[])
-    arrow_size_obs = Observable(gp.arrow_size[])
+    # Create Observable wrappers for arrow attributes that stay connected  
+    arrow_marker_obs = map(identity, gp.arrow_marker)
+    arrow_size_obs = map(identity, gp.arrow_size)
     
     arrow_plot = scatter!(gp,
         arrow_pos;
@@ -375,14 +383,13 @@ function Makie.plot!(gp::GraphPlot)
 
 
     # plot vertices
-    # Convert ComputeGraph values to Observables for prep_vertex_attributes
-    node_color_obs = Observable(node_color_m[])
-    node_marker_obs = Observable(node_marker_m[])
-    node_size_obs = Observable(node_size_m[])
-    node_strokewidth_obs = Observable(node_strokewidth_m[])
-    node_pos_obs = Observable(node_pos[])
+    # Create Observable wrappers that stay connected to ComputeGraph values
+    node_color_obs = map(identity, node_color_m)
+    node_marker_obs = map(identity, node_marker_m)
+    node_size_obs = map(identity, node_size_m)
+    node_strokewidth_obs = map(identity, node_strokewidth_m)
     
-    vertex_plot = scatter!(gp, node_pos_obs;
+    vertex_plot = scatter!(gp, node_pos;
         color=prep_vertex_attributes(node_color_obs, graph_obs, Observable(scatter_theme.color)),
         marker=prep_vertex_attributes(node_marker_obs, graph_obs, Observable(scatter_theme.marker)),
         markersize=prep_vertex_attributes(node_size_obs, graph_obs, Observable(scatter_theme.markersize)),

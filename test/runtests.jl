@@ -16,12 +16,21 @@ include("beziercurves_test.jl")
     f, ax, p = graphplot(g)
     f, ax, p = graphplot(g, node_attr=(visible=false,))
     f, ax, p = graphplot(g, node_attr=(;visible=true))
+    
+    # Test initial Spring layout (should work)
+    f, ax, p = graphplot(g, layout=Spring())
+    
+    # Test initial SFDP layout (no dynamic change)
+    f, ax, p = graphplot(g, layout=SFDP())
 
+    # test layout change without graph modification first
+    p.layout = SFDP()
+    
     # try to update graph
     add_edge!(g[], 2, 4)
     g[] = g[]
     # try to update network
-    p.layout = SFDP()
+    p.layout = Spring()
 
     # update node observables
     p.node_color = :blue
@@ -33,6 +42,24 @@ include("beziercurves_test.jl")
 
     # it should be also possible to pass multiple values
     f, ax, p = graphplot(g, node_color=[rand([:blue,:red,:green]) for i in 1:nv(g[])])
+end
+
+@testset "dynamic color updates" begin
+    g = path_graph(3)
+    f, ax, p = graphplot(g)
+    
+    # Test symbol color updates
+    p.node_color = :red
+    p.node_color = :blue  
+    p.edge_color = :green
+    
+    # Test colorant color updates
+    p.node_color = colorant"purple"
+    p.node_color = colorant"orange"
+    p.edge_color = colorant"cyan"
+    
+    # Test mixed color types
+    p.node_color = RGB(1.0, 0.0, 0.0)  # Pure red
 end
 
 @testset "graph without edges" begin
