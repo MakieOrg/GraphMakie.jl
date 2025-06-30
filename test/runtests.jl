@@ -279,12 +279,14 @@ end
     p = Point2f[(0,0), (0, 1), (0,0), (1,0)]
     @test_broken display(linesegments(p; linestyle = [:dot, :dash]))
 
-    @test_throws ArgumentError graphplot(
+    ErrorType = Union{ArgumentError, GraphMakie.Makie.ComputePipeline.ResolveException{ArgumentError}}
+
+    @test_throws ErrorType graphplot(
         DiGraph([Edge(1 => 2), Edge(2 => 1)]),
         edge_attr = (; linestyle = [:dot, :dash]),
     )
 
-    @test_throws ArgumentError graphplot(
+    @test_throws ErrorType graphplot(
         DiGraph([Edge(1 => 2), Edge(2 => 3)]),
         edge_attr = (; linestyle = [:dot, :dash]),
     )

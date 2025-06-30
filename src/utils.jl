@@ -109,6 +109,48 @@ function prep_edge_attributes(oattr::Observable, ograph::Observable{<:AbstractGr
 end
 
 """
+    prep_vertex_attributes(attr, graph, default)
+
+ComputeGraph version: Prepare the vertex attributes to be forwarded to the internal recipes.
+If the attribute is a `Vector` or single value forward it as is (or the `default` value if isnothing).
+If it is an `AbstractDict` expand it to a `Vector` using `indices`.
+"""
+function prep_vertex_attributes(attr, graph, default=nothing)
+    attr_val = attr isa Makie.ComputePipeline.Computed ? attr[] : attr
+    graph_val = graph isa Makie.ComputePipeline.Computed ? graph[] : graph
+    default_val = default isa Makie.ComputePipeline.Computed ? default[] : default
+    
+    if issingleattribute(attr_val)
+        isnothing(attr_val) ? default_val : attr_val
+    elseif attr_val isa AbstractVector
+        attr_val
+    else
+        [getattr(attr_val, i, default_val) for i in vertices(graph_val)]
+    end
+end
+
+"""
+    prep_edge_attributes(attr, graph, default)
+
+ComputeGraph version: Prepare the edge attributes to be forwarded to the internal recipes.
+If the attribute is a `Vector` or single value forward it as is (or the `default` value if isnothing).
+If it is an `AbstractDict` expand it to a `Vector` using `indices`.
+"""
+function prep_edge_attributes(attr, graph, default=nothing)
+    attr_val = attr isa Makie.ComputePipeline.Computed ? attr[] : attr
+    graph_val = graph isa Makie.ComputePipeline.Computed ? graph[] : graph
+    default_val = default isa Makie.ComputePipeline.Computed ? default[] : default
+    
+    if issingleattribute(attr_val)
+        isnothing(attr_val) ? default_val : attr_val
+    elseif attr_val isa AbstractVector
+        attr_val
+    else
+        [getattr(attr_val, i, default_val) for i in getedgekeys(graph_val, attr_val)]
+    end
+end
+
+"""
     issingleattribute(x)
 
 Return `true` if `x` represents a single attribute value
