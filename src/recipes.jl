@@ -154,17 +154,17 @@ Waypoints along edges:
         node_size = automatic,
         node_marker = automatic,
         node_strokewidth = automatic,
-        node_attr = (;),
+        node_attr = Attributes(),
         # edge attributes (LineSegements)
         edge_color = lineseg_theme.color,
         edge_width = lineseg_theme.linewidth,
-        edge_attr = (;),
+        edge_attr = Attributes(),
         # arrow attributes (Scatter)
         arrow_show = automatic,
         arrow_marker = '➤',
         arrow_size = scatter_theme.markersize,
         arrow_shift = 0.5,
-        arrow_attr = (;),
+        arrow_attr = Attributes(),
         # node label attributes (Text)
         nlabels = nothing,
         nlabels_align = (:left, :bottom),
@@ -172,12 +172,12 @@ Waypoints along edges:
         nlabels_color = labels_theme.color,
         nlabels_offset = nothing,
         nlabels_fontsize = labels_theme.fontsize,
-        nlabels_attr = (;),
+        nlabels_attr = Attributes(),
         # inner node labels
         ilabels = nothing,
         ilabels_color = labels_theme.color,
         ilabels_fontsize = labels_theme.fontsize,
-        ilabels_attr = (;),
+        ilabels_attr = Attributes(),
         # edge label attributes (Text)
         elabels = nothing,
         elabels_align = (:center, :center),
@@ -188,7 +188,7 @@ Waypoints along edges:
         elabels_offset = nothing,
         elabels_color = labels_theme.color,
         elabels_fontsize = labels_theme.fontsize,
-        elabels_attr = (;),
+        elabels_attr = Attributes(),
         # self edge attributes
         edge_plottype = automatic,
         selfedge_size = automatic,
@@ -206,19 +206,29 @@ end
 function Makie.plot!(gp::GraphPlot)
     graph = gp[:graph]
     
+    # Ensure all attribute groups are Attributes objects for Makie 0.24+ compatibility
+    for attr_name in [:node_attr, :edge_attr, :arrow_attr, :nlabels_attr, :ilabels_attr, :elabels_attr]
+        if gp[attr_name][] isa NamedTuple
+            gp.attributes[attr_name] = Attributes(gp[attr_name][])
+        end
+    end
+    
     dfth = default_theme(gp.parent, GraphPlot)
 
-    # create initial vertex positions, will be updated on changes to graph or layout
-    # make node_position-Observable available as named attribute from the outside
-    gp[:node_pos] = @lift if $(gp.layout) isa AbstractVector
-        if length($(gp.layout)) != nv($graph)
-            throw(ArgumentError("The length of the layout vector does not match the number of nodes in the graph!"))
+    # create initial vertex positions using pure ComputeGraph
+    map!(gp.attributes, [:graph, :layout], :node_pos) do graph_val, layout
+        current_graph = graph_val isa Observable ? graph_val[] : graph_val
+        if layout isa AbstractVector
+            if length(layout) != nv(current_graph)
+                throw(ArgumentError("The length of the layout vector does not match the number of nodes in the graph!"))
+            else
+                Pointf.(layout)
+            end
         else
-            Pointf.($(gp.layout))
+            [Pointf(p) for p in layout(current_graph)]
         end
-    else
-        [Pointf(p) for p in ($(gp.layout))($graph)]
     end
+    node_pos = gp.attributes[:node_pos]
 
     sc = Makie.parent_scene(gp)
 
@@ -236,7 +246,6 @@ function Makie.plot!(gp::GraphPlot)
         atan(tpx[2], tpx[1])
     end
 
-    node_pos = gp[:node_pos]
 
     # plot inside labels
     scatter_theme = default_theme(sc, Scatter)
@@ -249,40 +258,74 @@ function Makie.plot!(gp::GraphPlot)
             align=(:center, :center),
             color=gp.ilabels_color,
             fontsize=gp.ilabels_fontsize,
-            gp.ilabels_attr...)
+            gp.ilabels_attr[]...)
 
         # only shift very litte to mess less with 3d plots
         translate!(ilabels_plot, 0f32, 0f32, nextfloat(0f32))
 
-        node_size_m = lift(ilabels_plot.plots[1][1], gp.ilabels_fontsize, gp.node_size) do glyphcollections, ilabels_fontsize, node_size
-            map(enumerate(glyphcollections)) do (i, gc)
-                _ns = getattr(node_size, i)
-                if _ns == automatic
-                    rect = Rect2f(Makie.unchecked_boundingbox(gc, Quaternion((1,0,0,0))))
-                    norm(rect.widths) + 0.1 * ilabels_fontsize
+        # Store the glyph collections observable directly for ComputeGraph
+        glyph_collections_obs = ilabels_plot.plots[1][1]
+        Makie.add_input!(gp.attributes, :glyph_collections, glyph_collections_obs)
+        
+        # Convert node size calculation to ComputeGraph
+        map!(gp.attributes, [:glyph_collections, :ilabels_fontsize, :node_size], :node_size_m) do glyphcollections, ifontsize, nsize
+            if isempty(glyphcollections)
+                # Fallback to automatic size if glyphcollections not ready
+                default_size = to_value(scatter_theme.markersize)
+                # Handle case where nsize might be scalar or vector
+                if nsize isa AbstractVector
+                    [getattr(nsize, i, default_size) for i in 1:length(nsize)]
                 else
-                    _ns
+                    # nsize is scalar, but we need a vector for each node - use graph to get node count
+                    node_count = nv(graph[])
+                    fill(nsize === automatic ? default_size : nsize, node_count)
+                end
+            else
+                map(enumerate(glyphcollections)) do (i, gc)
+                    _ns = getattr(nsize, i)
+                    if _ns == automatic
+                        rect = Rect2f(Makie.unchecked_boundingbox(gc, Quaternion((1,0,0,0))))
+                        norm(rect.widths) + 0.1 * ifontsize
+                    else
+                        _ns
+                    end
                 end
             end
         end
     else
-        node_size_m = @lift $(gp.node_size) === automatic ? scatter_theme.markersize[] : $(gp.node_size)
+        # Convert node size to ComputeGraph for non-ilabels case
+        map!(gp.attributes, [:node_size], :node_size_m) do nsize
+            nsize === automatic ? to_value(scatter_theme.markersize) : nsize
+        end
     end
+    node_size_m = gp.attributes[:node_size_m]
 
     node_color_m = @lift if $(gp.node_color) === automatic
-        gp.ilabels[] !== nothing ? :gray80 : scatter_theme.color[]
+        if gp.ilabels[] !== nothing 
+            colorant"gray80"
+        else
+            # Ensure we always return a color type, not a symbol
+            default_color = to_value(scatter_theme.color)
+            default_color isa Symbol ? colorant"black" : default_color
+        end
     else
-        $(gp.node_color)
+        # Ensure user-provided values are also color types when they're symbols
+        user_color = $(gp.node_color)
+        user_color isa Symbol ? parse(Makie.Colors.Colorant, user_color) : user_color
     end
     
-    node_marker_m = @lift if $(gp.node_marker) === automatic
-        gp.ilabels[] !== nothing ? Circle : scatter_theme.marker[]
-    else
-        $(gp.node_marker)
+    # Convert node_marker_m to ComputeGraph
+    map!(gp.attributes, [:node_marker, :ilabels], :node_marker_m) do nmarker, ilabels_val
+        if nmarker === automatic
+            ilabels_val !== nothing ? Circle : to_value(scatter_theme.marker)
+        else
+            nmarker
+        end
     end
+    node_marker_m = gp.attributes[:node_marker_m]
 
     node_strokewidth_m = @lift if $(gp.node_strokewidth) === automatic
-        gp.ilabels[] !== nothing ? 1.0 : scatter_theme.strokewidth[]
+        gp.ilabels[] !== nothing ? 1.0 : to_value(scatter_theme.strokewidth)
     else
         $(gp.node_strokewidth)
     end
@@ -290,63 +333,95 @@ function Makie.plot!(gp::GraphPlot)
     # compute initial edge paths; will be adjusted later if arrow_shift = :end
     # create array of pathes triggered by node_pos changes
     # in case of a graph change the node_position will change anyway
-    init_edge_paths = lift(node_pos, gp.selfedge_size,
-                      gp.selfedge_direction, gp.selfedge_width, gp.curve_distance_usage, gp.curve_distance) do pos, s, d, w, cdu, cd
-        find_edge_paths(graph[], gp.attributes, pos)
+    map!(gp.attributes, [:node_pos, :selfedge_size, :selfedge_direction, :selfedge_width, :curve_distance_usage, :curve_distance], :init_edge_paths) do pos, s, d, w, cdu, cd
+        find_edge_paths(graph[], gp, pos)
     end
+    init_edge_paths = gp.attributes[:init_edge_paths]
 
     # plot arrow heads
-    arrow_shift_m = lift(init_edge_paths, to_px, gp.arrow_shift, node_marker_m, node_size_m, gp.arrow_size) do paths, tpx, shift, nmarker, nsize, asize
-        update_arrow_shift(graph[], gp, paths, tpx, node_marker_m, node_size_m, shift)
+    # Use map! to compute arrow shift with ComputeGraph system - include all dependencies
+    map!(gp.attributes, [:init_edge_paths, :arrow_shift, :arrow_size, :node_marker_m, :node_size_m, :arrow_marker, :node_pos], :arrow_shift_m) do paths, shift, asize, nmarker, nsize, amarker, npos
+        # Get current values from remaining observables 
+        tpx = to_px[]
+        update_arrow_shift(graph[], paths, tpx, nmarker, nsize, shift, amarker, asize, npos)
     end
-    arrow_pos = @lift if !isempty(init_edge_paths[])
-        broadcast(interpolate, init_edge_paths[], $arrow_shift_m)
-    else # if no edges return (empty) vector of points, broadcast yields Vector{Any} which can't be plotted
-        Vector{eltype(node_pos[])}()
-    end
-    arrow_rot = @lift if !isempty(init_edge_paths[])
-        Billboard(broadcast($to_angle, init_edge_paths[], $arrow_pos, $(arrow_shift_m)))
-    else
-        Billboard(Float32[])
-    end
-
-    # update edge paths to line up with arrow heads if arrow_shift = :end
-    edge_paths = gp[:edge_paths] = @lift map($init_edge_paths, $arrow_pos, eachindex($arrow_pos)) do ep, ap, i
-        if getattr($(gp.arrow_shift), i) == :end
-            adjust_endpoint(ep, ap)
-        else
-            ep
+    arrow_shift_m = gp.attributes[:arrow_shift_m]
+    
+    # Convert arrow_pos to ComputeGraph 
+    map!(gp.attributes, [:init_edge_paths, :arrow_shift_m], :arrow_pos) do paths, shift_m
+        if !isempty(paths)
+            broadcast(interpolate, paths, shift_m)
+        else # if no edges return (empty) vector of points, broadcast yields Vector{Any} which can't be plotted
+            Vector{eltype(node_pos[])}()
         end
     end
+    arrow_pos = gp.attributes[:arrow_pos]
+    
+    # Convert arrow_rot to ComputeGraph
+    map!(gp.attributes, [:init_edge_paths, :arrow_pos, :arrow_shift_m], :arrow_rot) do paths, pos, shift_m
+        if !isempty(paths)
+            to_angle_val = to_angle[]  # Get current value
+            Billboard(broadcast(to_angle_val, paths, pos, shift_m))
+        else
+            Billboard(Float32[])
+        end
+    end
+    arrow_rot = gp.attributes[:arrow_rot]
+
+    # update edge paths to line up with arrow heads if arrow_shift = :end
+    map!(gp.attributes, [:init_edge_paths, :arrow_pos, :arrow_shift], :edge_paths) do init_paths, ap, arrow_shift
+        map(init_paths, ap, eachindex(ap)) do ep, ap_i, i
+            if getattr(arrow_shift, i) == :end
+                adjust_endpoint(ep, ap_i)
+            else
+                ep
+            end
+        end
+    end
+    edge_paths = gp.attributes[:edge_paths]
 
     # actually plot edges
-    edge_plot = gp[:edge_plot] = edgeplot!(gp, edge_paths;
+    # Use ComputeGraph values directly instead of Observable wrappers
+    edge_plot = edgeplot!(gp, edge_paths;
         plottype=gp[:edge_plottype][],
-        color=prep_edge_attributes(gp.edge_color, graph, dfth.edge_color),
-        linewidth=prep_edge_attributes(gp.edge_width, graph, dfth.edge_width),
-        gp.edge_attr...)
+        color=gp.edge_color,
+        linewidth=gp.edge_width,
+        gp.edge_attr[]...)
+    
+    # Store edge_plot as ComputeGraph output
+    Makie.add_input!(gp.attributes, :edge_plot, Observable(edge_plot))
 
     # arrow plots
-    arrow_show_m = @lift $(gp.arrow_show) === automatic ? Graphs.is_directed($graph) : $(gp.arrow_show)
-    arrow_plot = gp[:arrow_plot] = scatter!(gp,
+    # Convert arrow_show to ComputeGraph
+    map!(gp.attributes, [:arrow_show], :arrow_show_m) do arrow_show
+        arrow_show === automatic ? Graphs.is_directed(graph[]) : arrow_show
+    end
+    arrow_show_m = gp.attributes[:arrow_show_m]
+    
+    arrow_plot = scatter!(gp,
         arrow_pos;
-        marker = prep_edge_attributes(gp.arrow_marker, graph, dfth.arrow_marker),
-        markersize = prep_edge_attributes(gp.arrow_size, graph, dfth.arrow_size),
-        color=prep_edge_attributes(gp.edge_color, graph, dfth.edge_color),
+        marker = gp.arrow_marker,
+        markersize = gp.arrow_size,
+        color = gp.edge_color,
         rotation = arrow_rot,
         strokewidth = 0.0,
         markerspace = :pixel,
         visible = arrow_show_m,
-        gp.arrow_attr...)
+        gp.arrow_attr[]...)
+    
+    # Store arrow_plot as ComputeGraph output
+    Makie.add_input!(gp.attributes, :arrow_plot, Observable(arrow_plot))
 
-
-    # plot vertices
-    vertex_plot = gp[:node_plot] = scatter!(gp, node_pos;
-        color=prep_vertex_attributes(node_color_m, graph, scatter_theme.color),
-        marker=prep_vertex_attributes(node_marker_m, graph, scatter_theme.marker),
-        markersize=prep_vertex_attributes(node_size_m, graph, scatter_theme.markersize),
-        strokewidth=prep_vertex_attributes(node_strokewidth_m, graph, scatter_theme.strokewidth),
-        gp.node_attr...)
+    # plot vertices - use ComputeGraph values directly
+    vertex_plot = scatter!(gp, node_pos;
+        color=node_color_m,
+        marker=node_marker_m,
+        markersize=node_size_m,
+        strokewidth=node_strokewidth_m,
+        gp.node_attr[]...)
+    
+    # Store vertex_plot as ComputeGraph output (as node_plot for compatibility)
+    Makie.add_input!(gp.attributes, :node_plot, Observable(vertex_plot))
 
     # plot node labels
     if gp.nlabels[] !== nothing
@@ -364,13 +439,16 @@ function Makie.plot!(gp::GraphPlot)
             $(gp.nlabels_distance) .* align_to_dir($(gp.nlabels_align))
         end
 
-        nlabels_plot = gp[:nlabels_plot] = text!(gp, positions;
-            text=prep_vertex_attributes(gp.nlabels, graph, Observable("")),
+        nlabels_plot = text!(gp, positions;
+            text=prep_vertex_attributes(gp.nlabels, graph, ""),
             align=prep_vertex_attributes(gp.nlabels_align, graph, dfth.nlabels_align),
             color=prep_vertex_attributes(gp.nlabels_color, graph, dfth.nlabels_color),
             offset=offset,
             fontsize=prep_vertex_attributes(gp.nlabels_fontsize, graph, dfth.nlabels_fontsize),
-            gp.nlabels_attr...)
+            gp.nlabels_attr[]...)
+        
+        # Store nlabels_plot as ComputeGraph output
+        Makie.add_input!(gp.attributes, :nlabels_plot, Observable(nlabels_plot))
     end
 
     # plot edge labels
@@ -413,14 +491,17 @@ function Makie.plot!(gp::GraphPlot)
             offsets = map(p -> Point(-p.data[2], p.data[1])/norm(p), tangent_px)
             offsets .= elabels_distance_offset(graph[], gp.attributes) .* offsets
         end
-        elabels_plot = gp[:elabels_plot] = text!(gp, positions;
-            text=prep_edge_attributes(gp.elabels, graph, Observable("")),
+        elabels_plot = text!(gp, positions;
+            text=prep_edge_attributes(gp.elabels, graph, ""),
             rotation=rotation,
             offset=offsets,
             align=prep_edge_attributes(gp.elabels_align, graph, dfth.elabels_align),
             color=prep_edge_attributes(gp.elabels_color, graph, dfth.elabels_color),
             fontsize=prep_edge_attributes(gp.elabels_fontsize, graph, dfth.elabels_fontsize),
-            gp.elabels_attr...)
+            gp.elabels_attr[]...)
+        
+        # Store elabels_plot as ComputeGraph output
+        Makie.add_input!(gp.attributes, :elabels_plot, Observable(elabels_plot))
     end
 
     return gp
@@ -469,29 +550,29 @@ function find_edge_paths(g, attr, pos::AbstractVector{PT}) where {PT}
 
     for (i, e) in enumerate(edges(g))
         p1, p2 = pos[src(e)], pos[dst(e)]
-        tangents = getattr(attr.tangents, i)
-        tfactor = getattr(attr.tfactor, i)
-        waypoints::Vector{PT} = getattr(attr.waypoints, i, PT[])
+        tangents = getattr(attr.tangents[], i)
+        tfactor = getattr(attr.tfactor[], i)
+        waypoints::Vector{PT} = getattr(attr.waypoints[], i, PT[])
         if !isnothing(waypoints) && !isempty(waypoints) #remove p1 and p2 from waypoints if these are given
             waypoints[begin] == p1 && popfirst!(waypoints)
             waypoints[end] == p2 && pop!(waypoints)
         end
 
-        cdu = getattr(attr.curve_distance_usage, i)
+        cdu = getattr(attr.curve_distance_usage[], i)
         if cdu === true
-            curve_distance = getattr(attr.curve_distance, i, 0.0)
+            curve_distance = getattr(attr.curve_distance[], i, 0.0)
         elseif cdu === false
             curve_distance = 0.0
         elseif cdu === automatic
             if is_directed(g) && has_edge(g, dst(e), src(e))
-                curve_distance = getattr(attr.curve_distance, i, 0.0)
+                curve_distance = getattr(attr.curve_distance[], i, 0.0)
             else
                 curve_distance = 0.0
             end
         end
 
         if !isnothing(waypoints) && !isempty(waypoints) #there are waypoints
-            radius = getattr(attr.waypoint_radius, i, nothing)
+            radius = getattr(attr.waypoint_radius[], i, nothing)
             if radius === nothing || radius === :spline
                 paths[i] = Path(p1, waypoints..., p2; tangents, tfactor)
             elseif radius isa Real
@@ -500,9 +581,9 @@ function find_edge_paths(g, attr, pos::AbstractVector{PT}) where {PT}
                 throw(ArgumentError("Invalid radius $radius for edge $i!"))
             end
         elseif src(e) == dst(e) # selfedge
-            size = getattr(attr.selfedge_size, i)
-            direction = getattr(attr.selfedge_direction, i)
-            width = getattr(attr.selfedge_width, i)
+            size = getattr(attr.selfedge_size[], i)
+            direction = getattr(attr.selfedge_direction[], i)
+            width = getattr(attr.selfedge_width[], i)
             paths[i] = selfedge_path(g, pos, src(e), size, direction, width)
         elseif !isnothing(tangents)
             paths[i] = Path(p1, p2; tangents, tfactor)
@@ -527,7 +608,7 @@ function find_edge_paths(g, attr, pos::AbstractVector{PT}) where {PT}
         end
     elseif plottype === automatic
         ls = try
-            first(attr.edge_attr.linestyle[])
+            first(attr.edge_attr[].linestyle[])
         catch
             nothing
         end
@@ -650,23 +731,24 @@ All attributes are passed down to the actual recipe.
 end
 
 function Makie.plot!(p::EdgePlot)
-    N = length(p[:paths][])
+    paths = p[:paths]
+    N = length(paths[])
 
-    plottype = pop!(p.attributes, :plottype)[]
-    alllines = eltype(p[:paths][]) <: Line
+    plottype = p[:plottype][]
+    alllines = eltype(paths[]) <: Line
 
     if alllines && plottype != :beziersegments
-        PT = ptype(eltype(p[:paths][]))
+        PT = ptype(eltype(paths[]))
         segs = Observable(Vector{PT}(undef, 2*N))
 
-        update_segments!(segs, p[:paths][]) # first call to initialize
-        on(p[:paths]) do paths # update if pathes change
-            update_segments!(segs, paths)
+        update_segments!(segs, paths[]) # first call to initialize
+        on(paths) do path_vals # update if pathes change
+            update_segments!(segs, path_vals)
         end
 
-        linesegments!(p, segs; p.attributes...)
+        linesegments!(p, Attributes(p), segs)
     elseif plottype != :linesegments
-        beziersegments!(p, p[:paths]; p.attributes...)
+        beziersegments!(p,  Attributes(p), paths)
     else
         error("Impossible combination of plottype=$plottype and alllines=$alllines.")
     end
@@ -699,12 +781,19 @@ will see the i-th attribute.
 TODO: Beziersegments plot won't work if the number of pathes changes.
 """
 @recipe(BezierSegments, paths) do scene
-    Attributes(default_theme(scene, LineSegments)...)
+    Attributes(
+        color = :black,
+        linewidth = 1.0,
+        linestyle = nothing,
+        colormap = :viridis,
+        colorrange = Makie.automatic
+    )
 end
 
 function Makie.plot!(p::BezierSegments)
-    N = length(p[:paths][])
-    PT = ptype(eltype(p[:paths][]))
+    paths = p[:paths]
+    N = length(paths[])
+    PT = ptype(eltype(paths[]))
     attr = p.attributes
 
     if N == 0 # no edges, still need to plot some atomic element otherwise recipe does not work
@@ -718,7 +807,8 @@ function Makie.plot!(p::BezierSegments)
         colorrange = get(attr, :colorrange, nothing) |> to_value
 
         if colorrange === Makie.automatic
-            attr[:colorrange] = extrema(numbers)
+            # colorrange is already defined in recipe, just update its computation
+            # This will be handled by Makie's automatic colorrange logic
         end
     end
 
@@ -726,33 +816,50 @@ function Makie.plot!(p::BezierSegments)
     # this is needed so the `lines!` subplots will update
     disc = [Observable{Vector{PT}}() for i in 1:N]
 
-    update_discretized!(disc, p[:paths][]) # first call to initialize
-    on(p[:paths]) do paths # update if pathes change
-        update_discretized!(disc, paths)
+    update_discretized!(disc, paths[]) # first call to initialize
+    on(paths) do path_vals # update if pathes change
+        update_discretized!(disc, path_vals)
     end
 
     # plot all the lines
     for i in 1:N
         # each subplot will pick its specic arguments if there are vectors
-        specific_attr = Attributes()
-
-        for (k, v) in attr
-            if k === :color && v[] isa AbstractVector{<:Number} && length(v[]) == N
-                colormap = attr[:colormap][] |> to_colormap
-                colorrange = attr[:colorrange][]
-                specific_attr[k] = @lift Makie.interpolated_getindex(colormap,
-                                                                     Float64($v[i]),
-                                                                     colorrange)
-            elseif k === :linestyle && v[] isa AbstractVector && first(v[]) isa Number
-                # linestyle may be vector of numbers to specify pattern, in that case don't split
-                specific_attr[k] = v
-            elseif v[] isa AbstractVector && length(v[]) == N
-                specific_attr[k] = @lift $v[i]
+        # Handle color specially for numeric arrays
+        color_attr = if attr[:color][] isa AbstractVector{<:Number} && length(attr[:color][]) == N
+            colormap = attr[:colormap][] |> to_colormap
+            colorrange = to_value(attr[:colorrange])
+            numbers = attr[:color][]
+            # Handle automatic colorrange
+            if colorrange === Makie.automatic
+                cmin, cmax = extrema(numbers)
             else
-                specific_attr[k] = v
+                cmin, cmax = colorrange
             end
+            # Normalize to [0, 1] range and convert to colormap index
+            normalized_val = (numbers[i] - cmin) / (cmax - cmin)
+            idx = round(Int, clamp(normalized_val, 0.0, 1.0) * (length(colormap) - 1)) + 1
+            colormap[idx]
+        elseif attr[:color][] isa AbstractVector && length(attr[:color][]) == N
+            @lift $(attr[:color])[i]
+        else
+            attr[:color]
         end
-        lines!(p, disc[i]; specific_attr...)
+        
+        # Handle linewidth
+        linewidth_attr = if attr[:linewidth][] isa AbstractVector && length(attr[:linewidth][]) == N
+            @lift $(attr[:linewidth])[i]
+        else
+            attr[:linewidth]
+        end
+        
+        # Handle linestyle 
+        linestyle_attr = if attr[:linestyle][] isa AbstractVector && length(attr[:linestyle][]) == N && !(first(attr[:linestyle][]) isa Number)
+            @lift $(attr[:linestyle])[i]
+        else
+            attr[:linestyle]
+        end
+
+        lines!(p, disc[i]; color=color_attr, linewidth=linewidth_attr, linestyle=linestyle_attr)
     end
 
     return p
@@ -770,18 +877,18 @@ end
 Checks `arrow_shift` attr so that `arrow_shift = :end` gets transformed so that the arrowhead for that edge
 lands on the surface of the destination node.
 """
-function update_arrow_shift(g, gp, edge_paths::Vector{<:AbstractPath{PT}}, to_px, node_markers, node_sizes, shift) where {PT}
+function update_arrow_shift(g, edge_paths::Vector{<:AbstractPath{PT}}, to_px, node_markers, node_sizes, shift, arrow_markers, arrow_sizes, node_pos) where {PT}
     arrow_shift = Vector{Float32}(undef, ne(g))
 
     for (i,e) in enumerate(edges(g))
         t = getattr(shift, i, 0.5)
         if t === :end
             j = dst(e)
-            p0 = getattr(gp.node_pos, j)
+            p0 = getattr(node_pos, j)
             node_marker = getattr(node_markers, j)
             node_size = getattr(node_sizes, j)
-            arrow_marker = getattr(gp.arrow_marker, i)
-            arrow_size = getattr(gp.arrow_size, i)
+            arrow_marker = getattr(arrow_markers, i)
+            arrow_size = getattr(arrow_sizes, i)
             d = distance_between_markers(node_marker, node_size, arrow_marker, arrow_size)
             p1 = point_near_dst(edge_paths[i], p0, d, to_px)
             t = inverse_interpolate(edge_paths[i], p1)

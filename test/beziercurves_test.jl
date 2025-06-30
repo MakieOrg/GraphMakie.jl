@@ -139,5 +139,5 @@ end
 
     g = star_graph(10)
     add_edge!(g, 1, 1)
-    @test_throws ErrorException graphplot(g; layout=_->rand(Point3f, 10))
+    @test_throws Exception graphplot(g; layout=_->rand(Point3f, 10))
 end

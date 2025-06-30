@@ -4,6 +4,7 @@ authors = ["Simon Danisch", "Hans Würfel"]
 version = "0.5.15"
 
 [deps]
+CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
 DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
 GeometryBasics = "5c1252a2-5f33-56bf-86c9-59e7332b4326"
 Graphs = "86223c79-3864-5bf0-83f7-82e725a168b6"
@@ -15,13 +16,13 @@ SimpleTraits = "699a6c99-e7fa-54fc-8d76-47d257e15c1d"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 
 [compat]
-CairoMakie = "0.14"
+CairoMakie = "0.14, 0.15"
 DataStructures = "0.17, 0.18"
 FileIO = "1"
 GeometryBasics = "0.5"
 Graphs = "1.4"
 Literate = "2"
-Makie = "0.23"
+Makie = "0.23, 0.24"
 NetworkLayout = "0.4.9"
 PolynomialRoots = "1"
 ReferenceTests = "0.10"
