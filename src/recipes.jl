@@ -259,12 +259,12 @@ function Makie.plot!(gp::GraphPlot)
         # only shift very litte to mess less with 3d plots
         translate!(ilabels_plot, 0f32, 0f32, nextfloat(0f32))
 
-        map!(gp.attributes, [ilabels_plot.plots[1][1], gp.ilabels_fontsize, gp.node_size], :node_size_m) do glyphcollections, ilabels_fontsize, node_size
-            map(enumerate(glyphcollections)) do (i, gc)
+        map!(gp.attributes, [:ilabels_plot, :ilabels_fontsize, :node_size], :node_size_m) do ilp, ilabels_fontsize, node_size
+            bbs = Makie.fast_string_boundingboxes(ilp)
+            map(enumerate(bbs)) do (i, bb)
                 _ns = getattr(node_size, i)
                 if _ns == automatic
-                    rect = Rect2f(Makie.unchecked_boundingbox(gc, Quaternion((1,0,0,0))))
-                    norm(rect.widths) + 0.1 * ilabels_fontsize
+                    norm(bb.widths) + 0.1 * ilabels_fontsize
                 else
                     _ns
                 end

@@ -14,16 +14,17 @@ include("beziercurves_test.jl")
 @testset "GraphMakie.jl" begin
     g = Observable(wheel_digraph(10))
     f, ax, p = graphplot(g)
-    f, ax, p = graphplot(g, node_attr=Attributes(visible=false))
-    f, ax, p = graphplot(g, node_attr=(;visible=true))
+    vis = Observable(false)
+    f, ax, p = graphplot(g, node_attr=(;visible=vis))
 
     # try to update graph
     add_edge!(g[], 2, 4)
     g[] = g[]
     # try to update network
-    p.layout = SFDP()
+    p.layout = Stress()
 
     # update node observables
+    vis[] = true
     p.node_color = :blue
     p.node_size = 30
 
