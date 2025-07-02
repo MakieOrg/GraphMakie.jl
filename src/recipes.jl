@@ -420,7 +420,7 @@ function Makie.plot!(gp::GraphPlot)
             end
         end
 
-        map!(gp.attributes, [:nlabels_align, :nlabels_distance], :nlabels_offset) do align, distance
+        map!(gp.attributes, [:nlabels_align, :nlabels_distance], :nlabels_offset_processed) do align, distance
             if align isa Vector
                 distance .* align_to_dir.(align)
             else
@@ -449,7 +449,7 @@ function Makie.plot!(gp::GraphPlot)
             text=gp[:nlabels_text_processed],
             align=gp[:nlabels_align_processed],
             color=gp[:nlabels_color_processed],
-            offset=gp[:nlabels_offset],
+            offset=gp[:nlabels_offset_processed],
             fontsize=gp[:nlabels_fontsize_processed],
             gp.nlabels_attr[]...)
         add_constant!(gp.attributes, :nlabels_plot, nlabels_plot) #make plotobj accessible
