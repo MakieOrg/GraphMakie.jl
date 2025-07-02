@@ -49,7 +49,7 @@ If observable wraps an AbstractVector or AbstractDict return
 the value at idx. If dict has no key idx returns default.
 Else return the one and only element.
 """
-getattr(o::Observable, idx, default=nothing) = getattr(o[], idx, default)
+getattr(o::Union{Observable,Makie.Computed}, idx, default=nothing) = getattr(o[], idx, default)
 
 """
     getattr(x, idx, default=nothing)
@@ -71,40 +71,36 @@ function getattr(x, idx, default=nothing)
 end
 
 """
-    prep_vertex_attributes(oattr::Observable, ograph::Observable{<:AbstractGraph}, odefault::Observable)
+    prep_vertex_attributes(attr, graph::AbstractGraph, default_value)
 
 Prepare the vertex attributes to be forwarded to the internal recipes.
-If the attribute is a `Vector` or single value forward it as is (or the `odefault` value if isnothing).
-If it is an `AbstractDict` expand it to a `Vector` using `indices`.
+If the attribute is a `Vector` or single value forward it as is (or the `default_value` if isnothing).
+If it is an `AbstractDict` expand it to a `Vector` using vertex indices.
 """
-function prep_vertex_attributes(oattr::Observable, ograph::Observable{<:AbstractGraph}, odefault::Observable=Observable(nothing))
-    @lift begin
-        if issingleattribute($oattr)
-            isnothing($oattr) ? $odefault : $oattr
-        elseif $oattr isa AbstractVector
-            $oattr
-        else
-            [getattr($oattr, i, $odefault) for i in vertices($ograph)]
-        end
+function prep_vertex_attributes(attr, graph::AbstractGraph, default_value=nothing)
+    if issingleattribute(attr)
+        isnothing(attr) ? default_value : attr
+    elseif attr isa AbstractVector
+        attr
+    else
+        [getattr(attr, i, default_value) for i in vertices(graph)]
     end
 end
 
 """
-    prep_edge_attributes(oattr::Observable, ograph::Observable{<:AbstractGraph}, odefault::Observable)
+    prep_edge_attributes(attr, graph::AbstractGraph, default_value)
 
 Prepare the edge attributes to be forwarded to the internal recipes.
-If the attribute is a `Vector` or single value forward it as is (or the `odefault` value if isnothing).
-If it is an `AbstractDict` expand it to a `Vector` using `indices`.
+If the attribute is a `Vector` or single value forward it as is (or the `default_value` if isnothing).
+If it is an `AbstractDict` expand it to a `Vector` using edge indices.
 """
-function prep_edge_attributes(oattr::Observable, ograph::Observable{<:AbstractGraph}, odefault::Observable=Observable(nothing))
-    @lift begin
-        if issingleattribute($oattr)
-            isnothing($oattr) ? $odefault : $oattr
-        elseif $oattr isa AbstractVector
-            $oattr
-        else
-            [getattr($oattr, i, $odefault) for i in getedgekeys($ograph, $oattr)]
-        end
+function prep_edge_attributes(attr, graph::AbstractGraph, default_value=nothing)
+    if issingleattribute(attr)
+        isnothing(attr) ? default_value : attr
+    elseif attr isa AbstractVector
+        attr
+    else
+        [getattr(attr, i, default_value) for i in getedgekeys(graph, attr)]
     end
 end
 
