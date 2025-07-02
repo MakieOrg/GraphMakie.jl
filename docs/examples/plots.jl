@@ -62,7 +62,7 @@ p.layout = fixed_layout; autolimits!(ax)
 ## change edge width & color
 p.edge_width = 5.0
 p.edge_color[][3] = :green;
-p.edge_color = p.edge_color[] # trigger observable
+p.edge_color[] = p.edge_color[] # trigger observable
 @save_reference f #hide
 
 #=
