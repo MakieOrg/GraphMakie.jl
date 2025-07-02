@@ -10,22 +10,16 @@ export NodeDrag, EdgeDrag
 """
     convert_selection(element, idx)
 
-`pick` returns the basic plot type. In case of `Lines` check if it is
-part of a `BezierSegments` and convert selection accordingly. In case of `LineSegments`
-check if it is part of a `EdgePlot` and convert idx.
+`pick` returns the basic plot type (i.e. the index of the LineSegment).
+Applied to an edgeplot, this function retuns the index of the edge.
 """
 convert_selection(element, idx) = (element, idx)
 function convert_selection(element::LineSegments, idx)
     if element.parent isa EdgePlot
-        return (element.parent, ceil(Int, idx / 2)) 
-    end
-    return (element, idx)
-end
-function convert_selection(element::Lines, idx)
-    if element.parent isa BezierSegments && element.parent.parent isa EdgePlot
-        bezier = element.parent
-        idx = findfirst(isequal(element), bezier.plots)
-        return (bezier.parent, idx)
+        segmentidx = ceil(Int, idx / 2)
+        ranges = element.parent[:ranges][]
+        edgeidx = findfirst(range -> segmentidx ∈ range, ranges)
+        return (element.parent, edgeidx)
     end
     return (element, idx)
 end

@@ -746,123 +746,78 @@ If `eltype(pathes) <: Line` draw using `linesegments`. If `<:AbstractPath`
 draw using bezier segments.
 All attributes are passed down to the actual recipe.
 """
-@recipe(EdgePlot, paths) do scene
-    Attributes(plottype=automatic)
+@recipe EdgePlot (paths,) begin
+    plottype=automatic
+    resolution=1000
+    Makie.documented_attributes(LineSegments)...
 end
 
 function Makie.plot!(p::EdgePlot)
-    N = length(p[:paths][])
-
     plottype = p.attributes[:plottype][]
     alllines = eltype(p[:paths][]) <: Line
 
-    if alllines && plottype != :beziersegments
-        PT = ptype(eltype(p[:paths][]))
-        segs = Observable(Vector{PT}(undef, 2*N))
+    map!(p.attributes, :paths, [:segments, :ranges]) do paths
+        PT = ptype(eltype(paths))
+        segments = NTuple{2, PT}[] 
+        ranges = UnitRange{Int}[]
+        for path in paths
+            disc = discretize(path)
 
-        update_segments!(segs, p[:paths][]) # first call to initialize
-        on(p[:paths]) do paths # update if pathes change
-            update_segments!(segs, paths)
+            pstart = length(segments) + 1
+            pstop = pstart + length(disc) - 2
+            for i in 2:length(disc)
+                push!(segments, (disc[i-1], disc[i]))
+            end
+            push!(ranges, pstart:pstop)
         end
-
-        linesegments!(p, p.attributes, segs)
-    elseif plottype != :linesegments
-        beziersegments!(p, p.attributes, p[:paths])
-    else
-        error("Impossible combination of plottype=$plottype and alllines=$alllines.")
+        (segments, ranges)
     end
+    # expand color and linewidth attributes (for curved edges with multiple segments)
+    map!(_expand_args, p.attributes, [:color, :ranges], :color_expanded)
+    map!(_expand_args, p.attributes, [:linewidth, :ranges], :linewidth_expanded)
+
+    linesegments!(p, p.attributes, p[:segments];
+        color=p[:color_expanded],
+        linewidth=p[:linewidth_expanded],
+    )
 
     return p
 end
+function _expand_args(args::AbstractVector, ranges)
+    N_pathes = length(ranges)
+    N_exp = ranges[end][end]
+    allstraight = N_pathes == N_exp
 
-function update_segments!(segs, paths)
+    if allstraight
+        if length(args) == N_pathes || length(args) == 2*N_pathes
+            return args # no expansion needed
+        else
+            throw(ArgumentError("You provided $(length(args)) arguments to the Edgeplot, but $(N_pathes) pathes."))
+        end
+    elseif length(args) != N_pathes
+        throw(ArgumentError("You provided $(length(args)) arguments to the Edgeplot, but $(N_pathes) pathes."))
+    end
+
+    expaned = similar(args, N_exp)
+    for (i, r) in enumerate(ranges)
+        expaned[r] .= args[i]
+    end
+    expaned
+end
+_expand_args(arg, ranges) = arg
+
+function get_segments(paths)
     N = length(paths)
-    if length(segs[]) != 2*N
-        resize!(segs[], 2*N)
+    PT = ptype(eltype(paths))
+    segs = Vector{PT}(undef, 2*N)
+    if length(segs) != 2*N
+        resize!(segs, 2*N)
     end
     for (i, p) in enumerate(paths)
-        segs[][2*i - 1] = interpolate(p, 0.0)
-        segs[][2*i]     = interpolate(p, 1.0)
+        segs[2*i - 1] = interpolate(p, 0.0)
+        segs[2*i]     = interpolate(p, 1.0)
     end
-    notify(segs)
-end
-
-
-"""
-    beziersegments(paths::Vector{AbstractPath})
-    beziersegments!(sc, paths::Vector{AbstractPath})
-
-Recipe to draw bezier pathes. Each path will be descritized and ploted with a
-separate `lines` plot. Scalar attributes will be used for all subplots. If you
-provide vector attributs of same length als the pathes the i-th `lines` subplot
-will see the i-th attribute.
-
-TODO: Beziersegments plot won't work if the number of pathes changes.
-"""
-@recipe(BezierSegments, paths) do scene
-    Attributes(default_theme(scene, LineSegments)...)
-end
-
-function Makie.plot!(p::BezierSegments)
-    N = length(p[:paths][])
-    PT = ptype(eltype(p[:paths][]))
-    attr = p.attributes
-
-    if N == 0 # no edges, still need to plot some atomic element otherwise recipe does not work
-        lines!(p, PT[])
-        return p
-    end
-
-    # set colorange automaticially if needed
-    if attr[:color][] isa AbstractArray{<:Number}
-        numbers = attr[:color][]
-        colorrange = get(attr, :colorrange, nothing) |> to_value
-
-        if colorrange === Makie.automatic
-            attr[:colorrange][] = extrema(numbers)
-        end
-    end
-
-    # array which holds observables for the discretized values
-    # this is needed so the `lines!` subplots will update
-    disc = [Observable{Vector{PT}}() for i in 1:N]
-
-    update_discretized!(disc, p[:paths][]) # first call to initialize
-    on(p[:paths]) do paths # update if pathes change
-        update_discretized!(disc, paths)
-    end
-
-    # plot all the lines
-    for i in 1:N
-        # each subplot will pick its specic arguments if there are vectors
-        specific_attr = Attributes()
-
-        for (k, v) in attr
-            if k === :color && v[] isa AbstractVector{<:Number} && length(v[]) == N
-                colormap = attr[:colormap][] |> to_colormap
-                colorrange = attr[:colorrange][]
-                specific_attr[k] = @lift Makie.interpolated_getindex(colormap,
-                                                                     Float64($v[i]),
-                                                                     colorrange)
-            elseif k === :linestyle && v[] isa AbstractVector && first(v[]) isa Number
-                # linestyle may be vector of numbers to specify pattern, in that case don't split
-                specific_attr[k] = v
-            elseif v[] isa AbstractVector && length(v[]) == N
-                specific_attr[k] = @lift $v[i]
-            else
-                specific_attr[k] = v
-            end
-        end
-        lines!(p, disc[i]; specific_attr[]...)
-    end
-
-    return p
-end
-
-function update_discretized!(disc, pathes)
-    for (i, p) in enumerate(pathes)
-        disc[i][] = discretize(p)
-    end
+    segs
 end
 
 """
