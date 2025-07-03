@@ -114,19 +114,19 @@ autolimits!(ax); hidedecorations!(ax); hidespines!(ax); ylims!(-5,1)
 fig = Figure()
 graphplot(fig[1,1],
           DiGraph([Edge(1 => 2), Edge(2 => 3)]),
-          edge_attr = (; linestyle = [:dot, :dash]),
+          edge_linestyle = [:dot, :dash],
           )
 hidedecorations!(current_axis())
 
 graphplot(fig[1,2],
           DiGraph([Edge(1 => 2), Edge(2 => 1)]),
-          edge_attr = (; linestyle = [:dot, :dash]),
+          edge_linestyle = [:dot, :dash],
           )
 hidedecorations!(current_axis())
 
 graphplot(fig[2,1], layout=Stress(),
           DiGraph([Edge(1 => 2), Edge(2 => 3), Edge(3=>4), Edge(4=>1)]),
-          edge_attr = (; linestyle = Linestyle([0.5, 1.0, 1.5, 2.5])),
+          edge_linestyle = Linestyle([0.5, 1.0, 1.5, 2.5]),
           )
 hidedecorations!(current_axis())
 fig
