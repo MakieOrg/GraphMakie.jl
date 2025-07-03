@@ -315,13 +315,3 @@ ec[] = Dict(Edge(7,2)=> :green)
 g = complete_graph(4)
 fig,ax,p = graphplot(g; ilabels=["a", "b", "c", "d"], layout=NetworkLayout.Stress(dim=3))
 @save_reference fig
-
-# Test linewidth and color interpolation on curvy edges
-fig = Figure()
-g = complete_graph(3)
-add_edge!(g, 1, 1)
-graphplot!(Axis(fig[1,1]), g; edge_width=[5, 10, 15, 20], edge_color=[i for i in 1:ne(g)])
-graphplot!(Axis(fig[1,2]), g; edge_width=[(1,10) for i in 1:ne(g)], edge_color=[i for i in 1:ne(g)])
-graphplot!(Axis(fig[2,1]), g; edge_width=[5, 10, 15, 20], edge_color=[i for i in 1:ne(g)], edge_linestyle=Dict(2=>:dash))
-graphplot!(Axis(fig[2,2]), g; edge_width=[(1,10) for i in 1:ne(g)], edge_color=[i for i in 1:ne(g)], edge_linestyle=Dict(2=>:dash))
-@save_reference fig

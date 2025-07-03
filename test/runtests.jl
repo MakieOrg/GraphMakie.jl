@@ -9,9 +9,11 @@ using StableRNGs
 
 NetworkLayout.DEFAULT_RNG[] = StableRNG
 
+@testset "GraphMakie.jl" begin
+
 include("beziercurves_test.jl")
 
-@testset "GraphMakie.jl" begin
+@testset "basic tests" begin
     g = Observable(wheel_digraph(10))
     f, ax, p = graphplot(g)
     vis = Observable(false)
@@ -277,3 +279,5 @@ end
 end
 
 include("referencetests.jl")
+
+end
