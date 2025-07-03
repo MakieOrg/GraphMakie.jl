@@ -316,12 +316,9 @@ f, ax, p = graphplot(g; layout=Spring(dim=3, seed=5),
 @save_reference f #hide
 
 #=
-Using [`JSServe.jl`](https://github.com/SimonDanisch/JSServe.jl) and [`WGLMakie.jl`](https://github.com/MakieOrg/Makie.jl/tree/master/WGLMakie)
+Using [`WGLMakie.jl`](https://github.com/MakieOrg/Makie.jl/tree/master/WGLMakie)
 we can also add some interactivity:
 =#
-using JSServe #md
-Page(exportable=true, offline=true) #md
-#
 using WGLMakie #md
 WGLMakie.activate!() #md
 set_theme!(size=(800, 600)) #md
