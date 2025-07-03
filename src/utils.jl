@@ -10,9 +10,9 @@ get_arrow_plot(gp::GraphPlot) = gp.arrow_plot[]
 get_node_plot(gp::GraphPlot) = gp.node_plot[]
 
 "Get the text plot of the node labels from a `GraphPlot`."
-get_nlabel_plot(gp::GraphPlot) = hasproperty(gp, :nlabels_plot) ? gp.nlabels_plot[] : nothing
+get_nlabel_plot(gp::GraphPlot) = haskey(gp.attributes, :nlabels_plot) ? gp[:nlabels_plot][] : nothing
 "Get the text plot of the edge labels from a `GraphPlot`."
-get_elabel_plot(gp::GraphPlot) = hasproperty(gp, :elabels_plot) ? gp.elabels_plot[] : nothing
+get_elabel_plot(gp::GraphPlot) = haskey(gp.attributes, :elabels_plot) ? gp[:elabels_plot][] : nothing
 
 """
     getedgekeys(gr::G, edgedat::D) where {G<:AbstractGraph, K<:AbstractEdge, D<:AbstractDict{K}, IsDirected{G}}
@@ -156,8 +156,6 @@ path to the axis `ax`.
 """
 function plot_controlpoints!(ax::Axis, gp::GraphPlot)
     ep = get_edge_plot(gp)
-    ep.plots[1] isa BezierSegments || return
-    ep = ep.plots[1]
     paths = ep[:paths][]
 
     for (i, p) in enumerate(paths)

@@ -40,6 +40,7 @@ underlying graph and therefore changing the number of Edges/Nodes.
 - `edge_color=lineseg_theme.color`: Color for edges.
 - `edge_width=lineseg_theme.linewidth`: Pass a vector with 2 width per edge to
   get pointy edges.
+- `edge_linestyle=:solid`: Linestyle of edges. Can also be vector or dict.
 - `edge_attr=(;)`: List of kw arguments which gets passed to the `linesegments` command
 - `arrow_show=Makie.automatic`: `Bool`, indicate edge directions with arrowheads?
   Defaults to `Graphs.is_directed(graph)`.
@@ -88,10 +89,6 @@ the edge.
 - `elabels_color=labels_theme.color`
 - `elabels_fontsize=labels_theme.fontsize`
 - `elabels_attr=(;)`: List of kw arguments which gets passed to the `text` command
-
-### Curvy edges & self edges/loops
-- `edge_plottype=Makie.automatic()`: Either `automatic`, `:linesegments` or
-  `:beziersegments`. `:beziersegments` are much slower for big graphs!
 
 Self edges / loops:
 
@@ -158,6 +155,7 @@ Waypoints along edges:
         # edge attributes (LineSegements)
         edge_color = lineseg_theme.color,
         edge_width = lineseg_theme.linewidth,
+        edge_linestyle = :solid,
         edge_attr = (;),
         # arrow attributes (Scatter)
         arrow_show = automatic,
@@ -190,7 +188,6 @@ Waypoints along edges:
         elabels_fontsize = labels_theme.fontsize,
         elabels_attr = (;),
         # self edge attributes
-        edge_plottype = automatic,
         selfedge_size = automatic,
         selfedge_direction = automatic,
         selfedge_width = automatic,
@@ -259,7 +256,7 @@ function Makie.plot!(gp::GraphPlot)
         # only shift very litte to mess less with 3d plots
         translate!(ilabels_plot, 0f32, 0f32, nextfloat(0f32))
 
-        map!(gp.attributes, [:ilabels_plot, :ilabels_fontsize, :node_size], :node_size_m) do ilp, ilabels_fontsize, node_size
+        map!(gp.attributes, [:ilabels_plot, :ilabels_text, :ilabels_fontsize, :node_size], :node_size_m) do ilp, txt, ilabels_fontsize, node_size
             bbs = Makie.fast_string_boundingboxes(ilp)
             map(enumerate(bbs)) do (i, bb)
                 _ns = getattr(node_size, i)
@@ -337,20 +334,24 @@ function Makie.plot!(gp::GraphPlot)
         end
     end
 
-    # prepare edge plot attributes
+    # prepare edge plot attributes (makes them vectors of length ne(g) or single elements)
     map!(gp.attributes, [:edge_color, :graph], :edgeplot_color) do color, graph
-        prep_edge_attributes(color, graph, dfth.edge_color)
+        prep_edge_attributes(color, graph, dfth.edge_color[])
     end
 
     map!(gp.attributes, [:edge_width, :graph], :edgeplot_linewidth) do width, graph
-        prep_edge_attributes(width, graph, dfth.edge_width)
+        prep_edge_attributes(width, graph, dfth.edge_width[])
+    end
+
+    map!(gp.attributes, [:edge_linestyle, :graph], :edgeplot_linestyle) do style, graph
+        prep_edge_attributes(style, graph, dfth.edge_linestyle[])
     end
 
     # actually plot edges
     edge_plot = edgeplot!(gp, gp[:edge_paths];
-        plottype=gp[:edge_plottype],
         color=gp[:edgeplot_color],
         linewidth=gp[:edgeplot_linewidth],
+        linestyle=gp[:edgeplot_linestyle],
         gp.edge_attr[]...)
     add_constant!(gp.attributes, :edge_plot, edge_plot) #make plotobj accessible
 
@@ -361,15 +362,15 @@ function Makie.plot!(gp::GraphPlot)
 
     # prepare arrow plot attributes
     map!(gp.attributes, [:arrow_marker, :graph], :arrowplot_marker) do marker, graph
-        prep_edge_attributes(marker, graph, dfth.arrow_marker)
+        prep_edge_attributes(marker, graph, dfth.arrow_marker[])
     end
 
     map!(gp.attributes, [:arrow_size, :graph], :arrowplot_markersize) do size, graph
-        prep_edge_attributes(size, graph, dfth.arrow_size)
+        prep_edge_attributes(size, graph, dfth.arrow_size[])
     end
 
     map!(gp.attributes, [:edge_color, :graph], :arrowplot_color) do color, graph
-        prep_edge_attributes(color, graph, dfth.edge_color)
+        prep_edge_attributes(color, graph, dfth.edge_color[])
     end
 
     arrow_plot = scatter!(gp,
@@ -434,15 +435,15 @@ function Makie.plot!(gp::GraphPlot)
         end
 
         map!(gp.attributes, [:nlabels_align, :graph], :nlabels_align_processed) do align, graph
-            prep_vertex_attributes(align, graph, dfth.nlabels_align)
+            prep_vertex_attributes(align, graph, dfth.nlabels_align[])
         end
 
         map!(gp.attributes, [:nlabels_color, :graph], :nlabels_color_processed) do color, graph
-            prep_vertex_attributes(color, graph, dfth.nlabels_color)
+            prep_vertex_attributes(color, graph, dfth.nlabels_color[])
         end
 
         map!(gp.attributes, [:nlabels_fontsize, :graph], :nlabels_fontsize_processed) do fontsize, graph
-            prep_vertex_attributes(fontsize, graph, dfth.nlabels_fontsize)
+            prep_vertex_attributes(fontsize, graph, dfth.nlabels_fontsize[])
         end
 
         nlabels_plot = text!(gp, gp[:nlabels_positions];
@@ -502,15 +503,15 @@ function Makie.plot!(gp::GraphPlot)
         end
 
         map!(gp.attributes, [:elabels_align, :graph], :elabels_align_processed) do align, graph
-            prep_edge_attributes(align, graph, dfth.elabels_align)
+            prep_edge_attributes(align, graph, dfth.elabels_align[])
         end
 
         map!(gp.attributes, [:elabels_color, :graph], :elabels_color_processed) do color, graph
-            prep_edge_attributes(color, graph, dfth.elabels_color)
+            prep_edge_attributes(color, graph, dfth.elabels_color[])
         end
 
         map!(gp.attributes, [:elabels_fontsize, :graph], :elabels_fontsize_processed) do fontsize, graph
-            prep_edge_attributes(fontsize, graph, dfth.elabels_fontsize)
+            prep_edge_attributes(fontsize, graph, dfth.elabels_fontsize[])
         end
 
         elabels_plot = text!(gp, gp[:elabels_positions];
@@ -614,49 +615,7 @@ function find_edge_paths(g, attr, pos::AbstractVector{PT}) where {PT}
         end
     end
 
-    plottype = attr[:edge_plottype][]
-
-    if plottype === :beziersegments
-        # user explicitly specified beziersegments
-        return paths
-    elseif plottype === :linesegments
-        # user specified linesegments but there are non-lines
-        if !isempty(paths)
-            return straighten.(paths)
-        else
-            return Line{PT}[]
-        end
-    elseif plottype === automatic
-        ls = try
-            first(attr.edge_attr.linestyle[])
-        catch
-            nothing
-        end
-        if !isnothing(ls) && !isa(ls, Number)
-            throw(ArgumentError("Linestyles per edge are only supported when passing `edge_plottype=:beziersegments` to `graphplot` explicitly."))
-        end
-
-        # try to narrow down the typ, i.e. just `Line`s
-        # update :plottype in attr so this is persistent even if the graph changes
-        T = isempty(paths) ? Line{PT} : mapreduce(typeof, promote_type, paths)
-
-        if T <: Line
-            attr[:edge_plottype][] = :linesegments
-            return convert(Vector{T}, paths)
-        elseif ne(g) > 500
-            attr[:edge_plottype][] = :linesegments
-            @warn "Since there are a lot of edges ($(ne(g)) > 500), they will be drawn as straight lines "*
-                "even though they contain curvy edges. If you really want to plot them as "*
-                "bezier curves pass `edge_plottype=:beziersegments` explicitly. This will have "*
-                "much worse performance!"
-            return straighten.(paths)
-        else
-            attr[:edge_plottype][] = :beziersegments
-            return paths
-        end
-    else
-        throw(ArgumentError("Invalid argument for edge_plottype: $plottype"))
-    end
+    return paths
 end
 
 """
@@ -737,87 +696,118 @@ function curved_path(p1::PT, p2::PT, curve_distance) where {PT}
     return BezierPath([MoveTo(p1), CurveTo(c1, c2, p2)])
 end
 
-"""
-    edgeplot(paths::Vector{AbstractPath})
-    edgeplot!(sc, paths::Vector{AbstractPath})
-
-Recipe to draw the edges. Attribute `plottype` can be either.
-If `eltype(pathes) <: Line` draw using `linesegments`. If `<:AbstractPath`
-draw using bezier segments.
-All attributes are passed down to the actual recipe.
-"""
 @recipe EdgePlot (paths,) begin
-    plottype=automatic
-    resolution=1000
-    Makie.documented_attributes(LineSegments)...
+    Makie.documented_attributes(Lines)...
 end
 
 function Makie.plot!(p::EdgePlot)
-    plottype = p.attributes[:plottype][]
     alllines = eltype(p[:paths][]) <: Line
 
-    map!(p.attributes, :paths, [:segments, :ranges]) do paths
+    map!(p.attributes, :paths, [:points, :ranges]) do paths
         PT = ptype(eltype(paths))
-        segments = NTuple{2, PT}[] 
+        points = PT[] 
         ranges = UnitRange{Int}[]
         for path in paths
             disc = discretize(path)
-
-            pstart = length(segments) + 1
-            pstop = pstart + length(disc) - 2
-            for i in 2:length(disc)
-                push!(segments, (disc[i-1], disc[i]))
-            end
+            pstart = length(points) + 1
+            append!(points, disc)
+            push!(points, PT(NaN)) # add NaN to separate segments
+            pstop = pstart+length(disc)
             push!(ranges, pstart:pstop)
         end
-        (segments, ranges)
+        (points, ranges)
     end
-    # expand color and linewidth attributes (for curved edges with multiple segments)
-    map!(_expand_args, p.attributes, [:color, :ranges], :color_expanded)
-    map!(_expand_args, p.attributes, [:linewidth, :ranges], :linewidth_expanded)
 
-    linesegments!(p, p.attributes, p[:segments];
-        color=p[:color_expanded],
-        linewidth=p[:linewidth_expanded],
-    )
+    # if the user specified different linestyles, we need to fall back to plotting n `lines` rather than plotting
+    split_edgeplots = !(p[:linestyle][] isa Union{Symbol,Linestyle})
+    add_constant!(p.attributes, :split_edgeplots, split_edgeplots)
+
+    if !split_edgeplots
+        # expand color and linewidth attributes (for curved edges with multiple segments)
+        map!(_expand_args, p.attributes, [:color, :ranges], :color_expanded)
+        map!(_expand_args, p.attributes, [:linewidth, :ranges], :linewidth_expanded)
+
+        lines!(p, p.attributes, p[:points];
+            color=p[:color_expanded],
+            linewidth=p[:linewidth_expanded],
+        )
+    else
+        # manually find colorrange
+        if p[:colorrange][] === automatic && p[:color][] isa Union{Number, AbstractVector}
+            minc = Inf
+            maxc = -Inf
+            for c in p[:color][]
+                if c isa Number
+                    minc = min(minc, c)
+                    maxc = max(maxc, c)
+                elseif c isa AbstractVector{<:Number} || c isa Tuple{<:Number}
+                    minc = min(minc, minimum(c))
+                    maxc = max(maxc, maximum(c))
+                end
+            end
+            if minc != Inf || maxc != -Inf
+                p[:colorrange][] = Float32.((minc, maxc))
+            end
+        end
+
+        for i in 1:length(p[:paths][])
+            thispoints = Symbol(:points,i)
+            map!(p.attributes, [:points, :ranges], thispoints) do points, ranges
+                view(points, ranges[i][1:end-1])
+            end
+
+            lines!(p, p.attributes, p[thispoints];
+                color=_split_arg!(p.attributes, :color, i),
+                linewidth=_split_arg!(p.attributes, :linewidth, i),
+                linestyle=_split_arg!(p.attributes, :linestyle, i),
+            )
+        end
+    end
 
     return p
 end
-function _expand_args(args::AbstractVector, ranges)
+
+function _expand_args(args::Union{AbstractVector, AbstractDict}, ranges)
     N_pathes = length(ranges)
-    N_exp = ranges[end][end]
-    allstraight = N_pathes == N_exp
+    N_points = ranges[end][end]
+    allstraight = N_pathes*3 == N_points
+    if args isa AbstractVector && length(args) != N_pathes
+        throw(ArgumentError("The length of the args vector $args does not match the number of edges!"))
+    end
 
-    if allstraight
-        if length(args) == N_pathes || length(args) == 2*N_pathes
-            return args # no expansion needed
+    elT = eltype(args) <:Tuple ? eltype(eltype(args)) : eltype(args)
+    elT = elT <: Integer ? Float32 : elT # convert integers to floats for interpolation
+    expanded = Vector{elT}(undef, N_points)
+    for i in 1:N_pathes
+        attr = getattr(args, i)
+        if attr isa Union{Tuple, AbstractVector}
+            if length(attr) == length(ranges[i]) - 1
+                expanded[ranges[i][1:end-1]] .= attr
+                expanded[ranges[i][end]] = attr[end] # last point is always the same
+            elseif eltype(attr) <: Number && length(attr) == 2 # interpolate between numbers
+                expanded[ranges[i][1:end-1]].= range(attr[1], attr[2], length=length(ranges[i])-1)
+                expanded[ranges[i][end]] = attr[end] # last point is always the same
+            else
+                throw(ArgumentError("Don't know how to map $(attr) to the $(length(ranges[i])) points in this edge."))
+            end
         else
-            throw(ArgumentError("You provided $(length(args)) arguments to the Edgeplot, but $(N_pathes) pathes."))
+            expanded[ranges[i]] .= args[i]
         end
-    elseif length(args) != N_pathes
-        throw(ArgumentError("You provided $(length(args)) arguments to the Edgeplot, but $(N_pathes) pathes."))
     end
-
-    expaned = similar(args, N_exp)
-    for (i, r) in enumerate(ranges)
-        expaned[r] .= args[i]
-    end
-    expaned
+    expanded
 end
 _expand_args(arg, ranges) = arg
-
-function get_segments(paths)
-    N = length(paths)
-    PT = ptype(eltype(paths))
-    segs = Vector{PT}(undef, 2*N)
-    if length(segs) != 2*N
-        resize!(segs, 2*N)
+function _split_arg!(cg::Makie.ComputeGraph, name, i)
+    splitname = Symbol(name, i)
+    map!(cg, [name, Symbol(:points, i)], splitname) do prop, pointsi
+        attr = getattr(prop, i)
+        # interpolate nummeric values for intermediat poitns
+        if attr isa Union{Tuple,AbstractVector} && eltype(attr) <: Number && length(attr) == 2
+            attr = range(attr[1], attr[2], length=length(pointsi))
+        end
+        attr
     end
-    for (i, p) in enumerate(paths)
-        segs[2*i - 1] = interpolate(p, 0.0)
-        segs[2*i]     = interpolate(p, 1.0)
-    end
-    segs
+    cg[splitname]
 end
 
 """

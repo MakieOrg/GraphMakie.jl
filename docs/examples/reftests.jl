@@ -115,21 +115,18 @@ fig = Figure()
 graphplot(fig[1,1],
           DiGraph([Edge(1 => 2), Edge(2 => 3)]),
           edge_attr = (; linestyle = [:dot, :dash]),
-          edge_plottype = :beziersegments,
           )
 hidedecorations!(current_axis())
 
 graphplot(fig[1,2],
           DiGraph([Edge(1 => 2), Edge(2 => 1)]),
           edge_attr = (; linestyle = [:dot, :dash]),
-          edge_plottype = :beziersegments,
           )
 hidedecorations!(current_axis())
 
 graphplot(fig[2,1], layout=Stress(),
           DiGraph([Edge(1 => 2), Edge(2 => 3), Edge(3=>4), Edge(4=>1)]),
           edge_attr = (; linestyle = Linestyle([0.5, 1.0, 1.5, 2.5])),
-          edge_plottype = :beziersegments,
           )
 hidedecorations!(current_axis())
 fig
@@ -159,15 +156,15 @@ hidedecorations!(ax)
 @save_reference fig
 
 p.node_size[][1] = 40
-notify(p.node_size)
+p.node_size[] = p.node_size[]
 @save_reference fig
 
 p.arrow_size[][3] = 40
-notify(p.arrow_size)
+p.arrow_size[] = p.arrow_size[]
 @save_reference fig
 
 p.node_pos[][1] = (0,0)
-notify(p.node_pos)
+p.node_pos[] = p.node_pos[]
 @save_reference fig
 
 # test large nodes
@@ -200,9 +197,9 @@ hidedecorations!(ax)
 @save_reference fig
 
 # Update observables
-p[:ilabels][][1] = "1111"
 p.node_size[] = DefaultDict(Makie.automatic, Dict{Int, Any}(2=>100))
-notify(p[:ilabels])
+p[:ilabels][][1] = "1111"
+p[:ilabels][] = p[:ilabels][]
 @save_reference fig
 
 p[:ilabels_fontsize][] = 10
@@ -317,4 +314,14 @@ ec[] = Dict(Edge(7,2)=> :green)
 # test 3d plots with i-labels
 g = complete_graph(4)
 fig,ax,p = graphplot(g; ilabels=["a", "b", "c", "d"], layout=NetworkLayout.Stress(dim=3))
+@save_reference fig
+
+# Test linewidth and color interpolation on curvy edges
+fig = Figure()
+g = complete_graph(3)
+add_edge!(g, 1, 1)
+graphplot!(Axis(fig[1,1]), g; edge_width=[5, 10, 15, 20], edge_color=[i for i in 1:ne(g)])
+graphplot!(Axis(fig[1,2]), g; edge_width=[(1,10) for i in 1:ne(g)], edge_color=[i for i in 1:ne(g)])
+graphplot!(Axis(fig[2,1]), g; edge_width=[5, 10, 15, 20], edge_color=[i for i in 1:ne(g)], edge_linestyle=Dict(2=>:dash))
+graphplot!(Axis(fig[2,2]), g; edge_width=[(1,10) for i in 1:ne(g)], edge_color=[i for i in 1:ne(g)], edge_linestyle=Dict(2=>:dash))
 @save_reference fig

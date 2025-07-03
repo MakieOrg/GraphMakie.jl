@@ -14,12 +14,16 @@ export NodeDrag, EdgeDrag
 Applied to an edgeplot, this function retuns the index of the edge.
 """
 convert_selection(element, idx) = (element, idx)
-function convert_selection(element::LineSegments, idx)
+function convert_selection(element::Lines, idx)
     if element.parent isa EdgePlot
-        segmentidx = ceil(Int, idx / 2)
-        ranges = element.parent[:ranges][]
-        edgeidx = findfirst(range -> segmentidx ∈ range, ranges)
-        return (element.parent, edgeidx)
+        edgeplot = element.parent
+        if edgeplot[:split_edgeplots][]
+            edgeidx = findfirst(isequal(element), edgeplot.plots)
+        else
+            ranges = edgeplot[:ranges][]
+            edgeidx = findfirst(range -> idx ∈ range, ranges)
+        end
+        return (edgeplot, edgeidx)
     end
     return (element, idx)
 end
