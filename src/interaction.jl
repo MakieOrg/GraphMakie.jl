@@ -11,7 +11,7 @@ export NodeDrag, EdgeDrag
     convert_selection(element, idx)
 
 `pick` returns the basic plot type (i.e. the index of the LineSegment).
-Applied to an edgeplot, this function retuns the index of the edge.
+Applied to an edgeplot, this function returns the index of the edge.
 """
 convert_selection(element, idx) = (element, idx)
 function convert_selection(element::Lines, idx)

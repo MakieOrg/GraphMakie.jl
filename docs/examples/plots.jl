@@ -21,7 +21,7 @@ ax.aspect = DataAspect()
 The `graphplot` command is a recipe which wraps several steps
 - layout the graph in space using a layout function,
 - create a `scatter` plot for the nodes and
-- create a `linesegments` plot for the edges.
+- create a `lines` plot for the edges.
 
 The default layout is `Spring()` from
 [`NetworkLayout.jl`](https://github.com/JuliaGraphs/NetworkLayout.jl). The

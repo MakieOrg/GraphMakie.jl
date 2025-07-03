@@ -40,8 +40,12 @@ underlying graph and therefore changing the number of Edges/Nodes.
 - `edge_color=lineseg_theme.color`: Color for edges.
 - `edge_width=lineseg_theme.linewidth`: Pass a vector with 2 width per edge to
   get pointy edges.
-- `edge_linestyle=:solid`: Linestyle of edges. Can also be vector or dict.
-- `edge_attr=(;)`: List of kw arguments which gets passed to the `linesegments` command
+- `edge_linestyle=:solid`: Linestyle of edges. Can also be vector or dict for per-edge styling.
+  When using different linestyles for different edges, GraphMakie 
+  creates separate line plots for each edge rather than combining them into one plot, which may reduce 
+  performance for graphs with many edges. For optimal performance with large graphs, use homogeneous 
+  linestyles.
+- `edge_attr=(;)`: List of kw arguments which gets passed to the underlying `lines` command used for plotting edges.
 - `arrow_show=Makie.automatic`: `Bool`, indicate edge directions with arrowheads?
   Defaults to `Graphs.is_directed(graph)`.
 - `arrow_marker='➤'`
@@ -298,7 +302,7 @@ function Makie.plot!(gp::GraphPlot)
     end
 
     # compute initial edge paths; will be adjusted later if arrow_shift = :end
-    # create array of pathes triggered by node_pos changes
+    # create array of paths triggered by node_pos changes
     # in case of a graph change the node_position will change anyway
     map!(gp.attributes, [:node_pos, :selfedge_size, :selfedge_direction, :selfedge_width, :curve_distance_usage, :curve_distance, :graph], :init_edge_paths) do pos, s, d, w, cdu, cd, g
         find_edge_paths(g, gp.attributes, pos)
@@ -768,17 +772,17 @@ function Makie.plot!(p::EdgePlot)
 end
 
 function _expand_args(args::Union{AbstractVector, AbstractDict}, ranges)
-    N_pathes = length(ranges)
+    N_paths = length(ranges)
     N_points = ranges[end][end]
-    allstraight = N_pathes*3 == N_points
-    if args isa AbstractVector && length(args) != N_pathes
+    allstraight = N_paths*3 == N_points
+    if args isa AbstractVector && length(args) != N_paths
         throw(ArgumentError("The length of the args vector $args does not match the number of edges!"))
     end
 
     elT = eltype(args) <:Tuple ? eltype(eltype(args)) : eltype(args)
     elT = elT <: Integer ? Float32 : elT # convert integers to floats for interpolation
     expanded = Vector{elT}(undef, N_points)
-    for i in 1:N_pathes
+    for i in 1:N_paths
         attr = getattr(args, i)
         if attr isa Union{Tuple, AbstractVector}
             if length(attr) == length(ranges[i]) - 1
