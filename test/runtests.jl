@@ -9,21 +9,24 @@ using StableRNGs
 
 NetworkLayout.DEFAULT_RNG[] = StableRNG
 
+@testset "GraphMakie.jl" begin
+
 include("beziercurves_test.jl")
 
-@testset "GraphMakie.jl" begin
+@testset "basic tests" begin
     g = Observable(wheel_digraph(10))
     f, ax, p = graphplot(g)
-    f, ax, p = graphplot(g, node_attr=Attributes(visible=false))
-    f, ax, p = graphplot(g, node_attr=(;visible=true))
+    vis = Observable(false)
+    f, ax, p = graphplot(g, node_attr=(;visible=vis))
 
     # try to update graph
     add_edge!(g[], 2, 4)
     g[] = g[]
     # try to update network
-    p.layout = SFDP()
+    p.layout = Stress()
 
     # update node observables
+    vis[] = true
     p.node_color = :blue
     p.node_size = 30
 
@@ -38,16 +41,12 @@ end
 @testset "graph without edges" begin
     g = SimpleDiGraph(10)
     graphplot(g)
-    graphplot(g; edge_plottype=:linesegments)
-    graphplot(g; edge_plottype=:beziersegments)
     g = SimpleGraph(10)
     graphplot(g)
-    graphplot(g; edge_plottype=:linesegments)
-    graphplot(g; edge_plottype=:beziersegments)
 end
 
 @testset "selfedge without neighbors" begin
-    g = SimpleGraph(10)
+    g = SimpleGraph(2)
     add_edge!(g, 1, 1)
     graphplot(g)
 end
@@ -62,10 +61,14 @@ end
 
 @testset "single line width per edge" begin
     g = complete_graph(3)
+    add_edge!(g, 1, 1)
     graphplot(g)
     graphplot(g; edge_width=10)
-    graphplot(g; edge_width=[5, 10, 15])
-    graphplot(g; edge_width=[5, 10, 5, 10, 5, 10])
+    graphplot(g; edge_width=[5, 10, 15, 20])
+    graphplot(g; edge_width=[(5, 10), (5, 10), (5, 10), (5, 10)])
+
+    graphplot(g; edge_width=[5, 10, 15, 20], edge_linestyle=[:dash, :dot, :dashdot, :solid])
+    graphplot(g; edge_width=[(5, 10), (5, 10), (5, 10), (5,10)], edge_linestyle=[:dash, :dot, :dashdot, :solid])
 end
 
 @testset "Hover, click and drag Interaction" begin
@@ -75,7 +78,8 @@ end
                          edge_width = [3.0 for i in 1:ne(g)],
                          edge_color = [colorant"black" for i in 1:ne(g)],
                          node_size = [20 for i in 1:nv(g)],
-                         node_color = [colorant"red" for i in 1:nv(g)])
+                         node_color = [colorant"red" for i in 1:nv(g)],
+                         edge_linestyle=Dict(1=>:dash))
     deregister_interaction!(ax, :rectanglezoom)
 
     function edge_hover_action(s, idx, event, axis)
@@ -248,21 +252,6 @@ end
     graphplot(g; curve_distance=collect(0.1:0.1:0.5), curve_distance_usage=true)
 end
 
-@testset "separate linestyle per edge" begin
-    p = Point2f[(0,0), (0, 1), (0,0), (1,0)]
-    @test_broken display(linesegments(p; linestyle = [:dot, :dash]))
-
-    @test_throws ArgumentError graphplot(
-        DiGraph([Edge(1 => 2), Edge(2 => 1)]),
-        edge_attr = (; linestyle = [:dot, :dash]),
-    )
-
-    @test_throws ArgumentError graphplot(
-        DiGraph([Edge(1 => 2), Edge(2 => 3)]),
-        edge_attr = (; linestyle = [:dot, :dash]),
-    )
-end
-
 @testset "pan in scene after removal of plot" begin
     g = wheel_graph(10)
     fig, ax, p = graphplot(g)
@@ -290,3 +279,5 @@ end
 end
 
 include("referencetests.jl")
+
+end

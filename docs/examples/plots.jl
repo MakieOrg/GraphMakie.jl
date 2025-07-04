@@ -21,7 +21,7 @@ ax.aspect = DataAspect()
 The `graphplot` command is a recipe which wraps several steps
 - layout the graph in space using a layout function,
 - create a `scatter` plot for the nodes and
-- create a `linesegments` plot for the edges.
+- create a `lines` plot for the edges.
 
 The default layout is `Spring()` from
 [`NetworkLayout.jl`](https://github.com/JuliaGraphs/NetworkLayout.jl). The
@@ -62,7 +62,7 @@ p.layout = fixed_layout; autolimits!(ax)
 ## change edge width & color
 p.edge_width = 5.0
 p.edge_color[][3] = :green;
-p.edge_color = p.edge_color[] # trigger observable
+p.edge_color[] = p.edge_color[] # trigger observable
 @save_reference f #hide
 
 #=
@@ -316,12 +316,9 @@ f, ax, p = graphplot(g; layout=Spring(dim=3, seed=5),
 @save_reference f #hide
 
 #=
-Using [`JSServe.jl`](https://github.com/SimonDanisch/JSServe.jl) and [`WGLMakie.jl`](https://github.com/MakieOrg/Makie.jl/tree/master/WGLMakie)
+Using [`WGLMakie.jl`](https://github.com/MakieOrg/Makie.jl/tree/master/WGLMakie)
 we can also add some interactivity:
 =#
-using JSServe #md
-Page(exportable=true, offline=true) #md
-#
 using WGLMakie #md
 WGLMakie.activate!() #md
 set_theme!(size=(800, 600)) #md

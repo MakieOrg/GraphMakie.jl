@@ -122,13 +122,6 @@ end
     fig, ax, p = lines(discretize(path))
 end
 
-@testset "test beziersegments recipe" begin
-    using GraphMakie: beziersegments
-    paths = [Path(rand(Point2f, 4)...) for _ in 1:4]
-    fig, ax, p = beziersegments(paths; linewidth=[2,4,6,8], color=[1,2,3,4])
-    p.attributes
-end
-
 @testset "selfloop test" begin
     using Graphs, GraphMakie
     g = star_graph(10)
@@ -139,5 +132,4 @@ end
 
     g = star_graph(10)
     add_edge!(g, 1, 1)
-    @test_throws ErrorException graphplot(g; layout=_->rand(Point3f, 10))
 end
