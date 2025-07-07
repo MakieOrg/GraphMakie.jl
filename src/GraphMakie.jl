@@ -3,6 +3,7 @@ module GraphMakie
 using NetworkLayout
 using Graphs
 using Makie
+using Makie: add_input!, add_constant!
 using LinearAlgebra
 using SimpleTraits
 

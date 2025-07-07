@@ -114,22 +114,19 @@ autolimits!(ax); hidedecorations!(ax); hidespines!(ax); ylims!(-5,1)
 fig = Figure()
 graphplot(fig[1,1],
           DiGraph([Edge(1 => 2), Edge(2 => 3)]),
-          edge_attr = (; linestyle = [:dot, :dash]),
-          edge_plottype = :beziersegments,
+          edge_linestyle = [:dot, :dash],
           )
 hidedecorations!(current_axis())
 
 graphplot(fig[1,2],
           DiGraph([Edge(1 => 2), Edge(2 => 1)]),
-          edge_attr = (; linestyle = [:dot, :dash]),
-          edge_plottype = :beziersegments,
+          edge_linestyle = [:dot, :dash],
           )
 hidedecorations!(current_axis())
 
 graphplot(fig[2,1], layout=Stress(),
           DiGraph([Edge(1 => 2), Edge(2 => 3), Edge(3=>4), Edge(4=>1)]),
-          edge_attr = (; linestyle = Linestyle([0.5, 1.0, 1.5, 2.5])),
-          edge_plottype = :beziersegments,
+          edge_linestyle = Linestyle([0.5, 1.0, 1.5, 2.5]),
           )
 hidedecorations!(current_axis())
 fig
@@ -159,15 +156,15 @@ hidedecorations!(ax)
 @save_reference fig
 
 p.node_size[][1] = 40
-notify(p.node_size)
+p.node_size[] = p.node_size[]
 @save_reference fig
 
 p.arrow_size[][3] = 40
-notify(p.arrow_size)
+p.arrow_size[] = p.arrow_size[]
 @save_reference fig
 
 p.node_pos[][1] = (0,0)
-notify(p.node_pos)
+p.node_pos[] = p.node_pos[]
 @save_reference fig
 
 # test large nodes
@@ -200,9 +197,9 @@ hidedecorations!(ax)
 @save_reference fig
 
 # Update observables
-p[:ilabels][][1] = "1111"
 p.node_size[] = DefaultDict(Makie.automatic, Dict{Int, Any}(2=>100))
-notify(p[:ilabels])
+p[:ilabels][][1] = "1111"
+p[:ilabels][] = p[:ilabels][]
 @save_reference fig
 
 p[:ilabels_fontsize][] = 10

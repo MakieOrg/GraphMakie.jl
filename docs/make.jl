@@ -4,7 +4,6 @@ using Literate
 using CairoMakie
 
 # preload the deps from the examples to supress precompilation output in docs
-using JSServe
 using NetworkDynamics
 using LayeredLayouts
 using Graphs
