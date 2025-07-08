@@ -320,6 +320,7 @@ Using [`WGLMakie.jl`](https://github.com/MakieOrg/Makie.jl/tree/master/WGLMakie)
 we can also add some interactivity:
 =#
 using WGLMakie #md
+WGLMakie.Page(exportable=true, offline=true) #md
 WGLMakie.activate!() #md
 set_theme!(size=(800, 600)) #md
 g = smallgraph(:dodecahedral) #md
