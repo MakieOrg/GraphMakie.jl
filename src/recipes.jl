@@ -193,7 +193,7 @@ Waypoints along edges:
         elabels_fontsize = labels_theme.fontsize,
         elabels_attr = (;),
         # self edge attributes
-        force_straight_edges = true,
+        force_straight_edges = false,
         selfedge_size = automatic,
         selfedge_direction = automatic,
         selfedge_width = automatic,
