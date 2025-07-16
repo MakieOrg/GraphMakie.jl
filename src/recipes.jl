@@ -102,6 +102,7 @@ Self edges / loops:
 - Note: If valid waypoints are provided for selfloops, the selfedge attributes above will be ignored.
 
 High level interface for curvy edges:
+- `force_straight_edges=false`: If `true`, ignore all curvy edge attributes and draw all edges as straight lines.
 
 - `curve_distance=0.1`:
 
@@ -192,6 +193,7 @@ Waypoints along edges:
         elabels_fontsize = labels_theme.fontsize,
         elabels_attr = (;),
         # self edge attributes
+        force_straight_edges = true,
         selfedge_size = automatic,
         selfedge_direction = automatic,
         selfedge_width = automatic,
@@ -575,6 +577,12 @@ function find_edge_paths(g, attr, pos::AbstractVector{PT}) where {PT}
 
     for (i, e) in enumerate(edges(g))
         p1, p2 = pos[src(e)], pos[dst(e)]
+
+        if attr.force_straight_edges[]
+            paths[i] = Path(p1, p2) # straight line
+            continue
+        end
+
         tangents = getattr(attr.tangents, i)
         tfactor = getattr(attr.tfactor, i)
         waypoints::Vector{PT} = getattr(attr.waypoints, i, PT[])
