@@ -41,9 +41,9 @@ underlying graph and therefore changing the number of Edges/Nodes.
 - `edge_width=lineseg_theme.linewidth`: Pass a vector with 2 width per edge to
   get pointy edges.
 - `edge_linestyle=:solid`: Linestyle of edges. Can also be vector or dict for per-edge styling.
-  When using different linestyles for different edges, GraphMakie 
-  creates separate line plots for each edge rather than combining them into one plot, which may reduce 
-  performance for graphs with many edges. For optimal performance with large graphs, use homogeneous 
+  When using different linestyles for different edges, GraphMakie
+  creates separate line plots for each edge rather than combining them into one plot, which may reduce
+  performance for graphs with many edges. For optimal performance with large graphs, use homogeneous
   linestyles.
 - `edge_attr=(;)`: List of kw arguments which gets passed to the underlying `lines` command used for plotting edges.
 - `arrow_show=Makie.automatic`: `Bool`, indicate edge directions with arrowheads?
@@ -102,6 +102,7 @@ Self edges / loops:
 - Note: If valid waypoints are provided for selfloops, the selfedge attributes above will be ignored.
 
 High level interface for curvy edges:
+- `force_straight_edges=false`: If `true`, ignore all curvy edge attributes and draw all edges as straight lines.
 
 - `curve_distance=0.1`:
 
@@ -192,6 +193,7 @@ Waypoints along edges:
         elabels_fontsize = labels_theme.fontsize,
         elabels_attr = (;),
         # self edge attributes
+        force_straight_edges = false,
         selfedge_size = automatic,
         selfedge_direction = automatic,
         selfedge_width = automatic,
@@ -567,14 +569,22 @@ end
 """
     find_edge_paths(g, attr, pos::AbstractVector{PT}) where {PT}
 
-Returns an `AbstractPath` for each edge in the graph. Based on the `edge_plotype` attribute
-this returns either arbitrary bezier curves or just lines.
+Returns an `AbstractPath` for each edge in the graph. Returns a vector of
+paths. If `attr.force_straight_edges` is `true`, the paths will be just plain lines
 """
 function find_edge_paths(g, attr, pos::AbstractVector{PT}) where {PT}
-    paths = Vector{AbstractPath{PT}}(undef, ne(g))
+    # for straight_lines: return vector of Line rather than vector of AbstractPath
+    if attr.force_straight_edges[]
+        return map(edges(g)) do e
+            p1, p2 = pos[src(e)], pos[dst(e)]
+            Path(p1, p2)
+        end
+    end
 
+    paths = Vector{AbstractPath{PT}}(undef, ne(g))
     for (i, e) in enumerate(edges(g))
         p1, p2 = pos[src(e)], pos[dst(e)]
+
         tangents = getattr(attr.tangents, i)
         tfactor = getattr(attr.tfactor, i)
         waypoints::Vector{PT} = getattr(attr.waypoints, i, PT[])
@@ -709,7 +719,7 @@ function Makie.plot!(p::EdgePlot)
 
     map!(p.attributes, :paths, [:points, :ranges]) do paths
         PT = ptype(eltype(paths))
-        points = PT[] 
+        points = PT[]
         ranges = UnitRange{Int}[]
         for path in paths
             disc = discretize(path)
@@ -805,7 +815,7 @@ function _split_arg!(cg::Makie.ComputeGraph, name, i)
     splitname = Symbol(name, i)
     map!(cg, [name, Symbol(:points, i)], splitname) do prop, pointsi
         attr = getattr(prop, i)
-        # interpolate nummeric values for intermediat poitns
+        # interpolate numeric values for intermediate points
         if attr isa Union{Tuple,AbstractVector} && eltype(attr) <: Number && length(attr) == 2
             attr = range(attr[1], attr[2], length=length(pointsi))
         end
