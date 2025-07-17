@@ -1,8 +1,9 @@
 # NEWS
 
-## Breaking Changes
+## Version 0.6.1
+- introduce `force_straight_edges` kw argument to recipe (`false` per default). This is a replacement for the deprecated `edge_plottype=:linesegments`.
 
-### Version 0.6.0 (Makie 0.24 Compatibility)
+## Version 0.6.0 (Makie 0.24 Compatibility)
 
 **Breaking Changes:**
 - **Removed `edge_plottype` parameter**: The `edge_plottype` argument has been removed from `graphplot`. Edge plotting is now handled automatically with improved performance - curved edges (BezierPaths) are now rendered as efficiently as straight edges using a unified plotting system.
