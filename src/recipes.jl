@@ -569,19 +569,21 @@ end
 """
     find_edge_paths(g, attr, pos::AbstractVector{PT}) where {PT}
 
-Returns an `AbstractPath` for each edge in the graph. Based on the `edge_plotype` attribute
-this returns either arbitrary bezier curves or just lines.
+Returns an `AbstractPath` for each edge in the graph. Returns a vector of
+pathes. If `attr.force_straight_edges` is `true`, the pathes will be just plain lines
 """
 function find_edge_paths(g, attr, pos::AbstractVector{PT}) where {PT}
-    paths = Vector{AbstractPath{PT}}(undef, ne(g))
+    # for straigh_lines: return vector of Line rather then vector of AbstractPath
+    if attr.force_straight_edges[]
+        return map(edges(g)) do e
+            p1, p2 = pos[src(e)], pos[dst(e)]
+            Path(p1, p2)
+        end
+    end
 
+    paths = Vector{AbstractPath{PT}}(undef, ne(g))
     for (i, e) in enumerate(edges(g))
         p1, p2 = pos[src(e)], pos[dst(e)]
-
-        if attr.force_straight_edges[]
-            paths[i] = Path(p1, p2) # straight line
-            continue
-        end
 
         tangents = getattr(attr.tangents, i)
         tfactor = getattr(attr.tfactor, i)
