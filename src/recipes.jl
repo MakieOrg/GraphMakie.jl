@@ -41,9 +41,9 @@ underlying graph and therefore changing the number of Edges/Nodes.
 - `edge_width=lineseg_theme.linewidth`: Pass a vector with 2 width per edge to
   get pointy edges.
 - `edge_linestyle=:solid`: Linestyle of edges. Can also be vector or dict for per-edge styling.
-  When using different linestyles for different edges, GraphMakie 
-  creates separate line plots for each edge rather than combining them into one plot, which may reduce 
-  performance for graphs with many edges. For optimal performance with large graphs, use homogeneous 
+  When using different linestyles for different edges, GraphMakie
+  creates separate line plots for each edge rather than combining them into one plot, which may reduce
+  performance for graphs with many edges. For optimal performance with large graphs, use homogeneous
   linestyles.
 - `edge_attr=(;)`: List of kw arguments which gets passed to the underlying `lines` command used for plotting edges.
 - `arrow_show=Makie.automatic`: `Bool`, indicate edge directions with arrowheads?
@@ -570,10 +570,10 @@ end
     find_edge_paths(g, attr, pos::AbstractVector{PT}) where {PT}
 
 Returns an `AbstractPath` for each edge in the graph. Returns a vector of
-pathes. If `attr.force_straight_edges` is `true`, the pathes will be just plain lines
+paths. If `attr.force_straight_edges` is `true`, the paths will be just plain lines
 """
 function find_edge_paths(g, attr, pos::AbstractVector{PT}) where {PT}
-    # for straigh_lines: return vector of Line rather then vector of AbstractPath
+    # for straight_lines: return vector of Line rather than vector of AbstractPath
     if attr.force_straight_edges[]
         return map(edges(g)) do e
             p1, p2 = pos[src(e)], pos[dst(e)]
@@ -719,7 +719,7 @@ function Makie.plot!(p::EdgePlot)
 
     map!(p.attributes, :paths, [:points, :ranges]) do paths
         PT = ptype(eltype(paths))
-        points = PT[] 
+        points = PT[]
         ranges = UnitRange{Int}[]
         for path in paths
             disc = discretize(path)
@@ -815,7 +815,7 @@ function _split_arg!(cg::Makie.ComputeGraph, name, i)
     splitname = Symbol(name, i)
     map!(cg, [name, Symbol(:points, i)], splitname) do prop, pointsi
         attr = getattr(prop, i)
-        # interpolate nummeric values for intermediat poitns
+        # interpolate numeric values for intermediate points
         if attr isa Union{Tuple,AbstractVector} && eltype(attr) <: Number && length(attr) == 2
             attr = range(attr[1], attr[2], length=length(pointsi))
         end
