@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Decision Tree · GraphMakie.jl</title><meta name="title" content="Decision Tree · GraphMakie.jl"/><meta property="og:title" content="Decision Tree · GraphMakie.jl"/><meta property="twitter:title" content="Decision Tree · GraphMakie.jl"/><meta name="description" content="Documentation for GraphMakie.jl."/><meta property="og:description" content="Documentation for GraphMakie.jl."/><meta property="twitter:description" content="Documentation for GraphMakie.jl."/><meta property="og:url" content="https://graph.makie.org/generated/decisiontree/"/><meta property="twitter:url" content="https://graph.makie.org/generated/decisiontree/"/><link rel="canonical" href="https://graph.makie.org/generated/decisiontree/"/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">GraphMakie.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><span class="tocitem">Examples</span><ul><li><a class="tocitem" href="../plots/">Feature Walkthrough</a></li><li><a class="tocitem" href="../interactions/">Interaction Examples</a></li><li><a class="tocitem" href="../depgraph/">Dependency Graph</a></li><li><a class="tocitem" href="../truss/">Stress on Truss</a></li><li><a class="tocitem" href="../syntaxtree/">Julia AST</a></li><li class="is-active"><a class="tocitem" href>Decision Tree</a><ul class="internal"><li><a class="tocitem" href="#Makie-@recipe"><span>Makie @recipe</span></a></li><li><a class="tocitem" href="#Visualizing-a-DecisionTree"><span>Visualizing a DecisionTree</span></a></li></ul></li><li><a class="tocitem" href="../reftests/">Reference Tests</a></li></ul></li><li><a class="tocitem" href="../../networklayout_forward/">🔗 Layouts (<code>NetworkLayout.jl</code>)</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Examples</a></li><li class="is-active"><a href>Decision Tree</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Decision Tree</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/MakieOrg/GraphMakie.jl/blob/master/docs/examples/decisiontree.jl#" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Visual-representation-of-a-decision-tree"><a class="docs-heading-anchor" href="#Visual-representation-of-a-decision-tree">Visual representation of a decision tree</a><a id="Visual-representation-of-a-decision-tree-1"></a><a class="docs-heading-anchor-permalink" href="#Visual-representation-of-a-decision-tree" title="Permalink"></a></h1><p>In this example we are going to plot a decision tree of type <a href="https://github.com/JuliaAI/DecisionTree.jl"><code>DecisionTree.jl</code></a> using the Bucheim Layout from <a href="https://github.com/JuliaGraphs/NetworkLayout.jl"><code>NetworkLayout.jl</code></a>.</p><pre><code class="language-julia hljs">using CairoMakie
+using Graphs
+using GraphMakie
+import MLJ
+using NetworkLayout
+using DecisionTree</code></pre><p>This following code, which walks the tree and creates a <code>SimpleDiGraph</code> was taken and slightly modified from <a href="https://github.com/MakieOrg/GraphMakie.jl/blob/master/docs/examples/syntaxtree.jl"><code>syntaxtree.jl</code></a>. Thanks!</p><p>The model is a DecisionTree object. maxdepth defines the max Depth of the final tree generated.</p><pre><code class="language-julia hljs">import Base.convert
+function Base.convert(::Type{SimpleDiGraph},model::DecisionTree.DecisionTreeClassifier; maxdepth=depth(model))
+    if maxdepth == -1
+        maxdepth = depth(model)
+    end
+    g = SimpleDiGraph()
+    properties = Any[]
+    walk_tree!(model.root.node,g,maxdepth,properties)
+    return g, properties
+end
+
+function walk_tree!(node::DecisionTree.Node, g, depthLeft, properties)
+    add_vertex!(g)
+
+    if depthLeft == 0
+        push!(properties,(Nothing,&quot;...&quot;))
+        return vertices(g)[end]
+    else
+        depthLeft -= 1
+    end
+
+    current_vertex = vertices(g)[end]
+    val = node.featval
+
+    featval = isa(val,AbstractString) ? val : round(val;sigdigits=2)
+    push!(properties,(Node,&quot;Feature $(node.featid) &lt; $featval ?&quot;))
+
+
+    child = walk_tree!(node.left,g,depthLeft,properties)
+    add_edge!(g,current_vertex,child)
+
+    child = walk_tree!(node.right,g,depthLeft,properties)
+    add_edge!(g,current_vertex,child)
+
+    return current_vertex
+end
+
+function walk_tree!(leaf::DecisionTree.Leaf, g, depthLeft, properties)
+    add_vertex!(g)
+    n_matches = count(leaf.values .== leaf.majority)
+    #ratio = string(n_matches, &quot;/&quot;, length(leaf.values))
+
+    push!(properties,(Leaf,&quot;$(leaf.majority)&quot;))# : $(ratio)&quot;))
+    return vertices(g)[end]
+end</code></pre><p>Ooof, quite a bit of code!</p><h2 id="Makie-@recipe"><a class="docs-heading-anchor" href="#Makie-@recipe">Makie @recipe</a><a id="Makie-@recipe-1"></a><a class="docs-heading-anchor-permalink" href="#Makie-@recipe" title="Permalink"></a></h2><p>Now let&#39;s define a MakieRecipe for the plot, to make plotting easy</p><pre><code class="language-julia hljs">@recipe(PlotDecisionTree) do scene
+    Attributes(
+        nodecolormap = :darktest,
+        textcolor = RGBf(0.5,0.5,0.5),
+        leafcolor = :darkgreen,
+        nodecolor = :white,
+        maxdepth = -1,
+    )
+end
+
+import GraphMakie.graphplot
+import Makie.plot!
+function GraphMakie.graphplot(model::DecisionTreeClassifier;kwargs...)
+    f,ax,h = plotdecisiontree(model;kwargs...)
+    hidedecorations!(ax); hidespines!(ax)
+    return f
+end
+
+function plot!(plt::PlotDecisionTree{&lt;:Tuple{DecisionTreeClassifier}})
+
+    @extract plt leafcolor,textcolor,nodecolormap,nodecolor,maxdepth
+    model = plt[1]
+
+    # convert to graph
+    tmpObs = @lift convert(SimpleDiGraph,$model;maxdepth=$maxdepth)
+    graph = @lift $tmpObs[1]
+    properties = @lift $tmpObs[2]
+
+    # extract labels
+    labels = @lift [string(p[2]) for p in $properties]
+
+    # set the colors, first for nodes &amp; cutoff-nodes, then for leaves
+    nlabels_color = map(properties, labels, leafcolor,textcolor,nodecolormap) do properties,labels,leafcolor,textcolor,nodecolormap
+
+        # set colors for the individual elements
+        leaf_ix = findall([p[1] == Leaf for p in properties])
+        leafValues = [p[1] for p in split.(labels[leaf_ix],&quot; : &quot;)]
+
+        # one color per category
+        uniqueLeafValues = unique(leafValues)
+        individual_leaf_colors = resample_cmap(nodecolormap,length(uniqueLeafValues))
+        nlabels_color = Any[p[1] == Node ? textcolor : leafcolor for p in properties]
+        for (ix,uLV) = enumerate(uniqueLeafValues)
+            ixV = leafValues .== uLV
+            nlabels_color[leaf_ix[ixV]] .= individual_leaf_colors[ix]
+        end
+        return nlabels_color
+    end
+
+    # plot :)
+    graphplot!(plt,graph;layout=Buchheim(),
+               nlabels=labels,
+               node_size = 100,
+               node_color=nodecolor,
+               nlabels_color=nlabels_color,
+               nlabels_align=(:center,:center),
+               ##tangents=((0,-1),(0,-1))
+               )
+    return plt
+end</code></pre><h2 id="Visualizing-a-DecisionTree"><a class="docs-heading-anchor" href="#Visualizing-a-DecisionTree">Visualizing a DecisionTree</a><a id="Visualizing-a-DecisionTree-1"></a><a class="docs-heading-anchor-permalink" href="#Visualizing-a-DecisionTree" title="Permalink"></a></h2><p>Now finally we are ready to fit &amp; visualize the tree</p><pre><code class="language-julia hljs">iris = MLJ.load_iris()
+features = hcat(iris[1],iris[2],iris[3],iris[4])
+labels = iris[5]
+model = DecisionTreeClassifier(max_depth=4)
+fit!(model, features, labels)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">DecisionTreeClassifier
+max_depth:                4
+min_samples_leaf:         1
+min_samples_split:        2
+min_purity_increase:      0.0
+pruning_purity_threshold: 1.0
+n_subfeatures:            0
+classes:                  [&quot;setosa&quot;, &quot;versicolor&quot;, &quot;virginica&quot;]
+root:                     Decision Tree
+Leaves: 8
+Depth:  4</code></pre><p>now we are ready to plot</p><pre><code class="language-julia hljs">graphplot(model)</code></pre><img src="a412d6fc.png" alt="Example block output"/><p>you can also specify depth, or modify colors</p><pre><code class="language-julia hljs">graphplot(model;maxdepth=3,textcolor=:darkgreen)</code></pre><img src="4e24d955.png" alt="Example block output"/><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../syntaxtree/">« Julia AST</a><a class="docs-footer-nextpage" href="../reftests/">Reference Tests »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.2.1 on <span class="colophon-date" title="Friday 15 December 2023 15:26">Friday 15 December 2023</span>. Using Julia version 1.9.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
