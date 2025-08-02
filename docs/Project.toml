@@ -22,7 +22,7 @@ WGLMakie = "276b4fcb-3e11-5398-bf8b-a0c2d153d008"
 [compat]
 CairoMakie = "0.15"
 Cbc = "1"
-DataStructures = "0.18"
+DataStructures = "0.18, 0.19"
 DecisionTree = "0.12"
 Documenter = "1"
 GraphMakie = ">= 0.1"
