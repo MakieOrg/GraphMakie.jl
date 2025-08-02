@@ -16,7 +16,7 @@ StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 
 [compat]
 CairoMakie = "0.15"
-DataStructures = "0.17, 0.18"
+DataStructures = "0.17, 0.18, 0.19"
 FileIO = "1"
 GeometryBasics = "0.5"
 Graphs = "1.4"
