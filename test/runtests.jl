@@ -278,6 +278,11 @@ end
     @test ax isa LScene
 end
 
+@testset "test empty endge Blot" begin
+    GraphMakie.edgeplot(GraphMakie.Line{Point{2, Float32}}[])
+    GraphMakie.edgeplot(GraphMakie.AbstractPath{Point{2, Float32}}[])
+end
+
 include("referencetests.jl")
 
 end

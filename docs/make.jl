@@ -45,6 +45,7 @@ makedocs(; modules=[GraphMakie], authors="Simon Danisch, Hans Würfel",
                 ],
                 "🔗 Layouts (`NetworkLayout.jl`)" => "networklayout_forward.md",
                 ],
+         draft=haskey(ENV, "DOCUMENTER_DRAFT"),
          warnonly=[:missing_docs])
 
 # if gh_pages branch gets to big, check out

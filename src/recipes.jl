@@ -733,7 +733,7 @@ function Makie.plot!(p::EdgePlot)
     end
 
     # if the user specified different linestyles, we need to fall back to plotting n `lines` rather than plotting
-    split_edgeplots = !(p[:linestyle][] isa Union{Symbol,Linestyle})
+    split_edgeplots = !(p[:linestyle][] isa Union{Nothing,Symbol,Linestyle})
     add_constant!(p.attributes, :split_edgeplots, split_edgeplots)
 
     if !split_edgeplots
