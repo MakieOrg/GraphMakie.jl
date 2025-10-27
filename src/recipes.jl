@@ -219,7 +219,7 @@ function Makie.plot!(gp::GraphPlot)
                 Pointf.(layout)
             end
         else
-            [Pointf(p) for p in layout(graph)]
+            [to_pointf32(p) for p in layout(graph)]
         end
     end
 

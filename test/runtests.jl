@@ -193,28 +193,28 @@ end
     using GraphMakie: Pointf
 
     p = Point(0.0, 0.0)
-    @test typeof(Pointf(p)) == Point2f
-    @test Pointf(p) == Point2f(p)
+    @test typeof(to_pointf32(p)) == Point2f
+    @test to_pointf32(p) == Point2f(p)
 
     p = Point(1, 0)
-    @test typeof(Pointf(p)) == Point2f
-    @test Pointf(p) == Point2f(p)
+    @test typeof(to_pointf32(p)) == Point2f
+    @test to_pointf32(p) == Point2f(p)
 
     p = Point(0.0, 1.0, 2.0)
-    @test typeof(Pointf(p)) == Point3f
-    @test Pointf(p) == Point3f(p)
+    @test typeof(to_pointf32(p)) == Point3f
+    @test to_pointf32(p) == Point3f(p)
 
-    @test Pointf(0.0, 0.0, 0.0) isa Point3f
-    @test Pointf(1.0, 1.0) isa Point2f
+    @test to_pointf32(0.0, 0.0, 0.0) isa Point3f
+    @test to_pointf32(1.0, 1.0) isa Point2f
 
-    @test Pointf((0.0, 0.0, 0.0 )) isa Point3f
-    @test Pointf((1.0, 1.0)) isa  Point2f
+    @test to_pointf32((0.0, 0.0, 0.0 )) isa Point3f
+    @test to_pointf32((1.0, 1.0)) isa  Point2f
 
-    @test Pointf([0.0, 0.0, 0.0]) isa Point3f
-    @test Pointf([1.0, 1.0]) isa  Point2f
+    @test to_pointf32([0.0, 0.0, 0.0]) isa Point3f
+    @test to_pointf32([1.0, 1.0]) isa  Point2f
 
-    @test Pointf(SA[0.0, 0.0, 0.0]) isa Point3f
-    @test Pointf(SA[1.0, 1.0]) isa  Point2f
+    @test to_pointf32(SA[0.0, 0.0, 0.0]) isa Point3f
+    @test to_pointf32(SA[1.0, 1.0]) isa  Point2f
 
     g = complete_graph(3)
     pos1 = [(0,0),

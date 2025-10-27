@@ -112,14 +112,14 @@ Return `true` if `x` represents a single attribute value
 issingleattribute(x) = isa(x, Point) || (!isa(x, AbstractVector) && !isa(x, AbstractDict))
 
 """
-    Pointf(p::Point{N, T})
+    to_pointf32(p::Point{N, T})
 
 Convert Point{N, T} or NTuple{N, T} to Point{N, Float32}.
 """
-Pointf(p::Union{Point{N,T}, NTuple{N,T}}) where {N,T} = Point{N, Float32}(p)
-Pointf(p::StaticVector{N, T}) where {N,T} = Point{N, Float32}(p)
-Pointf(p::Vararg{T,N}) where {N,T} = Point{N, Float32}(p)
-Pointf(p::Vector{T}) where {T} = Point{length(p), Float32}(p)
+to_pointf32(p::Union{Point{N,T}, NTuple{N,T}}) where {N,T} = Point{N, Float32}(p)
+to_pointf32(p::StaticVector{N, T}) where {N,T} = Point{N, Float32}(p)
+to_pointf32(p::Vararg{T,N}) where {N,T} = Point{N, Float32}(p)
+to_pointf32(p::Vector{T}) where {T} = Point{length(p), Float32}(p)
 
 """
     align_to_dir(align::Tuple{Symbol, Symbol})
