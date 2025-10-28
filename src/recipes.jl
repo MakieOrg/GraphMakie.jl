@@ -783,7 +783,7 @@ end
 
 function _expand_args(args::Union{AbstractVector, AbstractDict}, ranges)
     N_paths = length(ranges)
-    N_points = ranges[end][end]
+    N_points = N_paths > 0 ? ranges[end][end] : 0
     allstraight = N_paths*3 == N_points
     if args isa AbstractVector && length(args) != N_paths
         throw(ArgumentError("The length of the args vector $args does not match the number of edges!"))
