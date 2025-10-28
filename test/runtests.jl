@@ -189,32 +189,32 @@ end
     @test get_elabel_plot(p)[:text][] == elabels
 end
 
-@testset "test Pointf" begin
-    using GraphMakie: Pointf
+@testset "test to_pointf32" begin
+    using GraphMakie: to_pointf32
 
     p = Point(0.0, 0.0)
-    @test typeof(Pointf(p)) == Point2f
-    @test Pointf(p) == Point2f(p)
+    @test typeof(to_pointf32(p)) == Point2f
+    @test to_pointf32(p) == Point2f(p)
 
     p = Point(1, 0)
-    @test typeof(Pointf(p)) == Point2f
-    @test Pointf(p) == Point2f(p)
+    @test typeof(to_pointf32(p)) == Point2f
+    @test to_pointf32(p) == Point2f(p)
 
     p = Point(0.0, 1.0, 2.0)
-    @test typeof(Pointf(p)) == Point3f
-    @test Pointf(p) == Point3f(p)
+    @test typeof(to_pointf32(p)) == Point3f
+    @test to_pointf32(p) == Point3f(p)
 
-    @test Pointf(0.0, 0.0, 0.0) isa Point3f
-    @test Pointf(1.0, 1.0) isa Point2f
+    @test to_pointf32(0.0, 0.0, 0.0) isa Point3f
+    @test to_pointf32(1.0, 1.0) isa Point2f
 
-    @test Pointf((0.0, 0.0, 0.0 )) isa Point3f
-    @test Pointf((1.0, 1.0)) isa  Point2f
+    @test to_pointf32((0.0, 0.0, 0.0 )) isa Point3f
+    @test to_pointf32((1.0, 1.0)) isa  Point2f
 
-    @test Pointf([0.0, 0.0, 0.0]) isa Point3f
-    @test Pointf([1.0, 1.0]) isa  Point2f
+    @test to_pointf32([0.0, 0.0, 0.0]) isa Point3f
+    @test to_pointf32([1.0, 1.0]) isa  Point2f
 
-    @test Pointf(SA[0.0, 0.0, 0.0]) isa Point3f
-    @test Pointf(SA[1.0, 1.0]) isa  Point2f
+    @test to_pointf32(SA[0.0, 0.0, 0.0]) isa Point3f
+    @test to_pointf32(SA[1.0, 1.0]) isa  Point2f
 
     g = complete_graph(3)
     pos1 = [(0,0),
@@ -226,9 +226,9 @@ end
     pos3 = [SA[0,0],
             SA[1,1],
             SA[0,1]]
-    @test isconcretetype(typeof(Pointf.(pos1)))
-    @test isconcretetype(typeof(Pointf.(pos2)))
-    @test isconcretetype(typeof(Pointf.(pos3)))
+    @test isconcretetype(typeof(to_pointf32.(pos1)))
+    @test isconcretetype(typeof(to_pointf32.(pos2)))
+    @test isconcretetype(typeof(to_pointf32.(pos3)))
     graphplot(g; layout=(x)->pos1)
     graphplot(g; layout=(x)->pos2)
     graphplot(g; layout=(x)->pos3)
@@ -278,9 +278,12 @@ end
     @test ax isa LScene
 end
 
-@testset "test empty endge Blot" begin
+@testset "test empty edge plot" begin
     GraphMakie.edgeplot(GraphMakie.Line{Point{2, Float32}}[])
     GraphMakie.edgeplot(GraphMakie.AbstractPath{Point{2, Float32}}[])
+
+    # test empty edge color
+    graphplot(SimpleGraph(2); edge_color=Symbol[])
 end
 
 include("referencetests.jl")
