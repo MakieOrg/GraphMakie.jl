@@ -189,8 +189,8 @@ end
     @test get_elabel_plot(p)[:text][] == elabels
 end
 
-@testset "test Pointf" begin
-    using GraphMakie: Pointf
+@testset "test to_pointf32" begin
+    using GraphMakie: to_pointf32
 
     p = Point(0.0, 0.0)
     @test typeof(to_pointf32(p)) == Point2f
@@ -226,9 +226,9 @@ end
     pos3 = [SA[0,0],
             SA[1,1],
             SA[0,1]]
-    @test isconcretetype(typeof(Pointf.(pos1)))
-    @test isconcretetype(typeof(Pointf.(pos2)))
-    @test isconcretetype(typeof(Pointf.(pos3)))
+    @test isconcretetype(typeof(to_pointf32.(pos1)))
+    @test isconcretetype(typeof(to_pointf32.(pos2)))
+    @test isconcretetype(typeof(to_pointf32.(pos3)))
     graphplot(g; layout=(x)->pos1)
     graphplot(g; layout=(x)->pos2)
     graphplot(g; layout=(x)->pos3)

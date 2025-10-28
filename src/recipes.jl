@@ -216,7 +216,7 @@ function Makie.plot!(gp::GraphPlot)
             if length(layout) != nv(graph)
                 throw(ArgumentError("The length of the layout vector does not match the number of nodes in the graph!"))
             else
-                Pointf.(layout)
+                to_pointf32.(layout)
             end
         else
             [to_pointf32(p) for p in layout(graph)]
