@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Reference Tests · GraphMakie.jl</title><meta name="title" content="Reference Tests · GraphMakie.jl"/><meta property="og:title" content="Reference Tests · GraphMakie.jl"/><meta property="twitter:title" content="Reference Tests · GraphMakie.jl"/><meta name="description" content="Documentation for GraphMakie.jl."/><meta property="og:description" content="Documentation for GraphMakie.jl."/><meta property="twitter:description" content="Documentation for GraphMakie.jl."/><meta property="og:url" content="https://graph.makie.org/generated/reftests/"/><meta property="twitter:url" content="https://graph.makie.org/generated/reftests/"/><link rel="canonical" href="https://graph.makie.org/generated/reftests/"/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">GraphMakie.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><span class="tocitem">Examples</span><ul><li><a class="tocitem" href="../plots/">Feature Walkthrough</a></li><li><a class="tocitem" href="../interactions/">Interaction Examples</a></li><li><a class="tocitem" href="../depgraph/">Dependency Graph</a></li><li><a class="tocitem" href="../truss/">Stress on Truss</a></li><li><a class="tocitem" href="../syntaxtree/">Julia AST</a></li><li><a class="tocitem" href="../scenegraph/">Makie Scene tree</a></li><li><a class="tocitem" href="../decisiontree/">Decision Tree</a></li><li class="is-active"><a class="tocitem" href>Reference Tests</a><ul class="internal"><li><a class="tocitem" href="#Test-different-nlabels_align-modes"><span>Test different <code>nlabels_align</code> modes</span></a></li><li><a class="tocitem" href="#Edge-label-placement"><span>Edge label placement</span></a></li><li><a class="tocitem" href="#Changes-of-node-positions"><span>Changes of node positions</span></a></li><li><a class="tocitem" href="#Change-of-the-underlying-graph"><span>Change of the underlying graph</span></a></li><li><a class="tocitem" href="#Different-combinations-of-edge-width-and-edgelabel-distance"><span>Different combinations of edge width and edgelabel distance</span></a></li><li><a class="tocitem" href="#Different-linestyles-per-edge"><span>Different linestyles per edge</span></a></li><li><a class="tocitem" href="#Self-loop-with-waypoints"><span>Self loop with waypoints</span></a></li><li><a class="tocitem" href="#Shift-arrows-to-nodes"><span>Shift arrows to nodes</span></a></li><li><a class="tocitem" href="#Inner-node-labels"><span>Inner node labels</span></a></li><li><a class="tocitem" href="#Changes-of-node-and-label-sizes"><span>Changes of node and label sizes</span></a></li><li><a class="tocitem" href="#Dict-and-DefaultDict"><span>Dict and DefaultDict</span></a></li><li><a class="tocitem" href="#Use-Dict{Edge}-for-edge-arguments"><span>Use Dict{Edge} for edge arguments</span></a></li></ul></li></ul></li><li><a class="tocitem" href="../../networklayout_forward/">🔗 Layouts (<code>NetworkLayout.jl</code>)</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Examples</a></li><li class="is-active"><a href>Reference Tests</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Reference Tests</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/MakieOrg/GraphMakie.jl/blob/master/docs/examples/reftests.jl#" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Images-for-Reference-Testing"><a class="docs-heading-anchor" href="#Images-for-Reference-Testing">Images for Reference Testing</a><a id="Images-for-Reference-Testing-1"></a><a class="docs-heading-anchor-permalink" href="#Images-for-Reference-Testing" title="Permalink"></a></h1><p>This is a more or less uncurated list of figures which are used for reference testing. They might be interesting but they are most probably not.</p><h2 id="Test-different-nlabels_align-modes"><a class="docs-heading-anchor" href="#Test-different-nlabels_align-modes">Test different <code>nlabels_align</code> modes</a><a id="Test-different-nlabels_align-modes-1"></a><a class="docs-heading-anchor-permalink" href="#Test-different-nlabels_align-modes" title="Permalink"></a></h2><pre><code class="language-julia hljs">using Graphs, GraphMakie, CairoMakie, NetworkLayout
+import DataStructures: DefaultDict
+
+g = SimpleGraph(9)
+nlabels_align = [(:right, :bottom),
+                 (:center, :bottom),
+                 (:left, :bottom),
+                 (:right, :center),
+                 (:center, :center),
+                 (:left, :center),
+                 (:right, :top),
+                 (:center, :top),
+                 (:left, :top)]
+
+nlabels = repr.(nlabels_align)
+nlabels_fontsize = 10
+
+fig, ax, p = graphplot(g; layout=SquareGrid(), nlabels, nlabels_align, nlabels_fontsize)
+graphplot!(g; layout=SquareGrid(), nlabels, nlabels_align, nlabels_distance=30,
+           nlabels_color=:red, nlabels_fontsize)
+hidedecorations!(ax); xlims!(-2,4); ylims!(-4,2)
+fig</code></pre><img src="155d1cc3.png" alt="Example block output"/><p>change the align</p><pre><code class="language-julia hljs">pop!(ax.scene.plots) # remove red plot
+p[:nlabels_distance] = 10
+p[:nlabels_align][] = [(:left, :bottom) for i in 1:nv(g)]
+p[:nlabels][] = [&quot;↙&quot; for i in 1:nv(g)]
+p[:nlabels_offset][] = Point2(0.1,0.2)
+fig</code></pre><img src="08d99dc7.png" alt="Example block output"/><p>variable offsets</p><pre><code class="language-julia hljs">p[:nlabels_distance] = 0
+p[:nlabels_align][] = [(:center, :center) for i in 1:nv(g)]
+p[:nlabels][] = [&quot;×&quot; for i in 1:nv(g)]
+p[:nlabels_color][] = :red
+p[:nlabels_offset][] = [Point2(.1*cos(-2π/9*i),.1*sin(-2π/9*i)) for i in 1:nv(g)]
+fig</code></pre><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAyAAAAMgCAIAAABUEpE/AAAABmJLR0QA/wD/AP+gvaeTAAAeiklEQVR4nO3dfZDWdb3/8c+Felxuvb9ByzAwjwgYizd1MtoEPRCkGeo56XESceqkcRpvKh1zVI6TU6KnMbWaMaXQGsrkIDfVAAqmjTfBcsrb+WFiddyAOekIIkZx/f7YTbxjWey118VePB5/7XV9P9fue75zwT73+/3udyvVarUAAJDTq94DAAA0GoEFABAmsAAAwgQWAECYwAIACBNYAABhAgsAIExgAQCECSwAgDCBBQAQJrAAAMIEFgBAmMACAAgTWAAAYQILACBMYAEAhAksAIAwgQUAECawAADCBBYAQJjAAgAIE1gAAGECCwAgTGABAIQJLACAMIEFABAmsAAAwgQWAECYwAIACBNYAABhu3brZ69UKt36+QEA3plqtdp9n9wRLACAsO49gtWuWwsRAGC71OAMmyNYAABhAgsAIExgAQCECSwAgDCBBQAQJrAAAMIEFgBAmMACAAgTWAAAYQILACBMYAEAhAksAIAwgQUAECawAADCBBYAQJjAAgAIE1gAAGECCwAgTGABAIQJLACAMIEFABAmsAAAwgQWAECYwAIACBNYAABhAgsAIExgAQCECSwAgDCBBQAQJrAAAMIEFgBAmMACAAgTWAAAYQILACBMYAEAhAksAIAwgQUAECawAADCBBYAQJjAAgAIE1gAAGECCwAgTGABAIQJLACAMIEFABAmsAAAwgQWAECYwAIACBNYAABhAgsAIExgAQCECSwAgDCBBQAQJrAAAMIEFgBAmMACAAgTWAAAYQILACBMYAEAhAksAIAwgQUAECawAADCBBYAQJjAAgAIE1gAAGECCwAgTGABAIQJLACAMIEFABAmsAAAwgQWAECYwAIACBNYAABhAgsAIExgAQCECSwAgDCBBQAQJrAAAMIEFgBAmMACAAgTWAAAYQILACBMYAEAhAksAIAwgQUAECawAADCBBYAQJjAAgAIE1gAAGECCwAgTGABAIQJLACAMIEFABAmsAAAwgQWAECYwAIACBNYAABhAgsAIExgAQCECSwAgDCBBQAQJrAAAMIEFgBAmMACAAgTWAAAYQILACBMYAEAhAksAIAwgQUAECawAADCBBYAQJjAAgAIE1gAAGECCwAgTGABAIQJLACAMIEFABAmsAAAwgQWAECYwAIACBNYAABhAgsAIExgAQCECSwAgDCBBQAQJrAAAMIEFgBAmMACAAgTWAAAYQILACBMYAEAhAksAIAwgQUAECawAADCBBYAQJjAAgAIE1gAAGECCwAgTGABAIQJLACAMIEFABAmsAAAwgQWAECYwAIACBNYAABhAgsAIExgAQCECSwAgDCBBQAQJrAAAMIEFgBAmMACAAgTWAAAYQILACBMYAEAhAksAIAwgQUAECawAADCBBYAQJjAAgAIE1gAAGECCwAgTGABAIQJLACAMIEFABAmsAAAwgQWAECYwAIACBNYAABhAgsAIExgAQCECSwAgDCBBQAQJrAAAMIEFgBAmMACAAgTWAAAYQILACBMYAEAhAksAIAwgQUAECawAADCBBYAQJjAAgAIE1gAAGECCwAgTGABAIQJLACAMIEFABAmsAAAwgQWAECYwAIACBNYAABhAgsAIExgAQCECSwAgDCBBQAQJrAAAMIEFgBAmMACAAgTWAAAYQILACBMYAEAhAksAIAwgQUAECawAADCBBYAQJjAAgAIE1gAAGECCwAgTGABAIQJLACAMIEFABAmsAAAwgQWAECYwAIACBNYAABhAgsAIExgAQCECSwAgDCBBQAQJrAAAMIEFgBAmMACAAgTWAAAYQILACBMYAEAhAksAIAwgQUAECawAADCBBYAQJjAAgAIE1gAAGECCwAgTGABAIQJLACAMIEFABAmsGD7bNq06dZbb21padljjz122WWXd73rXWeeeeYvf/nLes/VsNra2i699NIjjzyyqampqanpyCOPvOyyy9ra2uo9V8N68MEHP/WpTx188MG77LLLnnvu+dGPfvS2227btGlTveeCHqZSrVa78bNXKqWUbv0SUEttbW2nnHLKo48++qbnK5XKhRdeOH369Pb3PCkLFiw466yzXnzxxTc9v9dee915553jx4+vy1SNqlqtXnzxxd/4xjfe+p/2scceO2fOnAMPPLAug0FcDfpEYEFXbdq06dhjj12xYsXWFkybNu2KK66o5UiNbfny5R/60Ic2btz4tlt79+794IMPjhw5ssZTNbCrrrrq6quv3trW5ubmhx56aLfddqvlSNBNBBbsQG655ZYLLrigkwVNTU0rV648+OCDazZSYzvhhBPuu+++zhcsXry4ZvM0tj/84Q9Dhgx59dVXO1nz7W9/+7Of/WzNRoLuU4M+cQ0WdNUPf/jDzhds3Lhx9uzZtRmm4T3//PNLlizpfM2SJUtcjJVy9913d15XpZQf/OAHtRkGGoDAgq76zW9+E1lDVzz++OPb/OFy8+bNTzzxRG3maXje3pAlsKCrXn755W2uWbduXQ0m2RmsX7++K8teeuml7p5kJ9GVHe7tDV0nsKCr9ttvv22uOeCAA2owyc5g//3378oyOzylKzvc3oauE1jQVaNHj97mmo985CM1mGRnMGrUqP79+3e+pl+/fs3NzbWZp+F5e0OWwIKuOv/88ztfcOihh44bN642wzS8pqamc845p/M15557blNTU03GaXwTJkwYNGhQJwsqlcrnPve5Wo0DPZ7Agq4aPXr0hRdeuLWtTU1NM2bM8P0+aNq0acOGDdva1uHDh0+bNq2W8zS2pqam22+/fffdd9/agosuuuj444+v5UjQowks2A7Tp0+/9tpr+/Tp86bnBw8evHDhwq6cZKHr9txzz3vvvfcTn/jEWzedeuqpixcv3mOPPWo/VQNraWlZuHDhe9/73jc936dPn6997WvXXXddXaaCHsqNRmG7rV279ic/+cny5cvXrVs3cODAlpaWj33sY7vuumvH5k2byuvvdv2mh2y/FStW3HPPPc8880wpZfDgwaeccspRRx1V76Ea1l/+8pf58+cvXbq0ra1twIABzc3NkyZN2nfffes9FyS5kzv0NNOnl/nzy/z5pf0oV2trmTSpzJlThg+v92QAdHAnd+hpWlrKihVl4sSyYUNpbS1jxpRDDilvOecCQGNzBAvSli0rY8eWoUPLU0+V4cPL/Pmlb996zwRb8b//W/baq7x2WWG1Wp55pgwZUteZoNs5RQg904wZZfLk0qdPefbZ0rUbZkIdVKvl6KPLHnuUefNKnz6lWi3nnVfmzi2//W3p16/ew0E3cooQeqDW1nLRReW448o//EP5138tGzbUe6CG8LvflXPO2bIzq9XyhS+URx+t60w9X6VSvvOdjpPa69eXKVPKzJnlO99RV/D3E1gQ1X7d1YgRZfHisnDhluux+DutXVvmzOnYmdVqmTKlfOtb5fnn6z1Wz3f00R1v1MGDyx13lFmzyqmn1nsmaAQCC6IWLSojRnRcd9X+revZZ8vKlfUeq+cbNaosWlRaW8vHP17OPbcjBU45pd5jNYTm5tLSUtasKUOHln/+53pPAw3CNViQ5j5Y3efRR8sHP1j++tdyxx3lrLPqPU1DaD8ceMcd5eqry9e/XkaO7LgeCxqaa7CgB3pTTqmrlGq1fPvbpVevMmBAufVWJ14z2utq1qxy2WUdxwgnTiwbN9Z7LOjxBBbQE7T/gtvMmWXWrLJ4sYvbYgYP3nLdVft52H/8Rz8VwN/PKUKgJ7jnnnLaaVtSYNmycuKJ5dJLy5e+VO/JgJ7HfbAA/ubpp8vhh295uHJlOfTQsssu9RsI6KkEFgBAmIvcAQB6HoEFABAmsAAAwgQWAECYwAIACBNYAABhAgsAIExgAQCECSwAgDCBBQAQJrAAAMIEFgBAmMACAAgTWAAAYQILACBMYAEAhAksAIAwgQUAECawAADCBBYAQJjAAgAIE1gAAGECCwAgTGABAIQJLACAMIEFABAmsAAAwgQWAECYwAIACBNYAABhAgsAIExgAQCECSwAgDCBBQAQJrAAAMIEFgBAmMACAAgTWAAAYQILACBMYAEAhAksAIAwgQUAECawAADCBBYAQJjAAgAIE1gAAGECCwAgTGABAIQJLACAMIEFABAmsAAAwgQWAECYwAIACBNYAABhAgsAIExgAQCECSwAgDCBBQAQJrAAAMIEFgBAmMACAAgTWAAAYQILACBMYAEAhAksAIAwgQUAECawAADCBBYAQJjAAgAIE1gAAGECCwAgTGABAIQJLACAMIEFABAmsAAAwgQWAECYwAIACBNYAABhAgsAIExgAQCECSwAgDCBBQAQJrAAAMIEFgBAmMACAAgTWAAAYQILACBMYAEAhAksAIAwgQUAECawAADCBBbATuzaa8ucOVseLl9ePv/5snlz/QaCBiGwAHZW1Wp56qly+ukdjbV8eRk7tjz2WHn11XpPBj3ervUeAIA6qVTK7beXSqWccUa55ppy7bVlxIgyf37p3bvek0GPV6lWq9342SuVUkq3fgkA/i6bN5dJk8p//3c56qjy4IOlb996DwTdrgZ94hQhwM7tf/6n3H9/2Xff8sQTZfHiek8DDcIpQngnVq9e3draun79+oMOOqi5ubmpqaneEzWyarX6+OOP//a3vy2lDB48eOjQoe0/fRLQ2lrGji3Dh5e5c8vnP19OO63cddfGk05atmxZW1tb//79R44cuf/++9d7Suh5nCKE7fPrX//6i1/84sKFC197Y/ft2/czn/nMtGnT+vXrV9/ZeqR77y3vfnc57LCOh3/6U1m0qJxxxmvbv//971999dXtddVu8ODBV1555dlnn13jSRvTqFGlX7+yYEHp27ds3rzp7LNfnT17cKWyZsOG9u2VSuWkk0667rrrhg8fXt9JIagGfSKwYDssWLBg0qRJGzdufOumoUOHLlmyZL/99qv9VD1YtVr+6Z/K739fliwpQ4aUP/2pjB1b1qwpTz1V+vWrVqsXXHDBt771rbd96fnnn3/zzTfXeN4G9Ic/lL32ar/uas2aNSe0tPz5ySf/31tWNTU1zZ49e9y4cbUfELqDwIIdyPPPP3/44YevX79+awvGjx+/YMGCWo7UCP7v/8rYsWXt2nL33eXf/72sXl3uu6+8732llO9+97vnnXdeJy+97bbbJk+eXKtBG9+4ceN+/vOfb21r//79n3766YEDB9ZyJOgmLnKHHcj111/fSV2VUn76058+8sgjNZunQeyzT1m0qOy/fznuuNfXVbVa/c///M/OXzpt2jQ/v6U89NBDndRVKWXdunU33HBDzeaBnk5gQVfNnz8/soY36/W3/4gqldc+fuyxx5577rnOX7dq1aonnniiW0fbeXh7Q5bAgq7a5vf7UsqqVau6f5DG8sILZcyYsnp1+eUvy777lpaWsnJl6fKetMNTurIn7W3oOoEFXdWr17b/vbh9wHabOLHjzOAHP1juvbfst1854YSyfn0X96QdnuLtDVnugwVddcghhzz11FOdr3nPe95Tm2Eax7Rp5d3vbr/uquy9d1m8uCxcWPr16+KetMNTurInBw0a1P2DQINwBAveYtOmt304YcKEbb504sSJ3TFRIxszpqOu2u29d/mXfymlDBs2bJvf8gcNGjR06NBunW7n0ZW3d1fWAO0EFrzR9OnlpJPK3+6yWFpby+GHl9/8ppRy8cUX9+/fv5OXTpgw4ZhjjqnBjDuDSqVy5ZVXdr7mqquuctIq5bjjjhs/fnwnCwYMGHDRRRfVbB7o6QQWvFFLS1mxokycWDZsKK2tZcyYcsgh5b3vLaUMHDjwRz/6Ue/evd/2dcOGDZsxY0ZNR210kydPvuCCC7a2derUqZ/+9KdrOU/D+973vre1I4K9e/f+8Y9/fOCBB9Z4JOi5BBa80dFHl0WLSmtrOfHEMnZsGTGizJ/ffp/rUsq4ceMeeeSR8ePHv/7ASf/+/S+55JKHHnpo3333rdPQDeumm2664447DnvtD+mUUko57LDD7rzzzhtvvLFeUzWq/fbb7+GHH37TkdpevXpNmDDh0UcfPemkk+o4G/Q47uQOb2fGjDJ5cunTpzz7bHm7v3S7du3aFStWrFu3buDAgc3NzbvvvnvtZ9ypPPnkkytXriylDBky5Igjjqj3OA3u1VdfXb58+Wt/7NlPDjQefyoH6qH9zOD73leefrqMHFnmzSt9+tR7JgBi/KkcqLn2uhoxouN+Aa9djwUAXSaw4I0WLdpy3dXRR5eFC8uzz7bfWxwAusgpQniLTZvKbrtt9SEAPZxrsAAAwlyDBQDQ8wgsAIAwgQUAECawAADCBBYAQJjAAgAIE1gAAGECCwAgTGABAIQJLACAMIEFABAmsAAAwgQWAECYwAIACBNYAABhAgsAIExgAQCECSwAgDCBBQAQJrAAAMIEFgBAmMACAAgTWAAAYQILACBMYAEAhAksAIAwgQUAECawAADCBBYAQJjAAgAIE1gAAGECCwAgTGABAIQJLACAMIEFABAmsAAAwgQWAECYwAIACBNYAABhAgsAIExgAQCECSwAgDCBBQAQJrAAAMIEFgBAmMACAAgTWAAAYQILACBMYAEAhAksAIAwgQUAECawAADCBBYAQJjAAgAIE1gAAGECCwAgTGABAIQJLACAMIEFABAmsAAAwgQWAECYwAIACBNYAABhAgsAIExgAQCECSwAgDCBBQAQJrAAAMIEFgBAmMACAAgTWAAAYQILACBMYAEAhAksAIAwgQUAECawAADCBBYAQJjAAgAIE1gAAGECCwAgTGABAIQJLACAMIEFABAmsAAAwgQWAECYwAIACBNYAABhAgsAIExgAQCECSwAgDCBBQAQJrAAAMIEFgBAmMACAAgTWAAAYQILACBMYAEAhAkseKdmziwbNmx52NpaHnmkftMAsAMRWPCOtLWV//iPMnFiR2O1tpYxY8pXv1rvsQDYIQgseEcGDiwLF5YVK8rEieXBB8uYMWXEiHLnnfUeC4AdQqVarXbjZ69USind+iWgnpYtKyeeWF54oXzkI2X+/NK3b70HAmDbatAnjmDB36FS2fLBax9TS66EA3ZIAgveqdbWMnZsGTGi3Hdfx7nC13+npwZcCQfsqAQWvCN//GPHdVfz55eWlrJoUWltLf/2b/UeayfjSjhgR+UaLNhuq1evvuuuu3r/+MdL9tlnn0MOGT169MSJE3f79a/LX/9ajj223tM1oGXLls2dO/eZZ54ppQwePPjkk09ubm5+/WZXwgVt2rRp7ty5999/f1tbW//+/Zubm0877bT999+/3nNBUg36RGDBdti8efO11157zTXXbNy48fXPH3rooTNmzBg9enS9BmtUa9asmTJlyrx58970/Mc//vFbb72147v+8uVl7NjywgulpaXMn1/69KnDoI1i6dKl55xzzqpVq17/ZO/eva+44oovf/nLvXo56UGDEFiwY/nCF75w4403vu2m3Xff/Wc/+1lLS0ttJ2pkL7zwwvHHH//EE0+87dYjjzzygQce2PPZZzvODF51VTn11DJyZJk3T2O9M/fee+/48eP//Oc/v+3WCy+88IYbbqjxSNBNBBbsQJYuXdp5Pw0aNOjJJ59samqq1UQNburUqTfddFMnCy6fMuWau+/uuBKub9+ybFkZO7Z89KPl7rtrNmTDeOWVV4444ojnnntuawsqlcrSpUs//OEP13Iq6CZu0wA7kJtvvrnzBatWrVqwYEFthml4r7zyyu233975mv/64Q///PWvb7nuatSosmhRufTSWszXcObNm9dJXZVSqtXqLbfcUrN5oKcTWNBVDzzwwDbX3H///TWYZGewbNmyl19+ufM1GzZs+NXQoW+4qn3UKL9n8M505e39i1/8ouOj3/++/PSnWzZUq+W73y2bN3fPaNAjCSzoqrVr125zzZo1a2owyc6gK3u7lLJ69erunmQn0ZW37pa9ffPN5ZRTypw5pZRSrZYpU8rnPleWLevOAaGH2bXeA0CP0a9fvxdffLHzNQMGDKjNMA2vf//+XVm2xx57dPckO4mu7PAtb++vfrX88Y/ljDPKj35U5swpd9xRZs0qxxzTvSNCjyKwoKuGDx++5RTJVgwbNqw2wzS8oUOH9urVa3OnZ5169eo1dOjQmo3U2Lry1h0+fHjHR716ldtuK5VK+cQnym67lVmzyqmndu980NM4RQhddeaZZ3a+oHfv3p/85CdrM0zDO+igg7Z5z4sTTjjhwAMPrMk4jW/SpEnb/AXYN/wTqFTKa7fFcn8seAv/KqCrpkyZMmrUqE4WfOUrXznooINqNk/Du/7663v37r21rX369Jk+fXot52lsBx988OWXX97JgmOOOebcc8/teFCtlvPOKzNnlrvuKp/6VDn99HLPPbWYEnoOgQVdtdtuu82bN++4445766ZKpfKlL33psssuq/1UDez973//7Nmz995777du2meffWbPnn3UUUfVfqoGdvnll19yySXt9wd6kw984ANz587dddddX1taZs4ss2aVSZPK7beXM88sp59efvWrmo4LOzY3GoXts2nTpjvvvHPmzJmtra0vvfTSwIEDW1papk6deqy7A3SP1atXf/Ob35wzZ0773yIcMmTIySefPHXq1AMOOKDeozWmhx9++KabblqyZElbW9uAAQOam5vPPvvss846a0tdlVJ+97vy2GPlYx/reLh5c7nttjJ5ctlll7rMDNvLndwBAMLcyR0AoOcRWAAAYQILACBMYAEAhAksAIAwgQUAECawAADCBBYAQJjAAgAIE1gAAGECCwAgTGABAIQJLACAMIEFABAmsAAAwgQWAECYwAIACBNYAABhAgsAIExgAQCECSwAgDCBBQAQJrAAAMIEFgBAmMACAAgTWAAAYQILACBMYAEAhAksAIAwgQUAECawAADCBBYAQJjAAgAIE1gAAGECCwAgTGABAIQJLACAMIEFABAmsAAAwgQWAECYwAIACBNYAABhAgsAIExgAQCECSwAgDCBBQAQJrAAAMIEFgBAmMACAAgTWAAAYQILACBMYAEAhAksAIAwgQUAECawAADCBBYAQJjAAgAIE1gAAGECCwAgTGABAIQJLACAMIEFABAmsAAAwgQWAECYwAIACBNYAABhAgsAIExgAQCECSwAgDCBBQAQJrAAAMIEFgBAmMACAAgTWAAAYQILACBMYAEAhAksAIAwgQUAECawAADCBBYAQJjAAgAIE1gAAGECCwAgTGABAIQJLACAMIEFABAmsAAAwgQWAECYwAIACBNYAABhAgsAIExgAQCECSwAgDCBBQAQJrAAAMIEFgBAmMACAAgTWAAAYQILACBMYAEAhAksAIAwgQUAECawAADCBBYAQJjAAgAIE1gAAGECCwAgTGABAIQJLACAMIEFABAmsAAAwgQWAECYwAIACBNYAABhAgsAIExgAQCECSwAgDCBBQAQJrAAAMIEFgBAmMACAAgTWAAAYQILACBMYAEAhAksAIAwgQUAECawAADCBBYAQJjAAgAIE1gAAGECCwAgTGABAIQJLACAMIEFABAmsAAAwgQWAECYwAIACBNYAABhAgsAIExgAQCECSwAgDCBBQAQJrAAAMIEFgBAmMACAAgTWAAAYQILACBMYAEAhAksAIAwgQUAECawAADCBBYAQJjAAgAIE1gAAGECCwAgTGABAIQJLACAMIEFABAmsAAAwgQWAECYwAIACBNYAABhAgsAIExgAQCECSwAgDCBBQAQJrAAAMIEFgBAmMACAAgTWAAAYQILACBMYAEAhAksAIAwgQUAECawAADCBBYAQJjAAgAIE1gAAGECCwAgTGABAIQJLACAMIEFABAmsAAAwgQWAECYwAIACBNYAABhAgsAIExgAQCECSwAgDCBBQAQJrAAAMIEFgBAmMACAAgTWAAAYQILACBMYAEAhAksAIAwgQUAECawAADCBBYAQJjAAgAIE1gAAGECCwAgTGABAIQJLACAMIEFABAmsAAAwgQWAECYwAIACBNYAABhAgsAIExgAQCECSwAgDCBBQAQJrAAAMIEFgBAmMACAAgTWAAAYQILACBMYAEAhAksAIAwgQUAECawAADCBBYAQJjAAgAIE1gAAGECCwAgTGABAIQJLACAMIEFABAmsAAAwgQWAECYwAIACBNYAABhAgsAIExgAQCECSwAgLBda/A1KpVKDb4KAMAOwhEsAICwSrVarfcMAAANxREsAIAwgQUAECawAADCBBYAQJjAAgAIE1gAAGECCwAgTGABAIQJLACAMIEFABAmsAAAwgQWAECYwAIACBNYAABhAgsAIExgAQCECSwAgDCBBQAQJrAAAMIEFgBAmMACAAgTWAAAYQILACBMYAEAhAksAIAwgQUAECawAADCBBYAQJjAAgAIE1gAAGH/H8jI02VqyIPzAAAAAElFTkSuQmCC" alt="Example block output"/><h2 id="Edge-label-placement"><a class="docs-heading-anchor" href="#Edge-label-placement">Edge label placement</a><a id="Edge-label-placement-1"></a><a class="docs-heading-anchor-permalink" href="#Edge-label-placement" title="Permalink"></a></h2><pre><code class="language-julia hljs">g = path_graph(4)
+elabels = [&quot;a&quot; for i in 1:ne(g)]
+elabels_align = (:center, :center)
+fig, ax, p = graphplot(g; layout=SquareGrid(), elabels, elabels_align,
+                       elabels_color=:red)
+hidedecorations!(ax)
+fig</code></pre><img src="2d3764c2.png" alt="Example block output"/><p>change the positioning of the edge labels</p><pre><code class="language-julia hljs">p[:elabels][] = repr.(edges(g))
+p[:elabels_shift][] = [0.25, 0.5, 0.75]
+p[:elabels_rotation][] = [π/8, 0, -π/8]
+p[:elabels_offset][] = Point2(0.05,0.05)
+p[:elabels_fontsize][] = 10
+autolimits!(ax)
+fig</code></pre><img src="5301fc27.png" alt="Example block output"/><h2 id="Changes-of-node-positions"><a class="docs-heading-anchor" href="#Changes-of-node-positions">Changes of node positions</a><a id="Changes-of-node-positions-1"></a><a class="docs-heading-anchor-permalink" href="#Changes-of-node-positions" title="Permalink"></a></h2><p>edge and node labels follow graph movement</p><pre><code class="language-julia hljs">g = complete_digraph(3)
+elabels = repr.(edges(g))
+nlabels = repr.(1:nv(g))
+fig, ax, p = graphplot(g; elabels, nlabels, elabels_fontsize=10)
+hidedecorations!(ax)
+fig</code></pre><img src="5facfad6.png" alt="Example block output"/><pre><code class="language-julia hljs">limits!(ax, ax.finallimits[]) # freeze the limits
+p[:node_pos][] = Point2f.([(1., -.5), (-1.,0.), (-1.,-1.)])
+hidedecorations!(ax)
+fig</code></pre><img src="df9d949c.png" alt="Example block output"/><h2 id="Change-of-the-underlying-graph"><a class="docs-heading-anchor" href="#Change-of-the-underlying-graph">Change of the underlying graph</a><a id="Change-of-the-underlying-graph-1"></a><a class="docs-heading-anchor-permalink" href="#Change-of-the-underlying-graph" title="Permalink"></a></h2><pre><code class="language-julia hljs">gn = Observable(SimpleDiGraph(3))
+fig, ax, p = graphplot(gn)
+hidedecorations!(ax)
+fig
+
+add_edge!(gn[], 1, 2)
+add_edge!(gn[], 1, 3)
+add_edge!(gn[], 2, 3)
+notify(gn)
+autolimits!(ax)
+fig</code></pre><img src="0c1b6861.png" alt="Example block output"/><p>add another edge</p><pre><code class="language-julia hljs">add_edge!(gn[], 2, 1)
+notify(gn)
+fig</code></pre><img src="d9db3362.png" alt="Example block output"/><h2 id="Different-combinations-of-edge-width-and-edgelabel-distance"><a class="docs-heading-anchor" href="#Different-combinations-of-edge-width-and-edgelabel-distance">Different combinations of edge width and edgelabel distance</a><a id="Different-combinations-of-edge-width-and-edgelabel-distance-1"></a><a class="docs-heading-anchor-permalink" href="#Different-combinations-of-edge-width-and-edgelabel-distance" title="Permalink"></a></h2><pre><code class="language-julia hljs">g = path_graph(3)
+layout(y) = Point2f.([(0,-y),(1,-y),(2,-y)])
+elabels = [&quot;Edge 1&quot;, &quot;Edge 2&quot;]
+node_color = :red
+
+fig, ax, p = graphplot(g; layout=layout(0), elabels, node_color)
+graphplot!(g; layout=layout(1), elabels, node_color, edge_width=10, elabels_fontsize=25)
+graphplot!(g; layout=layout(2), elabels, node_color, edge_width=25, elabels_fontsize=15)
+graphplot!(g; layout=layout(3), elabels, node_color, edge_width=25, elabels_fontsize=[15,25])
+graphplot!(g; layout=layout(4), elabels, node_color, edge_width=[10,25], elabels_fontsize=25)
+autolimits!(ax); hidedecorations!(ax); hidespines!(ax); ylims!(-5,1)
+fig</code></pre><img src="a5ad99a4.png" alt="Example block output"/><h2 id="Different-linestyles-per-edge"><a class="docs-heading-anchor" href="#Different-linestyles-per-edge">Different linestyles per edge</a><a id="Different-linestyles-per-edge-1"></a><a class="docs-heading-anchor-permalink" href="#Different-linestyles-per-edge" title="Permalink"></a></h2><pre><code class="language-julia hljs">fig = Figure()
+graphplot(fig[1,1],
+          DiGraph([Edge(1 =&gt; 2), Edge(2 =&gt; 3)]),
+          edge_attr = (; linestyle = [:dot, :dash]),
+          edge_plottype = :beziersegments,
+          )
+hidedecorations!(current_axis())
+
+graphplot(fig[1,2],
+          DiGraph([Edge(1 =&gt; 2), Edge(2 =&gt; 1)]),
+          edge_attr = (; linestyle = [:dot, :dash]),
+          edge_plottype = :beziersegments,
+          )
+hidedecorations!(current_axis())
+
+graphplot(fig[2,1], layout=Stress(),
+          DiGraph([Edge(1 =&gt; 2), Edge(2 =&gt; 3), Edge(3=&gt;4), Edge(4=&gt;1)]),
+          edge_attr = (; linestyle = Linestyle([0.5, 1.0, 1.5, 2.5])),
+          edge_plottype = :beziersegments,
+          )
+hidedecorations!(current_axis())
+fig
+fig</code></pre><img src="76b438a5.png" alt="Example block output"/><h2 id="Self-loop-with-waypoints"><a class="docs-heading-anchor" href="#Self-loop-with-waypoints">Self loop with waypoints</a><a id="Self-loop-with-waypoints-1"></a><a class="docs-heading-anchor-permalink" href="#Self-loop-with-waypoints" title="Permalink"></a></h2><pre><code class="language-julia hljs">g1 = SimpleDiGraph(1)
+add_edge!(g1, 1, 1) #add self loop
+fig, ax, p = graphplot(g1, layout = [(0,0)], waypoints = [[(1,-1),(1,1),(-1,1),(-1,-1)]])
+hidedecorations!(ax)
+fig</code></pre><img src="38777cbc.png" alt="Example block output"/><h2 id="Shift-arrows-to-nodes"><a class="docs-heading-anchor" href="#Shift-arrows-to-nodes">Shift arrows to nodes</a><a id="Shift-arrows-to-nodes-1"></a><a class="docs-heading-anchor-permalink" href="#Shift-arrows-to-nodes" title="Permalink"></a></h2><pre><code class="language-julia hljs">fig, ax, p=graphplot(SimpleDiGraph(ones(2,2)),node_size=50,arrow_size=20,curve_distance=0.5,arrow_shift=:end)
+hidedecorations!(ax)
+fig</code></pre><img src="b6f2ae17.png" alt="Example block output"/><h3 id="update-shifts"><a class="docs-heading-anchor" href="#update-shifts">update shifts</a><a id="update-shifts-1"></a><a class="docs-heading-anchor-permalink" href="#update-shifts" title="Permalink"></a></h3><pre><code class="language-julia hljs">g = SimpleDiGraph(3)
+add_edge!(g, 1, 1); add_edge!(g, 1, 2); add_edge!(g, 2, 1); add_edge!(g, 2, 3); add_edge!(g, 3, 1);</code></pre><p>test update of  node and arrow size, and node position</p><pre><code class="language-julia hljs">fig, ax, p = graphplot(g; arrow_shift=:end,
+                       node_size=[20 for _ in 1:nv(g)],
+                       arrow_size=[20 for _ in 1:ne(g)])
+hidedecorations!(ax)
+fig
+
+p.node_size[][1] = 40
+notify(p.node_size)
+fig
+
+p.arrow_size[][3] = 40
+notify(p.arrow_size)
+fig
+
+p.node_pos[][1] = (0,0)
+notify(p.node_pos)
+fig</code></pre><img src="0190bd92.png" alt="Example block output"/><p>test large nodes</p><pre><code class="language-julia hljs">using GraphMakie: SquareGrid
+g = SimpleDiGraph(8)
+add_edge!(g, 1, 2)
+add_edge!(g, 3, 4)
+add_edge!(g, 5, 6)
+add_edge!(g, 7, 8)
+
+fig, ax, p = graphplot(g; arrow_shift=:end, layout=SquareGrid(cols=2),
+                       node_size=[10, 10, 10, 100, 10, 200, 10, 300],
+                       arrow_size=[150,100,50,10],
+                       arrow_attr=(color=:blue,),
+                       edge_color=:red)
+xlims!(-.5,1.5); ylims!(-3.5,.5)
+hidedecorations!(ax)
+fig</code></pre><img src="bbe581f7.png" alt="Example block output"/><h2 id="Inner-node-labels"><a class="docs-heading-anchor" href="#Inner-node-labels">Inner node labels</a><a id="Inner-node-labels-1"></a><a class="docs-heading-anchor-permalink" href="#Inner-node-labels" title="Permalink"></a></h2><pre><code class="language-julia hljs">fig, ax, p = graphplot(cycle_digraph(3), ilabels=[1, L&quot;\sum_{i=1}^n \alpha^i&quot;, &quot;a label&quot;], node_marker=Circle)
+hidedecorations!(ax)
+fig</code></pre><img src="23b7e6bb.png" alt="Example block output"/><p>Interact with <code>arrow_shift=:end</code></p><pre><code class="language-julia hljs">fig, ax, p = graphplot(cycle_digraph(3), ilabels=[1, L&quot;\sum_{i=1}^n \alpha^i&quot;, &quot;a label&quot;], node_marker=Circle, arrow_shift=:end)
+hidedecorations!(ax)
+fig</code></pre><img src="934e3310.png" alt="Example block output"/><p>Update observables</p><pre><code class="language-julia hljs">p[:ilabels][][1] = &quot;1111&quot;
+p.node_size[] = DefaultDict(Makie.automatic, Dict{Int, Any}(2=&gt;100))
+notify(p[:ilabels])
+fig
+
+p[:ilabels_fontsize][] = 10
+fig
+
+p[:node_color][] = :red
+fig</code></pre><img src="17c4b375.png" alt="Example block output"/><h2 id="Changes-of-node-and-label-sizes"><a class="docs-heading-anchor" href="#Changes-of-node-and-label-sizes">Changes of node and label sizes</a><a id="Changes-of-node-and-label-sizes-1"></a><a class="docs-heading-anchor-permalink" href="#Changes-of-node-and-label-sizes" title="Permalink"></a></h2><pre><code class="language-julia hljs">gc = circular_ladder_graph(5);
+ons = Observable(30);
+onf = Observable(30);
+fig,ax,p = graphplot(gc; nlabels=repr.(vertices(gc)), node_size=ons, nlabels_fontsize=onf)
+hidedecorations!(ax)
+fig</code></pre><img src="251d1173.png" alt="Example block output"/><p>Change node size</p><pre><code class="language-julia hljs">ons[] = 10; # check changes
+fig</code></pre><img src="98d631ea.png" alt="Example block output"/><p>Change label font size</p><pre><code class="language-julia hljs">onf[] = 10; # check changes
+fig</code></pre><img src="3286f4b7.png" alt="Example block output"/><p>Do the same with a <code>Dict</code></p><pre><code class="language-julia hljs">onf = Observable(Dict(1=&gt;30, 10=&gt;30));
+ons = Observable(Dict(1=&gt;30, 10=&gt;30));
+fig,ax,p = graphplot(gc; nlabels=repr.(vertices(gc)), node_size=ons, nlabels_fontsize=onf)
+hidedecorations!(ax)
+fig</code></pre><img src="049e0ed8.png" alt="Example block output"/><p>Change label font size</p><pre><code class="language-julia hljs">onf[] = Dict(7=&gt;30); # check changes
+fig</code></pre><img src="f0c25efc.png" alt="Example block output"/><p>Change node size</p><pre><code class="language-julia hljs"> ons[] = Dict(7=&gt;30); # check changes
+fig</code></pre><img src="f6bb5c98.png" alt="Example block output"/><p>Do the same with a <code>DefaultDict</code></p><pre><code class="language-julia hljs">ons = Observable(DefaultDict(70, 1=&gt;30, 10=&gt;30));
+onf = Observable(DefaultDict(70, 1=&gt;30, 10=&gt;30));
+fig,ax,p = graphplot(gc; nlabels=repr.(vertices(gc)), node_size=ons, nlabels_fontsize=onf)
+hidedecorations!(ax)
+fig</code></pre><img src="6005101f.png" alt="Example block output"/><p>Change node size</p><pre><code class="language-julia hljs">ons[] = DefaultDict(20, 10=&gt;70); # check changes
+fig</code></pre><img src="46bb5cf0.png" alt="Example block output"/><p>Change label font size</p><pre><code class="language-julia hljs">onf[] = DefaultDict(20, 10=&gt;70); # check changes
+fig</code></pre><img src="d939d0b2.png" alt="Example block output"/><h2 id="Dict-and-DefaultDict"><a class="docs-heading-anchor" href="#Dict-and-DefaultDict">Dict and DefaultDict</a><a id="Dict-and-DefaultDict-1"></a><a class="docs-heading-anchor-permalink" href="#Dict-and-DefaultDict" title="Permalink"></a></h2><p>Test out argument functionality with <code>Dict</code> and <code>DefaultDict</code> First with a normal <code>Dict</code></p><pre><code class="language-julia hljs">gc = circular_ladder_graph(5);
+fig,ax,p = graphplot(gc, nlabels=Dict(1=&gt;&quot;One&quot;, 2 =&gt; &quot;Two&quot;))
+hidedecorations!(ax)
+fig</code></pre><img src="9ee66228.png" alt="Example block output"/><p>And also with a <code>DefaultDict</code></p><pre><code class="language-julia hljs">fig,ax,p = graphplot(gc, nlabels=DefaultDict(&quot;Unknown&quot;, 1=&gt;&quot;One&quot;, 2 =&gt; &quot;Two&quot;))
+hidedecorations!(ax)
+fig</code></pre><img src="c451a192.png" alt="Example block output"/><h2 id="Use-Dict{Edge}-for-edge-arguments"><a class="docs-heading-anchor" href="#Use-Dict{Edge}-for-edge-arguments">Use Dict{Edge} for edge arguments</a><a id="Use-Dict{Edge}-for-edge-arguments-1"></a><a class="docs-heading-anchor-permalink" href="#Use-Dict{Edge}-for-edge-arguments" title="Permalink"></a></h2><pre><code class="language-julia hljs">fig,ax,p = graphplot(gc, edge_color=Dict(Edge(7,8)=&gt;:blue))
+hidedecorations!(ax)
+fig</code></pre><img src="c527d057.png" alt="Example block output"/><p>try out also the DefaultDict</p><pre><code class="language-julia hljs">fig,ax,p = graphplot(gc, edge_color=DefaultDict(:green, Edge(7,8)=&gt;:blue))
+hidedecorations!(ax)
+fig</code></pre><img src="00d3c90f.png" alt="Example block output"/><p>Of course you can still use integers labeling</p><pre><code class="language-julia hljs">ind = findfirst(==(Edge(7,8)) , collect(edges(gc)))
+fig,ax,p = graphplot(gc, edge_color=DefaultDict(:green, ind=&gt;:blue))
+hidedecorations!(ax)
+fig</code></pre><img src="00d3c90f-001.png" alt="Example block output"/><p>The same can be done with all enumerations of edge arguments</p><pre><code class="language-julia hljs">fig,ax,p = graphplot(gc, elabels=DefaultDict(&quot;Unknown&quot;, Edge(1,2)=&gt;&quot;1-2&quot;, Edge(7,8) =&gt; &quot;7-8&quot;))
+hidedecorations!(ax)
+fig</code></pre><img src="b0440554.png" alt="Example block output"/><p>directed and undirected graphs are handled appropriately. For example for directed graphs</p><pre><code class="language-julia hljs">gcd = SimpleDiGraph(gc)
+fig,ax,p = graphplot(gcd, elabels=DefaultDict(&quot;Unknown&quot;, Edge(8,7)=&gt;&quot;8-7&quot;, Edge(2,7) =&gt; &quot;2-7&quot;), nlabels=repr.(vertices(gcd)))
+hidedecorations!(ax)
+fig</code></pre><img src="80fbfa89.png" alt="Example block output"/><p>and non-directed graphs</p><pre><code class="language-julia hljs">fig,ax,p = graphplot(gc, elabels=DefaultDict(&quot;Unknown&quot;, Edge(8,7)=&gt;&quot;8-7&quot;, Edge(2,7) =&gt; &quot;2-7&quot;), nlabels=repr.(vertices(gc)))
+hidedecorations!(ax)
+fig</code></pre><img src="15d1fba6.png" alt="Example block output"/><p>Test edge-specific updates</p><pre><code class="language-julia hljs">ec = Observable(Dict(Edge(8,7)=&gt;:blue))
+fig,ax,p = graphplot(gc, edge_color=ec, nlabels=repr.(vertices(gc)))
+hidedecorations!(ax)
+fig</code></pre><img src="94394b42.png" alt="Example block output"/><p>update <code>Observable</code></p><pre><code class="language-julia hljs">ec[] = Dict(Edge(7,2)=&gt; :green)
+fig</code></pre><img src="757670e5.png" alt="Example block output"/><p>test 3d plots with i-labels</p><pre><code class="language-julia hljs">g = complete_graph(4)
+fig,ax,p = graphplot(g; ilabels=[&quot;a&quot;, &quot;b&quot;, &quot;c&quot;, &quot;d&quot;], layout=NetworkLayout.Stress(dim=3))
+fig</code></pre><img src="1329bac9.png" alt="Example block output"/><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../decisiontree/">« Decision Tree</a><a class="docs-footer-nextpage" href="../../networklayout_forward/">🔗 Layouts (<code>NetworkLayout.jl</code>) »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.8.0 on <span class="colophon-date" title="Wednesday 15 January 2025 09:37">Wednesday 15 January 2025</span>. Using Julia version 1.11.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

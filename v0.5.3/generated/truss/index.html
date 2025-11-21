@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Stress on Truss · GraphMakie.jl</title><script data-outdated-warner src="../../assets/warner.js"></script><link rel="canonical" href="https://graph.makie.org/generated/truss/"/><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.045/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.24/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">GraphMakie.jl</a></span></div><form class="docs-search" action="../../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><span class="tocitem">Examples</span><ul><li><a class="tocitem" href="../plots/">Feature Walkthrough</a></li><li><a class="tocitem" href="../interactions/">Interaction Examples</a></li><li><a class="tocitem" href="../depgraph/">Dependency Graph</a></li><li class="is-active"><a class="tocitem" href>Stress on Truss</a><ul class="internal"><li><a class="tocitem" href="#Definition-of-the-dynamical-system"><span>Definition of the dynamical system</span></a></li><li><a class="tocitem" href="#Plot-the-solution"><span>Plot the solution</span></a></li></ul></li><li><a class="tocitem" href="../syntaxtree/">Julia AST</a></li><li><a class="tocitem" href="../reftests/">Reference Tests</a></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Examples</a></li><li class="is-active"><a href>Stress on Truss</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Stress on Truss</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/MakieOrg/GraphMakie.jl/blob/master/docs/examples/truss.jl" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="Stress-on-Truss"><a class="docs-heading-anchor" href="#Stress-on-Truss">Stress on Truss</a><a id="Stress-on-Truss-1"></a><a class="docs-heading-anchor-permalink" href="#Stress-on-Truss" title="Permalink"></a></h1><p>In this example we&#39;ll plot an animation of the stress on some truss structure using <code>GaphMakie.jl</code> and <a href="https://github.com/PIK-ICoN/NetworkDynamics.jl"><code>NetworkDynamics.jl</code></a></p><p><video src="../truss.mp4" controls="true" title="truss animation"><a href="../truss.mp4">truss animation</a></video></p><pre><code class="language-julia hljs">using NetworkDynamics
+using OrdinaryDiffEq
+using Graphs
+using GraphMakie
+using LinearAlgebra: norm, ⋅
+using Printf
+using CairoMakie
+CairoMakie.activate!()</code></pre><h2 id="Definition-of-the-dynamical-system"><a class="docs-heading-anchor" href="#Definition-of-the-dynamical-system">Definition of the dynamical system</a><a id="Definition-of-the-dynamical-system-1"></a><a class="docs-heading-anchor-permalink" href="#Definition-of-the-dynamical-system" title="Permalink"></a></h2><p>Define dynamic model for NetworkDynamics</p><pre><code class="language-julia hljs">function edge_f!(e, v_s, v_d, (K, L), _)
+    Δd = view(v_d, 1:2) - view(v_s, 1:2)
+    nd = norm(Δd)
+    F = K * ( L - nd )
+    e[1:2] = F .* view(Δd, 1:2) ./ nd
+end
+
+function vertex_free!(du, u, edges, (M, γ, g), _)
+    F = sum(edges) - γ * view(u, 3:4) + [0, -M*g]
+    du[3:4] .= F ./ M
+    du[1:2] = view(u, 3:4)
+end
+
+function vertex_fixed!(du, u, edges, _, _)
+    du[1:2] .= 0.0
+end
+
+edge = StaticEdge(f = edge_f!, dim=2, coupling=:antisymmetric)
+vertex_free = ODEVertex(f = vertex_free!, dim=4, sym=[:x, :y, :v, :w])
+vertex_fix  = ODEVertex(f = vertex_fixed!, dim=2, sym=[:x, :y, :v, :w])</code></pre><p>Set up graph topology and initial positions.</p><pre><code class="language-julia hljs">N = 5
+dx = 1.0
+shift = 0.2
+g = SimpleGraph(2*N + 1)
+for i in 1:N
+    add_edge!(g, i, i+N); add_edge!(g, i, i+N)
+    if i &lt; N
+        add_edge!(g, i+1, i+N); add_edge!(g, i, i+1); add_edge!(g, i+N, i+N+1)
+    end
+end
+add_edge!(g, 2N, 2N+1)
+pos0 = zeros(Point2f, 2N + 1)
+pos0[1:N] = [Point((i-1)dx,0) for i in 1:N]
+pos0[N+1:2*N] = [Point(i*dx + shift, 1) for i in 1:N]
+pos0[2N+1] = Point(N*dx + 1, -1)
+
+fixed = [1,4] # set fixed vertices</code></pre><p>create networkdynamics object</p><pre><code class="language-julia hljs">vertices = ODEVertex[vertex_free for i in 1:nv(g)]
+for i in fixed
+    vertices[i] = vertex_fix # use the fixed vertex for the fixed
+end
+nd = network_dynamics(vertices, edge, g);</code></pre><p>write some auxiliary functions to map between state vector of DGL <code>u</code> and graph data</p><pre><code class="language-julia hljs">x_idxs = [findfirst(isequal(Symbol(&quot;x_$i&quot;)), nd.syms) for i in 1:nv(g)]
+
+&quot;Set positions `pos` inside dgl state `u`&quot;
+function set_pos!(u, pos)
+    for (i, idx) in enumerate(x_idxs)
+        u[idx] = pos[i][1]
+        u[idx+1] = pos[i][2]
+    end
+end
+
+&quot;Extract vector of Points from dgl state `u`&quot;
+function to_pos(u)
+    pos = Vector{Point2f}(undef, nv(g))
+    for (i, idx) in enumerate(x_idxs)
+        pos[i] = Point(u[idx], u[idx+1])
+    end
+    return pos
+end
+
+&quot;Calculate load on edge for given state.&quot;
+function get_load(u, p, t=0.0)
+    gd_nd = nd(u, p, t, GetGD) # exposes underlying graph data struct
+    force = Vector{Float64}(undef, ne(g))
+    pos = to_pos(u)
+    for (i,e) in enumerate(edges(g))
+        edgeval = get_edge(gd_nd, i)
+        fvec = Point(edgeval[1], edgeval[2])
+        dir = pos[dst(e)] .- pos[src(e)]
+        force[i] = sign(fvec ⋅ dir) * norm(fvec)
+    end
+    return force
+end</code></pre><p>Set parameters.</p><pre><code class="language-julia hljs">M = [10 for i in 1:nv(g)] # mass of the nodes
+M[end] = 200 # heavy mass
+gc = [9.81 for i in 1:nv(g)] # gravitational constant
+γ = [200.0 for i in 1:nv(g)] # damping parameter
+γ[end] = 100.0
+
+L = [norm(pos0[src(e)] - pos0[dst(e)]) for e in edges(g)] # length of edges
+K = [0.5e6 for i in 1:ne(g)] # spring constant of edges
+
+# bundle parameters for NetworkDynamics
+para = collect.((zip(M, γ, gc),
+                 zip(K, L)))</code></pre><p>Set initial state and solve the system</p><pre><code class="language-julia hljs">u0 = zeros(length(nd.syms))
+set_pos!(u0, pos0)
+
+tspan = (0.0, 12.0)
+prob = ODEProblem(nd, u0, tspan, para)
+sol  = solve(prob, Tsit5());</code></pre><h2 id="Plot-the-solution"><a class="docs-heading-anchor" href="#Plot-the-solution">Plot the solution</a><a id="Plot-the-solution-1"></a><a class="docs-heading-anchor-permalink" href="#Plot-the-solution" title="Permalink"></a></h2><pre><code class="language-julia hljs">fig = Figure(resolution=(1000,550))
+fig[1,1] = title = Label(fig, &quot;Stress on truss&quot;, fontsize=30)
+title.tellwidth = false
+
+fig[2,1] = ax = Axis(fig)
+
+# calculate some values for colorscaling
+(fmin, fmax) = 0.3 .* extrema([(map(u-&gt;get_load(u, para), sol)...)...])
+nlabels = [&quot; &quot; for i in 1:nv(g)]
+nlabels[fixed] .= &quot;Δ&quot;
+elabels = [&quot;edge $i&quot; for i in 1:ne(g)]
+p = graphplot!(ax, g;
+               edge_width=4.0,
+               node_size=sqrt.(M)*3,
+               nlabels=nlabels,
+               nlabels_align=(:center,:top),
+               nlabels_fontsize=30,
+               elabels=elabels,
+               elabels_side=Dict(ne(g) =&gt; :right),
+               edge_color=[0.0 for i in 1:ne(g)],
+               edge_attr=(colorrange=(fmin,fmax),
+                          colormap=:diverging_bkr_55_10_c35_n256))
+hidespines!(ax); hidedecorations!(ax); p[:node_pos][]=to_pos(u0); ax.aspect = DataAspect()
+limits!(ax, -0.1, pos0[end][1]+0.3, pos0[end][2]-0.5, 1.15)
+
+# draw colorbar
+fig[3,1] = cb = Colorbar(fig, p.plots[1], label = &quot;Axial force&quot;, vertical=false)
+
+T = tspan[2]
+fps = 30
+trange = range(0.0, sol.t[end], length=Int(T * fps))
+record(fig, &quot;truss.mp4&quot;, trange; framerate=fps) do t
+    title.text = @sprintf &quot;Stress on truss (t = %.2f )&quot; t
+    p[:node_pos][] = to_pos(sol(t))
+    load = get_load(sol(t), para)
+    p.elabels = [@sprintf(&quot;%.0f&quot;, l) for l in load]
+    p.edge_color[] = load
+end</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../depgraph/">« Dependency Graph</a><a class="docs-footer-nextpage" href="../syntaxtree/">Julia AST »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.24 on <span class="colophon-date" title="Thursday 9 February 2023 21:35">Thursday 9 February 2023</span>. Using Julia version 1.8.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

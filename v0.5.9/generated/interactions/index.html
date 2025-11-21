@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Interaction Examples · GraphMakie.jl</title><meta name="title" content="Interaction Examples · GraphMakie.jl"/><meta property="og:title" content="Interaction Examples · GraphMakie.jl"/><meta property="twitter:title" content="Interaction Examples · GraphMakie.jl"/><meta name="description" content="Documentation for GraphMakie.jl."/><meta property="og:description" content="Documentation for GraphMakie.jl."/><meta property="twitter:description" content="Documentation for GraphMakie.jl."/><meta property="og:url" content="https://graph.makie.org/generated/interactions/"/><meta property="twitter:url" content="https://graph.makie.org/generated/interactions/"/><link rel="canonical" href="https://graph.makie.org/generated/interactions/"/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">GraphMakie.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><span class="tocitem">Examples</span><ul><li><a class="tocitem" href="../plots/">Feature Walkthrough</a></li><li class="is-active"><a class="tocitem" href>Interaction Examples</a><ul class="internal"><li><a class="tocitem" href="#Hover-interactions"><span>Hover interactions</span></a></li><li><a class="tocitem" href="#Click-interactions"><span>Click interactions</span></a></li><li><a class="tocitem" href="#Drag-interactions"><span>Drag interactions</span></a></li></ul></li><li><a class="tocitem" href="../depgraph/">Dependency Graph</a></li><li><a class="tocitem" href="../truss/">Stress on Truss</a></li><li><a class="tocitem" href="../syntaxtree/">Julia AST</a></li><li><a class="tocitem" href="../decisiontree/">Decision Tree</a></li><li><a class="tocitem" href="../reftests/">Reference Tests</a></li></ul></li><li><a class="tocitem" href="../../networklayout_forward/">🔗 Layouts (<code>NetworkLayout.jl</code>)</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Examples</a></li><li class="is-active"><a href>Interaction Examples</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Interaction Examples</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/MakieOrg/GraphMakie.jl/blob/master/docs/examples/interactions.jl#" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Add-interactions-to-your-graph-plot"><a class="docs-heading-anchor" href="#Add-interactions-to-your-graph-plot">Add interactions to your graph plot</a><a id="Add-interactions-to-your-graph-plot-1"></a><a class="docs-heading-anchor-permalink" href="#Add-interactions-to-your-graph-plot" title="Permalink"></a></h1><p>In this example you will see, how to register interactions with your graph plot. This tutorial will make use of the more basic <a href="../../#Interaction-Interface">Interaction Interface</a>. If you just want to move nodes check out the <a href="../../#Predefined-Interactions">Predefined Interactions</a>. The implementation of those is quit similar to what is shown in this tutorial.</p><p>We star with a simple wheel graph again. This time we use arrays for some attributes because we want to change them later in the interactions for individual nodes/edges.</p><pre><code class="language-julia hljs">using CairoMakie
+using GraphMakie
+using Graphs
+using CairoMakie.Colors
+
+g = wheel_graph(10)
+f, ax, p = graphplot(g,
+                     edge_width = [2.0 for i in 1:ne(g)],
+                     edge_color = [colorant&quot;gray&quot; for i in 1:ne(g)],
+                     node_size = [10 for i in 1:nv(g)],
+                     node_color = [colorant&quot;red&quot; for i in 1:nv(g)])
+hidedecorations!(ax); hidespines!(ax)
+ax.aspect = DataAspect()</code></pre><img src="e27b3df7.png" alt="Example block output"/><p>Later on we want to enable drag interactions, therefore we disable the default <code>:rectanglezoom</code> interaction</p><pre><code class="language-julia hljs">deregister_interaction!(ax, :rectanglezoom)</code></pre><h2 id="Hover-interactions"><a class="docs-heading-anchor" href="#Hover-interactions">Hover interactions</a><a id="Hover-interactions-1"></a><a class="docs-heading-anchor-permalink" href="#Hover-interactions" title="Permalink"></a></h2><p>At first, let&#39;s add some hover interaction for our nodes using the <a href="../../#GraphMakie.NodeHoverHandler"><code>NodeHoverHandler</code></a> constructor. We need to define a action function with the signature <code>fun(state, idx, event, axis)</code>. We use the action to make the nodes bigger on hover events.</p><pre><code class="language-julia hljs">function node_hover_action(state, idx, event, axis)
+    p.node_size[][idx] = state ? 20 : 10
+    p.node_size[] = p.node_size[] # trigger observable
+end
+nhover = NodeHoverHandler(node_hover_action)
+register_interaction!(ax, :nhover, nhover)</code></pre><img src="7b5016b6.png" alt="Example block output"/><p>Please run the script locally with <code>GLMakie.jl</code> if you want to play with the Graph 🙂 The edge hover interaction is quite similar:</p><pre><code class="language-julia hljs">function edge_hover_action(state, idx, event, axis)
+    p.edge_width[][idx]= state ? 5.0 : 2.0
+    p.edge_width[] = p.edge_width[] # trigger observable
+end
+ehover = EdgeHoverHandler(edge_hover_action)
+register_interaction!(ax, :ehover, ehover)</code></pre><img src="2050b087.png" alt="Example block output"/><h2 id="Click-interactions"><a class="docs-heading-anchor" href="#Click-interactions">Click interactions</a><a id="Click-interactions-1"></a><a class="docs-heading-anchor-permalink" href="#Click-interactions" title="Permalink"></a></h2><p>In a similar fashion we might change the color of nodes and lines by click.</p><pre><code class="language-julia hljs">function node_click_action(idx, args...)
+    p.node_color[][idx] = rand(RGB)
+    p.node_color[] = p.node_color[]
+end
+nclick = NodeClickHandler(node_click_action)
+register_interaction!(ax, :nclick, nclick)
+
+function edge_click_action(idx, args...)
+    p.edge_color[][idx] = rand(RGB)
+    p.edge_color[] = p.edge_color[]
+end
+eclick = EdgeClickHandler(edge_click_action)
+register_interaction!(ax, :eclick, eclick)</code></pre><img src="42927547.png" alt="Example block output"/><h2 id="Drag-interactions"><a class="docs-heading-anchor" href="#Drag-interactions">Drag interactions</a><a id="Drag-interactions-1"></a><a class="docs-heading-anchor-permalink" href="#Drag-interactions" title="Permalink"></a></h2><pre><code class="language-julia hljs">function node_drag_action(state, idx, event, axis)
+    p[:node_pos][][idx] = event.data
+    p[:node_pos][] = p[:node_pos][]
+end
+ndrag = NodeDragHandler(node_drag_action)
+register_interaction!(ax, :ndrag, ndrag)</code></pre><img src="3b3a7fad.png" alt="Example block output"/><p>The last example is not as straight forward. By dragging an edge we want to change the positions of both attached nodes. Therefore we need some more state inside the action. We can achieve this with a callable struct.</p><pre><code class="language-julia hljs">mutable struct EdgeDragAction
+    init::Union{Nothing, Point2f} # save click position
+    src::Union{Nothing, Point2f}  # save src vertex position
+    dst::Union{Nothing, Point2f}  # save dst vertex position
+    EdgeDragAction() = new(nothing, nothing, nothing)
+end
+function (action::EdgeDragAction)(state, idx, event, axis)
+    edge = collect(edges(g))[idx]
+    if state == true
+        if action.src===action.dst===action.init===nothing
+            action.init = event.data
+            action.src = p[:node_pos][][src(edge)]
+            action.dst = p[:node_pos][][dst(edge)]
+        end
+        offset = event.data - action.init
+        p[:node_pos][][src(edge)] = action.src + offset
+        p[:node_pos][][dst(edge)] = action.dst + offset
+        p[:node_pos][] = p[:node_pos][] # trigger change
+    elseif state == false
+        action.src = action.dst = action.init =  nothing
+    end
+end
+edrag = EdgeDragHandler(EdgeDragAction())
+register_interaction!(ax, :edrag, edrag)</code></pre><img src="e73c2f85.png" alt="Example block output"/><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../plots/">« Feature Walkthrough</a><a class="docs-footer-nextpage" href="../depgraph/">Dependency Graph »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.2.1 on <span class="colophon-date" title="Friday 15 December 2023 15:26">Friday 15 December 2023</span>. Using Julia version 1.9.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

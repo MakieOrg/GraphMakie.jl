@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Julia AST · GraphMakie.jl</title><meta name="title" content="Julia AST · GraphMakie.jl"/><meta property="og:title" content="Julia AST · GraphMakie.jl"/><meta property="twitter:title" content="Julia AST · GraphMakie.jl"/><meta name="description" content="Documentation for GraphMakie.jl."/><meta property="og:description" content="Documentation for GraphMakie.jl."/><meta property="twitter:description" content="Documentation for GraphMakie.jl."/><meta property="og:url" content="https://graph.makie.org/generated/syntaxtree/"/><meta property="twitter:url" content="https://graph.makie.org/generated/syntaxtree/"/><link rel="canonical" href="https://graph.makie.org/generated/syntaxtree/"/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">GraphMakie.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><span class="tocitem">Examples</span><ul><li><a class="tocitem" href="../plots/">Feature Walkthrough</a></li><li><a class="tocitem" href="../interactions/">Interaction Examples</a></li><li><a class="tocitem" href="../depgraph/">Dependency Graph</a></li><li><a class="tocitem" href="../truss/">Stress on Truss</a></li><li class="is-active"><a class="tocitem" href>Julia AST</a></li><li><a class="tocitem" href="../decisiontree/">Decision Tree</a></li><li><a class="tocitem" href="../reftests/">Reference Tests</a></li></ul></li><li><a class="tocitem" href="../../networklayout_forward/">🔗 Layouts (<code>NetworkLayout.jl</code>)</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Examples</a></li><li class="is-active"><a href>Julia AST</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Julia AST</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/MakieOrg/GraphMakie.jl/blob/master/docs/examples/syntaxtree.jl#" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="AST-of-a-Julia-function"><a class="docs-heading-anchor" href="#AST-of-a-Julia-function">AST of a Julia function</a><a id="AST-of-a-Julia-function-1"></a><a class="docs-heading-anchor-permalink" href="#AST-of-a-Julia-function" title="Permalink"></a></h1><p>In this example we are going to plot an abstract syntax tree of a Julia function using the Bucheim Layout from <a href="https://github.com/JuliaGraphs/NetworkLayout.jl"><code>NetworkLayout.jl</code></a>.</p><pre><code class="language-julia hljs">using CairoMakie
+using Graphs
+using GraphMakie
+using NetworkLayout
+using CairoMakie</code></pre><p>The following code, which walks the AST and creates a <code>SimpleDiGraph</code> was taken and slightly modified from <a href="https://github.com/JuliaTeX/TreeView.jl"><code>TreeView.jl</code></a>. Thanks!</p><pre><code class="language-julia hljs">function walk_tree(ex; show_call=true)
+    g = SimpleDiGraph()
+    labels = Any[]
+    walk_tree!(g, labels, ex, show_call)
+    return (g, labels)
+end
+
+function walk_tree!(g, labels, ex, show_call)
+    add_vertex!(g)
+    top_vertex = vertices(g)[end]
+
+    where_start = 1  # which argument to start with
+
+    if !(show_call) &amp;&amp; ex.head == :call
+        f = ex.args[1]   # the function name
+        push!(labels, f)
+        where_start = 2   # drop &quot;call&quot; from tree
+    else
+        push!(labels, ex.head)
+    end
+
+    for i in where_start:length(ex.args)
+        if isa(ex.args[i], Expr)
+            child = walk_tree!(g, labels, ex.args[i], show_call)
+            add_edge!(g, top_vertex, child)
+        elseif !isa(ex.args[i], LineNumberNode)
+            add_vertex!(g)
+            n = vertices(g)[end]
+            add_edge!(g, top_vertex, n)
+            push!(labels, ex.args[i])
+        end
+    end
+
+    return top_vertex
+end</code></pre><p>The expression we want to look at is the recursive definition of the Fibonacci sequence.</p><pre><code class="language-julia hljs">expr = quote
+    function fib(n)
+        if n &gt; 1
+            return fib(n-1) + fib(n-2)
+        else
+            return n
+        end
+    end
+end
+
+g, labels = walk_tree(expr, show_call=true)
+nlabels_align = [(:left, :bottom) for v in vertices(g)]
+fig, ax, p = graphplot(g; layout=Buchheim(),
+                       nlabels=repr.(labels),
+                       nlabels_distance=5,
+                       nlabels_align,
+                       tangents=((0,-1),(0,-1)))
+hidedecorations!(ax); hidespines!(ax)</code></pre><img src="096094e7.png" alt="Example block output"/><p>This does not look nice yet! Lets tweak the <code>align</code> parameter of the nodes labels...</p><pre><code class="language-julia hljs">for v in vertices(g)
+    if isempty(inneighbors(g, v)) # root
+        nlabels_align[v] = (:center,:bottom)
+    elseif isempty(outneighbors(g, v)) #leaf
+        nlabels_align[v] = (:center,:top)
+    else
+        self = p[:node_pos][][v]
+        parent = p[:node_pos][][inneighbors(g, v)[1]]
+        if self[1] &lt; parent[1] # left branch
+            nlabels_align[v] = (:right,:bottom)
+        end
+    end
+end
+p.nlabels_align = nlabels_align</code></pre><img src="1099f9f0.png" alt="Example block output"/><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../truss/">« Stress on Truss</a><a class="docs-footer-nextpage" href="../decisiontree/">Decision Tree »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.2.1 on <span class="colophon-date" title="Friday 15 December 2023 15:26">Friday 15 December 2023</span>. Using Julia version 1.9.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

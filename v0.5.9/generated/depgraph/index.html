@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Dependency Graph · GraphMakie.jl</title><meta name="title" content="Dependency Graph · GraphMakie.jl"/><meta property="og:title" content="Dependency Graph · GraphMakie.jl"/><meta property="twitter:title" content="Dependency Graph · GraphMakie.jl"/><meta name="description" content="Documentation for GraphMakie.jl."/><meta property="og:description" content="Documentation for GraphMakie.jl."/><meta property="twitter:description" content="Documentation for GraphMakie.jl."/><meta property="og:url" content="https://graph.makie.org/generated/depgraph/"/><meta property="twitter:url" content="https://graph.makie.org/generated/depgraph/"/><link rel="canonical" href="https://graph.makie.org/generated/depgraph/"/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">GraphMakie.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><span class="tocitem">Examples</span><ul><li><a class="tocitem" href="../plots/">Feature Walkthrough</a></li><li><a class="tocitem" href="../interactions/">Interaction Examples</a></li><li class="is-active"><a class="tocitem" href>Dependency Graph</a></li><li><a class="tocitem" href="../truss/">Stress on Truss</a></li><li><a class="tocitem" href="../syntaxtree/">Julia AST</a></li><li><a class="tocitem" href="../decisiontree/">Decision Tree</a></li><li><a class="tocitem" href="../reftests/">Reference Tests</a></li></ul></li><li><a class="tocitem" href="../../networklayout_forward/">🔗 Layouts (<code>NetworkLayout.jl</code>)</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Examples</a></li><li class="is-active"><a href>Dependency Graph</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Dependency Graph</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/MakieOrg/GraphMakie.jl/blob/master/docs/examples/depgraph.jl#" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Dependency-Graph-of-a-Package"><a class="docs-heading-anchor" href="#Dependency-Graph-of-a-Package">Dependency Graph of a Package</a><a id="Dependency-Graph-of-a-Package-1"></a><a class="docs-heading-anchor-permalink" href="#Dependency-Graph-of-a-Package" title="Permalink"></a></h1><p>In this example we&#39;ll plot a dependency graph of a package using <a href="https://github.com/GunnarFarneback/RegistryInstances.jl"><code>RegistryInstances.jl</code></a> and and a DAG layout from <a href="https://github.com/oxinabox/LayeredLayouts.jl"><code>LayeredLayouts.jl</code></a></p><pre><code class="language-julia hljs">using CairoMakie
+using GraphMakie
+using Graphs
+using LayeredLayouts
+using RegistryInstances
+using Makie.GeometryBasics
+using Makie.Colors</code></pre><p>First we need a small function which goes through the dependencies of a package and builds a <code>SimpleDiGraph</code> object.</p><pre><code class="language-julia hljs">function depgraph(root)
+    registries=RegistryInstances.reachable_registries()
+    general = registries[findfirst(x-&gt;x.name==&quot;General&quot;, registries)]
+
+    packages = [root]
+    connections = Vector{Pair{Int,Int}}()
+
+    for pkg in packages
+        pkgidx = findfirst(isequal(pkg), packages)
+        uuids = uuids_from_name(general, pkg)
+        isempty(uuids) &amp;&amp; continue
+
+        deps = String[]
+        pkginfo = registry_info(general[only(uuids)])
+        version = maximum(keys(pkginfo.version_info))
+        for (vrange, dep) ∈ pkginfo.deps
+            if version ∈ vrange
+                append!(deps, keys(pkginfo.deps[vrange]))
+            end
+        end
+        filter!(!isequal(&quot;julia&quot;), deps)
+
+        for dep in deps
+            idx = findfirst(isequal(dep), packages)
+            if idx === nothing
+                push!(packages, dep)
+                idx = lastindex(packages)
+            end
+            push!(connections, idx =&gt; pkgidx)
+        end
+    end
+    g = SimpleDiGraph(length(packages))
+    for c in connections
+        add_edge!(g, c)
+    end
+    return (packages, g)
+end</code></pre><p>As an example we&#39;ll plot the dependency Graph of <a href="https://github.com/timholy/Revise.jl"><code>Revise.jl</code></a> because it is one of the most important packages in the Julia ecosystem but does not have a huge dependency tree.</p><pre><code class="language-julia hljs">(packages, g) = depgraph(&quot;Revise&quot;)
+N = length(packages)
+xs, ys, paths = solve_positions(Zarate(), g)
+
+# we scale the y coordinates so the plot looks nice in `DataAspect()`
+ys .= 0.3 .* ys
+foreach(v -&gt; v[2] .= 0.3 .* v[2], values(paths))</code></pre><p>In <code>GraphMakie</code> the layout always needs to be function. So we&#39;re creating a dummy function... We will use the <a href="../plots/#Edge-waypoints">Edge waypoints</a> attribute to get the graph with the least crossings.</p><pre><code class="language-julia hljs">lay = Point.(zip(xs,ys))
+# create a vector of Point2f per edge
+wp = [Point2f.(zip(paths[e]...)) for e in edges(g)]
+
+# manually tweak some of the label aligns
+align = [(:right, :center) for i in 1:N]
+align[findfirst(isequal(&quot;Revise&quot;), packages)]           = (:left, :center)
+align[findfirst(isequal(&quot;LoweredCodeUtils&quot;), packages)] = (:right, :top)
+align[findfirst(isequal(&quot;CodeTracking&quot;), packages)]     = (:left, :bottom)
+align[findfirst(isequal(&quot;JuliaInterpreter&quot;), packages)] = (:left, :bottom)
+align[findfirst(isequal(&quot;Requires&quot;), packages)]         = (:left, :bottom)
+
+# shift &quot;JuliaInterpreter&quot; node in data space
+offset = [Point2f(0,0) for i in 1:N]
+offset[findfirst(isequal(&quot;JuliaInterpreter&quot;), packages)] = Point(-0.1, 0.1)
+
+f, ax, p = graphplot(g; layout=lay,
+                     arrow_size=15,
+                     edge_color=:gray,
+                     nlabels=packages,
+                     nlabels_align=align,
+                     nlabels_distance=10,
+                     nlabels_fontsize=15,
+                     nlabels_offset=offset,
+                     node_size=[9.0 for i in 1:N],
+                     edge_width=[3 for i in 1:ne(g)],
+                     waypoints=wp,
+                     waypoint_radius=0.5)
+ax.title = &quot;Dependency Graph of Revise.jl&quot;
+xlims!(ax, -0.6, 5.6)
+hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()</code></pre><img src="804e8fe4.png" alt="Example block output"/><p>If you run this example using <code>GLMakie</code> you can add this code to play around with the interactive features.</p><pre><code class="language-julia hljs">deregister_interaction!(ax, :rectanglezoom)
+register_interaction!(ax, :nodehover, NodeHoverHighlight(p))
+register_interaction!(ax, :edgehover, EdgeHoverHighlight(p))
+register_interaction!(ax, :edrag, EdgeDrag(p))
+register_interaction!(ax, :ndrag, NodeDrag(p))</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../interactions/">« Interaction Examples</a><a class="docs-footer-nextpage" href="../truss/">Stress on Truss »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.2.1 on <span class="colophon-date" title="Friday 15 December 2023 15:26">Friday 15 December 2023</span>. Using Julia version 1.9.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
