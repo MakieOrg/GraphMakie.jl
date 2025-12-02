@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>ComputeGraphs · GraphMakie.jl</title><meta name="title" content="ComputeGraphs · GraphMakie.jl"/><meta property="og:title" content="ComputeGraphs · GraphMakie.jl"/><meta property="twitter:title" content="ComputeGraphs · GraphMakie.jl"/><meta name="description" content="Documentation for GraphMakie.jl."/><meta property="og:description" content="Documentation for GraphMakie.jl."/><meta property="twitter:description" content="Documentation for GraphMakie.jl."/><meta property="og:url" content="https://graph.makie.org/generated/computegraph/"/><meta property="twitter:url" content="https://graph.makie.org/generated/computegraph/"/><link rel="canonical" href="https://graph.makie.org/generated/computegraph/"/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">GraphMakie.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><span class="tocitem">Examples</span><ul><li><a class="tocitem" href="../plots/">Feature Walkthrough</a></li><li><a class="tocitem" href="../interactions/">Interaction Examples</a></li><li><a class="tocitem" href="../depgraph/">Dependency Graph</a></li><li><a class="tocitem" href="../truss/">Stress on Truss</a></li><li><a class="tocitem" href="../syntaxtree/">Julia AST</a></li><li><a class="tocitem" href="../scenegraph/">Makie Scene tree</a></li><li class="is-active"><a class="tocitem" href>ComputeGraphs</a><ul class="internal"><li><a class="tocitem" href="#Converting-the-ComputeGraph"><span>Converting the <code>ComputeGraph</code></span></a></li><li><a class="tocitem" href="#Simple-ComputeGraph"><span>Simple ComputeGraph</span></a></li><li><a class="tocitem" href="#ComputeGraph-of-a-the-graphplot!-recipe"><span><code>ComputeGraph</code> of a the <code>graphplot!</code> recipe</span></a></li></ul></li><li><a class="tocitem" href="../decisiontree/">Decision Tree</a></li><li><a class="tocitem" href="../reftests/">Reference Tests</a></li></ul></li><li><a class="tocitem" href="../../networklayout_forward/">🔗 Layouts (<code>NetworkLayout.jl</code>)</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Examples</a></li><li class="is-active"><a href>ComputeGraphs</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>ComputeGraphs</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/MakieOrg/GraphMakie.jl/blob/master/docs/examples/computegraph.jl#" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Visualising-Makie&#39;s-ComputeGraph"><a class="docs-heading-anchor" href="#Visualising-Makie&#39;s-ComputeGraph">Visualising Makie&#39;s <code>ComputeGraph</code></a><a id="Visualising-Makie&#39;s-ComputeGraph-1"></a><a class="docs-heading-anchor-permalink" href="#Visualising-Makie&#39;s-ComputeGraph" title="Permalink"></a></h1><p>A <code>ComputeGraph</code> is Makies internal representation of the transformations that a plot performs on its input data to reach a representation that can be handed to backend for plotting.</p><p>In this example, we draw the topology of two <code>ComputeGraph</code>. Being able to visualise the interdependence of some calculations can sometimes help in debugging Makie recipes.</p><pre><code class="language-julia hljs">using CairoMakie
+using GraphMakie
+using Graphs
+using NetworkLayout</code></pre><h2 id="Converting-the-ComputeGraph"><a class="docs-heading-anchor" href="#Converting-the-ComputeGraph">Converting the <code>ComputeGraph</code></a><a id="Converting-the-ComputeGraph-1"></a><a class="docs-heading-anchor-permalink" href="#Converting-the-ComputeGraph" title="Permalink"></a></h2><p>First, we convert the <code>ComputeGraph</code>, which does not implement the <code>Graph</code> interface to a bipartite <code>SimpleDiGraph</code> as well as some edge and node data</p><pre><code class="language-julia hljs">function convert_to_simple_graph(compute_graph)
+    g = SimpleDiGraph()
+    labels = Any[]
+    for (k, v) in compute_graph.inputs
+        add_vertex!(g)
+        push!(labels, (:input, k))
+    end
+    for (k, v) in compute_graph.outputs
+        k in keys(compute_graph.inputs) &amp;&amp; continue
+        add_vertex!(g)
+        push!(labels, (:output, k))
+    end
+    found_calculations = Any[]
+    # every output is the result of a computation, so no recursion needed.
+    for (k, i) in compute_graph.outputs
+        calc = i.parent
+        if calc isa Makie.ComputePipeline.ComputeEdge
+            if !(calc in found_calculations)
+                push!(found_calculations, calc)
+                calc_id = (:calculation, calc.outputs[1].name)
+                add_vertex!(g)
+                push!(labels, calc_id)
+                for j in calc.inputs
+                    src_id = findfirst(labels) do label
+                        return label in [(:input, j.name), (:output, j.name)]
+                    end
+                    add_edge!(g, src_id, nv(g))
+                end
+                for j in calc.outputs
+                    dst_id = findfirst(labels) do label
+                        return label in [(:input, j.name), (:output, j.name), (:calculation, j.name)]
+                    end
+                    add_edge!(g, nv(g), dst_id)
+                end
+            end
+        end
+    end
+    return (g, labels)
+end</code></pre><p>we define a function which does the conversion and plotting for us</p><pre><code class="language-julia hljs">function plot_compute_graph!(ax, compute_graph; kwargs...)
+    g, labels = convert_to_simple_graph(compute_graph)
+    node_colors = map(labels) do i
+        if i[1] == :calculation
+            :black
+        elseif i[1] == :input
+            :darkorange
+        else
+            :red
+        end
+    end
+    plot = graphplot!(ax, g; node_color=node_colors,
+                      edge_color=[labels[e.src][1] == :calculation ? :orange : :darkgrey for e in edges(g)],
+                      nlabels=[i[1] == :calculation ? &quot;&quot; : string(i[2]) for i in labels],
+                      nlabels_align=(:center, :bottom), kwargs...)
+    return plot
+end</code></pre><h2 id="Simple-ComputeGraph"><a class="docs-heading-anchor" href="#Simple-ComputeGraph">Simple ComputeGraph</a><a id="Simple-ComputeGraph-1"></a><a class="docs-heading-anchor-permalink" href="#Simple-ComputeGraph" title="Permalink"></a></h2><p>First, we demonstrate a simple <code>ComputeGraph</code>, constructed from two inputs which map onto two outputs</p><pre><code class="language-julia hljs">graph = Makie.ComputeGraph()
+Makie.add_input!(graph, :input1, 1)
+Makie.add_input!((key, value) -&gt; Float32(value), graph, :input2, 2)
+
+Makie.register_computation!(graph, [:input1, :input2], [:output]) do inputs, changed, cached
+    input1, input2 = inputs
+    return (input1[] + input2[],)
+end
+
+Makie.register_computation!(graph, [:input1, :output], [:output2]) do inputs, changed, cached
+    input1, output = inputs
+    return (input1[]^2 * output,)
+end</code></pre><p>plotting the simple compute graph</p><pre><code class="language-julia hljs">f = Figure()
+ax = Axis(f[1, 1])
+g_plot = plot_compute_graph!(ax, graph; arrow_size=20, arrow_shift=0.9)
+f</code></pre><img src="08e67bd9.svg" alt="Example block output"/><h2 id="ComputeGraph-of-a-the-graphplot!-recipe"><a class="docs-heading-anchor" href="#ComputeGraph-of-a-the-graphplot!-recipe"><code>ComputeGraph</code> of a the <code>graphplot!</code> recipe</a><a id="ComputeGraph-of-a-the-graphplot!-recipe-1"></a><a class="docs-heading-anchor-permalink" href="#ComputeGraph-of-a-the-graphplot!-recipe" title="Permalink"></a></h2><p>plotting the compute graph of the above <code>graphplot!</code> plot</p><pre><code class="language-julia hljs">f = Figure()
+ax = Axis(f[1, 1])
+plot_compute_graph!(ax, g_plot.attributes; nlabels_fontsize=9, layout=Spring(; C=8.0, iterations=2000))
+f</code></pre><img src="fe1c9656.svg" alt="Example block output"/><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../scenegraph/">« Makie Scene tree</a><a class="docs-footer-nextpage" href="../decisiontree/">Decision Tree »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.16.1 on <span class="colophon-date" title="Tuesday 2 December 2025 07:23">Tuesday 2 December 2025</span>. Using Julia version 1.12.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
