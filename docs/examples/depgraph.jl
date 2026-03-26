@@ -79,17 +79,14 @@ lay = Point.(zip(xs,ys))
 ## create a vector of Point2f per edge
 wp = [Point2f.(zip(paths[e]...)) for e in edges(g)]
 
-## manually tweak some of the label aligns
+## manually tweak some of the label aligns and plot the graph
 align = [(:right, :center) for i in 1:N]
 align[findfirst(isequal("Revise"), packages)]           = (:left, :center)
-align[findfirst(isequal("LoweredCodeUtils"), packages)] = (:right, :top)
-align[findfirst(isequal("CodeTracking"), packages)]     = (:left, :bottom)
-align[findfirst(isequal("JuliaInterpreter"), packages)] = (:left, :bottom)
-align[findfirst(isequal("Requires"), packages)]         = (:left, :bottom)
-
-## shift "JuliaInterpreter" node in data space
-offset = [Point2f(0,0) for i in 1:N]
-offset[findfirst(isequal("JuliaInterpreter"), packages)] = Point(-0.1, 0.1)
+align[findfirst(isequal("LoweredCodeUtils"), packages)] = (:center, :top)
+align[findfirst(isequal("CodeTracking"), packages)]     = (:left, :top)
+align[findfirst(isequal("JuliaInterpreter"), packages)] = (:center, :bottom)
+align[findfirst(isequal("TOML"), packages)]     = (:center, :top)
+align[findfirst(isequal("Preferences"), packages)]     = (:center, :top)
 
 f, ax, p = graphplot(g; layout=lay,
                      arrow_size=15,
@@ -98,13 +95,13 @@ f, ax, p = graphplot(g; layout=lay,
                      nlabels_align=align,
                      nlabels_distance=10,
                      nlabels_fontsize=15,
-                     nlabels_offset=offset,
                      node_size=[9.0 for i in 1:N],
                      edge_width=[3 for i in 1:ne(g)],
                      waypoints=wp,
                      waypoint_radius=0.5)
 ax.title = "Dependency Graph of Revise.jl"
 xlims!(ax, -0.6, 5.6)
+ylims!(ax, -1.9, 1.7)
 hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()
 f #hide
 
