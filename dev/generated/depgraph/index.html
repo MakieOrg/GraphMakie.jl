@@ -51,17 +51,14 @@ foreach(v -&gt; v[2] .= 0.3 .* v[2], values(paths))</code></pre><p>In <code>Grap
 # create a vector of Point2f per edge
 wp = [Point2f.(zip(paths[e]...)) for e in edges(g)]
 
-# manually tweak some of the label aligns
+# manually tweak some of the label aligns and plot the graph
 align = [(:right, :center) for i in 1:N]
 align[findfirst(isequal(&quot;Revise&quot;), packages)]           = (:left, :center)
-align[findfirst(isequal(&quot;LoweredCodeUtils&quot;), packages)] = (:right, :top)
-align[findfirst(isequal(&quot;CodeTracking&quot;), packages)]     = (:left, :bottom)
-align[findfirst(isequal(&quot;JuliaInterpreter&quot;), packages)] = (:left, :bottom)
-align[findfirst(isequal(&quot;Requires&quot;), packages)]         = (:left, :bottom)
-
-# shift &quot;JuliaInterpreter&quot; node in data space
-offset = [Point2f(0,0) for i in 1:N]
-offset[findfirst(isequal(&quot;JuliaInterpreter&quot;), packages)] = Point(-0.1, 0.1)
+align[findfirst(isequal(&quot;LoweredCodeUtils&quot;), packages)] = (:center, :top)
+align[findfirst(isequal(&quot;CodeTracking&quot;), packages)]     = (:left, :top)
+align[findfirst(isequal(&quot;JuliaInterpreter&quot;), packages)] = (:center, :bottom)
+align[findfirst(isequal(&quot;TOML&quot;), packages)]     = (:center, :top)
+align[findfirst(isequal(&quot;Preferences&quot;), packages)]     = (:center, :top)
 
 f, ax, p = graphplot(g; layout=lay,
                      arrow_size=15,
@@ -70,15 +67,15 @@ f, ax, p = graphplot(g; layout=lay,
                      nlabels_align=align,
                      nlabels_distance=10,
                      nlabels_fontsize=15,
-                     nlabels_offset=offset,
                      node_size=[9.0 for i in 1:N],
                      edge_width=[3 for i in 1:ne(g)],
                      waypoints=wp,
                      waypoint_radius=0.5)
 ax.title = &quot;Dependency Graph of Revise.jl&quot;
 xlims!(ax, -0.6, 5.6)
-hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()</code></pre><img src="7f87f3f8.png" alt="Example block output"/><p>If you run this example using <code>GLMakie</code> you can add this code to play around with the interactive features.</p><pre><code class="language-julia hljs">deregister_interaction!(ax, :rectanglezoom)
+ylims!(ax, -1.9, 1.7)
+hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()</code></pre><img src="e55306ec.png" alt="Example block output"/><p>If you run this example using <code>GLMakie</code> you can add this code to play around with the interactive features.</p><pre><code class="language-julia hljs">deregister_interaction!(ax, :rectanglezoom)
 register_interaction!(ax, :nodehover, NodeHoverHighlight(p))
 register_interaction!(ax, :edgehover, EdgeHoverHighlight(p))
 register_interaction!(ax, :edrag, EdgeDrag(p))
-register_interaction!(ax, :ndrag, NodeDrag(p))</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../interactions/">« Interaction Examples</a><a class="docs-footer-nextpage" href="../truss/">Stress on Truss »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.16.1 on <span class="colophon-date" title="Tuesday 2 December 2025 07:21">Tuesday 2 December 2025</span>. Using Julia version 1.12.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+register_interaction!(ax, :ndrag, NodeDrag(p))</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../interactions/">« Interaction Examples</a><a class="docs-footer-nextpage" href="../truss/">Stress on Truss »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Thursday 26 March 2026 10:22">Thursday 26 March 2026</span>. Using Julia version 1.12.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
