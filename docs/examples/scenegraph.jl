@@ -6,14 +6,14 @@ In this example, we create a simple plot (`streamplot`) and render the scene gra
 =#
 
 using CairoMakie
-CairoMakie.activate!(type="svg") #hide
+CairoMakie.activate!(type = "svg") #hide
 using GraphMakie
 using Graphs
 
 # ## Extracting the scene graph
 
 # First, we extract the scene graph by "walking" down the tree.  This uses multiple dispatch to dispatch based on scenes and plots.
-# Scenes and Plots can both hold plots, and the leaf nodes can be either Scenes with no plots (empty Scenes) or atomic plots, i.e., 
+# Scenes and Plots can both hold plots, and the leaf nodes can be either Scenes with no plots (empty Scenes) or atomic plots, i.e.,
 # plots which can be rendered directly by the backend.
 
 # This function simply initializes the graph and labels, and begins the traversal.
@@ -25,7 +25,7 @@ function walk_tree(scene)
 end
 nothing #hide
 
-# Now, we can walk down the Scene tree.  Scenes can have child Scenes as well as child Plots, 
+# Now, we can walk down the Scene tree.  Scenes can have child Scenes as well as child Plots,
 # but in terms of semantic order we walk down the Scene tree before looking at the Scene's attached
 # plots.
 function walk_tree!(g, labels, scene::Scene)
@@ -72,7 +72,7 @@ nothing #hide
 
 # This is a simple streamplot in an LScene, which has the simplest axis (Axis3 is more complex!)
 
-fig, ax, plt = streamplot(-2..2, -2..2; axis = (type = LScene,),) do x::Point2
+fig, ax, plt = streamplot(-2 .. 2, -2 .. 2; axis = (type = LScene,)) do x::Point2
     Point2(x[2], 4x[1])
 end
 
@@ -84,13 +84,13 @@ nlabels_align = [(:left, :center) for v in vertices(newg)]
 nothing #hide
 # We start out by plotting the graph itself.
 f, a, p = graphplot(
-    newg; 
-    layout=GraphMakie.Buchheim(),
-    nlabels=newl,
-    nlabels_distance=10,
-    nlabels_fontsize=30,
+    newg;
+    layout = GraphMakie.Buchheim(),
+    nlabels = newl,
+    nlabels_distance = 10,
+    nlabels_fontsize = 30,
     nlabels_align,
-    tangents=((0,-1),(0,-1)),
+    tangents = ((0, -1), (0, -1)),
     figure = (; size = (900, 600)),
     axis = (limits = (-2.5, 2, -16, 2),)
 )
@@ -105,14 +105,14 @@ fig
 
 for v in vertices(newg)
     if isempty(inneighbors(newg, v)) # root
-        nlabels_align[v] = (:center,:bottom)
+        nlabels_align[v] = (:center, :bottom)
     elseif isempty(outneighbors(newg, v)) #leaf
-        nlabels_align[v] = (:center,:top)
+        nlabels_align[v] = (:center, :top)
     else
         self = p[:node_pos][][v]
         parent = p[:node_pos][][inneighbors(newg, v)[1]]
         if self[1] < parent[1] # left branch
-            nlabels_align[v] = (:right,:center)
+            nlabels_align[v] = (:right, :center)
         end
     end
 end

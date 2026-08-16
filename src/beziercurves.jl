@@ -10,7 +10,7 @@ using PolynomialRoots
 
 # type defs from Julius Krumbiegels PR
 # https://github.com/MakieOrg/Makie.jl/pull/979
-abstract type AbstractPath{PT<:AbstractPoint} end
+abstract type AbstractPath{PT <: AbstractPoint} end
 
 # simple lines get there own type. This helps with type stability
 # for graphs without curvy edges and improves performance
@@ -19,7 +19,7 @@ struct Line{PT} <: AbstractPath{PT}
     p::PT
 end
 
-abstract type PathCommand{PT<:AbstractPoint} end
+abstract type PathCommand{PT <: AbstractPoint} end
 
 struct BezierPath{PT} <: AbstractPath{PT}
     commands::Vector{PathCommand{PT}}
@@ -42,7 +42,7 @@ end
 ptype(::Union{AbstractPath{PT}, Type{<:AbstractPath{PT}}}) where {PT} = PT
 
 straighten(l::Line) = l
-straighten(p::BezierPath) = Line(interpolate(p,0.0), interpolate(p,1.0))
+straighten(p::BezierPath) = Line(interpolate(p, 0.0), interpolate(p, 1.0))
 
 ####
 #### Helper functions to work with bezier paths
@@ -52,9 +52,9 @@ function interpolation_startpoint_segmentid_offset(p::BezierPath{PT}, t) where {
     @assert p.commands[begin] isa MoveTo
     N = length(p.commands) - 1
 
-    tn = N*t
-    seg = max(0, min(floor(Int, tn), N-1))
-    return p.commands[seg+1].p, seg, tn - seg
+    tn = N * t
+    seg = max(0, min(floor(Int, tn), N - 1))
+    return p.commands[seg + 1].p, seg, tn - seg
 end
 
 """
@@ -64,13 +64,13 @@ Parametrize path `p` from `t ∈ [0, 1]`. Return position at `t`.
 
 TODO: Points are not necessarily evenly spaced!
 """
-function interpolate(p::BezierPath{PT}, t) where PT
+function interpolate(p::BezierPath{PT}, t) where {PT}
     (p0, seg, tseg) = interpolation_startpoint_segmentid_offset(p, t)
 
-    return _interpolate(p.commands[seg+2], p0, tseg)
+    return _interpolate(p.commands[seg + 2], p0, tseg)
 end
 
-interpolate(l::Line{PT}, t) where PT = l.p0 + t*(l.p - l.p0) |> PT
+interpolate(l::Line{PT}, t) where {PT} = l.p0 + t * (l.p - l.p0) |> PT
 
 """
     inverse_interpolate(p, pt, towards=1.0)
@@ -94,17 +94,17 @@ Method: Calculates the square distance between `pt` and path `p` and minimizes (
     let a = p0 - pt, b = p - p0
     t = -(a[1]*b[1] + a[2]*b[2]) / (b[1]^2 + b[2]^2)
 """
-function inverse_interpolate(p::BezierPath{<:Point2}, pt, towards=1.0)
+function inverse_interpolate(p::BezierPath{<:Point2}, pt, towards = 1.0)
     N = length(p.commands) - 1
 
-    ts = map(1:N, p.commands[1:end-1], p.commands[2:end]) do seg_id, c1, c2
+    ts = map(1:N, p.commands[1:(end - 1)], p.commands[2:end]) do seg_id, c1, c2
         p0 = c1.p
         tseg = _inverse_interpolate(c2, p0, pt) #get interpolation value closest to pt on the current segment
 
         if isempty(tseg)
             return NaN
         else
-            t = ((seg_id-1) .+ tseg) ./ N  # map back to full path interpolation value
+            t = ((seg_id - 1) .+ tseg) ./ N  # map back to full path interpolation value
             return argmin(ti -> abs(ti - towards), t)  # find the value closest to `towards`
         end
     end
@@ -115,30 +115,30 @@ function inverse_interpolate(p::BezierPath{<:Point2}, pt, towards=1.0)
     end
 end
 
-function inverse_interpolate(l::Line{PT}, pt, _=1.0) where PT
+function inverse_interpolate(l::Line{PT}, pt, _ = 1.0) where {PT}
     a = l.p0 - pt
     b = l.p - l.p0
-    t = -(a[1]*b[1] + a[2]*b[2]) / (b[1]^2 + b[2]^2)
+    t = -(a[1] * b[1] + a[2] * b[2]) / (b[1]^2 + b[2]^2)
     return clamp(t, 0.0, 1.0)
 end
 
-function inverse_interpolate(p, pt::Point3, _=1.0)
+function inverse_interpolate(p, pt::Point3, _ = 1.0)
     # TODO: is this the right place to throw an error when trying to shift arrows to destination nodes?
     @warn "arrow_shift = :end will not display properly for 3D plots."
-    nothing
+    return nothing
 end
 
 _inverse_interpolate(c::LineTo{<:Point2}, p0, pt) = inverse_interpolate(Line(p0, c.p), pt)
 function _inverse_interpolate(c::CurveTo{<:Point2}, p0, pt)
     p1, p2, p3 = c.c1, c.c2, c.p
-    poly0 = - p0[1]^2 + p0[1]*p1[1] + p0[1]*pt[1] - p0[2]^2 + p0[2]*p1[2] + p0[2]*pt[2] - p1[1]*pt[1] - p1[2]*pt[2]
-    poly1 = 5*p0[1]^2 - 10*p0[1]*p1[1] + 2*p0[1]*p2[1] - 2*p0[1]*pt[1] + 5*p0[2]^2 - 10*p0[2]*p1[2] + 2*p0[2]*p2[2] - 2*p0[2]*pt[2] + 3*p1[1]^2 + 4*p1[1]*pt[1] + 3*p1[2]^2 + 4*p1[2]*pt[2] - 2*p2[1]*pt[1] - 2*p2[2]*pt[2]
-    poly2 = -10*p0[1]^2 + 30*p0[1]*p1[1] - 12*p0[1]*p2[1] + p0[1]*p3[1] + p0[1]*pt[1] - 10*p0[2]^2 + 30*p0[2]*p1[2] - 12*p0[2]*p2[2] + p0[2]*p3[2] + p0[2]*pt[2] - 18*p1[1]^2 + 9*p1[1]*p2[1] - 3*p1[1]*pt[1] - 18*p1[2]^2 + 9*p1[2]*p2[2] - 3*p1[2]*pt[2] + 3*p2[1]*pt[1] + 3*p2[2]*pt[2] - p3[1]*pt[1] - p3[2]*pt[2]
-    poly3 = 10*p0[1]^2 - 40*p0[1]*p1[1] + 24*p0[1]*p2[1] - 4*p0[1]*p3[1] + 10*p0[2]^2 - 40*p0[2]*p1[2] + 24*p0[2]*p2[2] - 4*p0[2]*p3[2] + 36*p1[1]^2 - 36*p1[1]*p2[1] + 4*p1[1]*p3[1] + 36*p1[2]^2 - 36*p1[2]*p2[2] + 4*p1[2]*p3[2] + 6*p2[1]^2 + 6*p2[2]^2
-    poly4 = -5*p0[1]^2 + 25*p0[1]*p1[1] - 20*p0[1]*p2[1] + 5*p0[1]*p3[1] - 5*p0[2]^2 + 25*p0[2]*p1[2] - 20*p0[2]*p2[2] + 5*p0[2]*p3[2] - 30*p1[1]^2 + 45*p1[1]*p2[1] - 10*p1[1]*p3[1] - 30*p1[2]^2 + 45*p1[2]*p2[2] - 10*p1[2]*p3[2] - 15*p2[1]^2 + 5*p2[1]*p3[1] - 15*p2[2]^2 + 5*p2[2]*p3[2]
-    poly5 = p0[1]^2 - 6*p0[1]*p1[1] + 6*p0[1]*p2[1] - 2*p0[1]*p3[1] + p0[2]^2 - 6*p0[2]*p1[2] + 6*p0[2]*p2[2] - 2*p0[2]*p3[2] + 9*p1[1]^2 - 18*p1[1]*p2[1] + 6*p1[1]*p3[1] + 9*p1[2]^2 - 18*p1[2]*p2[2] + 6*p1[2]*p3[2] + 9*p2[1]^2 - 6*p2[1]*p3[1] + 9*p2[2]^2 - 6*p2[2]*p3[2] + p3[1]^2 + p3[2]^2
+    poly0 = - p0[1]^2 + p0[1] * p1[1] + p0[1] * pt[1] - p0[2]^2 + p0[2] * p1[2] + p0[2] * pt[2] - p1[1] * pt[1] - p1[2] * pt[2]
+    poly1 = 5 * p0[1]^2 - 10 * p0[1] * p1[1] + 2 * p0[1] * p2[1] - 2 * p0[1] * pt[1] + 5 * p0[2]^2 - 10 * p0[2] * p1[2] + 2 * p0[2] * p2[2] - 2 * p0[2] * pt[2] + 3 * p1[1]^2 + 4 * p1[1] * pt[1] + 3 * p1[2]^2 + 4 * p1[2] * pt[2] - 2 * p2[1] * pt[1] - 2 * p2[2] * pt[2]
+    poly2 = -10 * p0[1]^2 + 30 * p0[1] * p1[1] - 12 * p0[1] * p2[1] + p0[1] * p3[1] + p0[1] * pt[1] - 10 * p0[2]^2 + 30 * p0[2] * p1[2] - 12 * p0[2] * p2[2] + p0[2] * p3[2] + p0[2] * pt[2] - 18 * p1[1]^2 + 9 * p1[1] * p2[1] - 3 * p1[1] * pt[1] - 18 * p1[2]^2 + 9 * p1[2] * p2[2] - 3 * p1[2] * pt[2] + 3 * p2[1] * pt[1] + 3 * p2[2] * pt[2] - p3[1] * pt[1] - p3[2] * pt[2]
+    poly3 = 10 * p0[1]^2 - 40 * p0[1] * p1[1] + 24 * p0[1] * p2[1] - 4 * p0[1] * p3[1] + 10 * p0[2]^2 - 40 * p0[2] * p1[2] + 24 * p0[2] * p2[2] - 4 * p0[2] * p3[2] + 36 * p1[1]^2 - 36 * p1[1] * p2[1] + 4 * p1[1] * p3[1] + 36 * p1[2]^2 - 36 * p1[2] * p2[2] + 4 * p1[2] * p3[2] + 6 * p2[1]^2 + 6 * p2[2]^2
+    poly4 = -5 * p0[1]^2 + 25 * p0[1] * p1[1] - 20 * p0[1] * p2[1] + 5 * p0[1] * p3[1] - 5 * p0[2]^2 + 25 * p0[2] * p1[2] - 20 * p0[2] * p2[2] + 5 * p0[2] * p3[2] - 30 * p1[1]^2 + 45 * p1[1] * p2[1] - 10 * p1[1] * p3[1] - 30 * p1[2]^2 + 45 * p1[2] * p2[2] - 10 * p1[2] * p3[2] - 15 * p2[1]^2 + 5 * p2[1] * p3[1] - 15 * p2[2]^2 + 5 * p2[2] * p3[2]
+    poly5 = p0[1]^2 - 6 * p0[1] * p1[1] + 6 * p0[1] * p2[1] - 2 * p0[1] * p3[1] + p0[2]^2 - 6 * p0[2] * p1[2] + 6 * p0[2] * p2[2] - 2 * p0[2] * p3[2] + 9 * p1[1]^2 - 18 * p1[1] * p2[1] + 6 * p1[1] * p3[1] + 9 * p1[2]^2 - 18 * p1[2] * p2[2] + 6 * p1[2] * p3[2] + 9 * p2[1]^2 - 6 * p2[1] * p3[1] + 9 * p2[2]^2 - 6 * p2[2] * p3[2] + p3[1]^2 + p3[2]^2
     t_vals = roots5([poly0, poly1, poly2, poly3, poly4, poly5]) #get roots
-    t_reals = filter(i -> isreal(i), round.(t_vals, digits=6)) #get reals (round to 6 digits)
+    t_reals = filter(i -> isreal(i), round.(t_vals, digits = 6)) #get reals (round to 6 digits)
     return clamp.(real.(t_reals), 0.0, 1.0)
 end
 
@@ -150,7 +150,7 @@ Parametrize path `p` from `t ∈ [0, 1]`. Return tangent at `t`.
 function tangent(p::BezierPath, t)
     (p0, seg, tseg) = interpolation_startpoint_segmentid_offset(p, t)
 
-    return _tangent(p.commands[seg+2], p0, tseg)
+    return _tangent(p.commands[seg + 2], p0, tseg)
 end
 tangent(l::Line, _) = normalize(l.p - l.p0)
 
@@ -159,18 +159,18 @@ tangent(l::Line, _) = normalize(l.p - l.p0)
 
 Return vector of points which represent the given `path`.
 """
-function discretize(path::BezierPath{T}, start_offset=0.0, end_offset=1.0) where {T}
+function discretize(path::BezierPath{T}, start_offset = 0.0, end_offset = 1.0) where {T}
     v = Vector{T}()
     push!(v, interpolate(path, start_offset))
 
     p0, start_segment, start_segment_offset = interpolation_startpoint_segmentid_offset(path, start_offset)
     _, end_segment, end_segment_offset = interpolation_startpoint_segmentid_offset(path, end_offset)
 
-    cropped_commands = path.commands[(start_segment+2):(end_segment+2)]
+    cropped_commands = path.commands[(start_segment + 2):(end_segment + 2)]
 
     for (i, c) in enumerate(cropped_commands)
-        so = i==1 ? start_segment_offset : 0.0
-        eo = i==length(cropped_commands) ? end_segment_offset : 1.0
+        so = i == 1 ? start_segment_offset : 0.0
+        eo = i == length(cropped_commands) ? end_segment_offset : 1.0
         _discretize!(v, c, p0, so, eo)
         p0 = c.p
     end
@@ -178,9 +178,9 @@ function discretize(path::BezierPath{T}, start_offset=0.0, end_offset=1.0) where
     return v
 end
 
-function discretize(l::Line, start_offset=0.0, end_offset=1.0)
+function discretize(l::Line, start_offset = 0.0, end_offset = 1.0)
     dp = l.p - l.p0
-    return [l.p0 + start_offset*dp, l.p0 + end_offset*dp]
+    return [l.p0 + start_offset * dp, l.p0 + end_offset * dp]
 end
 
 """
@@ -188,10 +188,10 @@ end
 
 Returns positions along the path `c` starting from `p0` in range `t ∈ [0, 1]`.
 """
-_interpolate(c::LineTo{PT}, p0, t) where {PT} = p0 + t*(c.p - p0) |> PT
+_interpolate(c::LineTo{PT}, p0, t) where {PT} = p0 + t * (c.p - p0) |> PT
 function _interpolate(c::CurveTo{PT}, p0, t) where {PT}
     p1, p2, p3 = c.c1, c.c2, c.p
-    (1 - t)^3 * p0 + 3(t - 2t^2 + t^3) * p1 + 3(t^2 -t^3) * p2 + t^3 * p3 |> PT
+    return (1 - t)^3 * p0 + 3(t - 2t^2 + t^3) * p1 + 3(t^2 - t^3) * p2 + t^3 * p3 |> PT
 end
 
 """
@@ -200,9 +200,9 @@ end
 Returns tangent vector along the path `c` starting from `p0` in range `t ∈ [0, 1]`.
 """
 _tangent(c::LineTo, p0, _) = normalize(c.p - p0)
-function _tangent(c::CurveTo{PT}, p0, t) where PT
+function _tangent(c::CurveTo{PT}, p0, t) where {PT}
     p1, p2, p3 = c.c1, c.c2, c.p
-    normalize(-3(1 - t)^2 * p0 + 3(1 - 4t + 3t^2) * p1 + 3(2t -3t^2) * p2 + 3t^2 * p3) |> PT
+    return normalize(-3(1 - t)^2 * p0 + 3(1 - 4t + 3t^2) * p1 + 3(2t - 3t^2) * p2 + 3t^2 * p3) |> PT
 end
 
 """
@@ -211,18 +211,19 @@ end
 Append interpolated points of path `c` to pos vector `v`
 """
 function _discretize!(v::Vector{<:AbstractPoint}, c::LineTo, p0, _start_offset, end_offset)
-    push!(v, _interpolate(c, p0, end_offset))
+    return push!(v, _interpolate(c, p0, end_offset))
 end
 function _discretize!(v::Vector{<:AbstractPoint}, c::CurveTo, p0, start_offset, end_offset)
     # sometimes during initial layouts, the start and end can be swapped
     start_offset > end_offset && return
     N0 = length(v)
-    N = max(0, floor(Int, 60 * (end_offset-start_offset))+1) # TODO: magic number of points for discretization
+    N = max(0, floor(Int, 60 * (end_offset - start_offset)) + 1) # TODO: magic number of points for discretization
     resize!(v, N0 + N)
-    for (i, t) in enumerate(range(start_offset, end_offset; length=N+1))
-        i==1 && continue #skip first point, already in vector
-        v[N0 + i-1] = _interpolate(c, p0, t)
+    for (i, t) in enumerate(range(start_offset, end_offset; length = N + 1))
+        i == 1 && continue #skip first point, already in vector
+        v[N0 + i - 1] = _interpolate(c, p0, t)
     end
+    return
 end
 
 """
@@ -248,7 +249,7 @@ end
 True if the AbstractPath just represents a straight line.
 """
 isline(p::Line) = true
-isline(p::BezierPath) = length(p.commands)==2 && p.commands[1] isa MoveTo && p.commands[2] isa LineTo
+isline(p::BezierPath) = length(p.commands) == 2 && p.commands[1] isa MoveTo && p.commands[2] isa LineTo
 
 
 ####
@@ -265,8 +266,8 @@ The `tangents` kw allows you pass two vectors as tangents for the first and the
 last point. The `tfactor` affects the curvature on the start and end given some
 tangents.
 """
-function Path(P::Vararg{PT, N}; tangents=nothing, tfactor=.5) where {PT<:AbstractPoint, N}
-    @assert N>2
+function Path(P::Vararg{PT, N}; tangents = nothing, tfactor = 0.5) where {PT <: AbstractPoint, N}
+    @assert N > 2
 
     # cubic_spline will work for each dimension separately
     pxyz = _cubic_spline(map(p -> p[1], P)) # get first dimension
@@ -275,7 +276,7 @@ function Path(P::Vararg{PT, N}; tangents=nothing, tfactor=.5) where {PT<:Abstrac
     end
 
     # create waypoints from waypoints in separate dimensions
-    WP = SVector{length(P)-1, PT}(PT(p) for p in eachrow(pxyz))
+    WP = SVector{length(P) - 1, PT}(PT(p) for p in eachrow(pxyz))
 
     commands = Vector{PathCommand{PT}}(undef, N)
     commands[1] = MoveTo(P[1])
@@ -286,34 +287,40 @@ function Path(P::Vararg{PT, N}; tangents=nothing, tfactor=.5) where {PT<:Abstrac
         p1, p2, t = P[1], P[2], normalize(to_pointf32(tangents[1]))
         dir = p2 - p1
         d = tfactor * norm(dir ⋅ t)
-        first_wp = PT(p1+d*t)
+        first_wp = PT(p1 + d * t)
     end
-    commands[2] = CurveTo(first_wp,
-                          2*P[2] - WP[2],
-                          P[2])
+    commands[2] = CurveTo(
+        first_wp,
+        2 * P[2] - WP[2],
+        P[2]
+    )
     # middle commands
-    for i in 3:(N-1)
-        commands[i] = CurveTo(WP[i-1],
-                              2*P[i] - WP[i],
-                              P[i])
+    for i in 3:(N - 1)
+        commands[i] = CurveTo(
+            WP[i - 1],
+            2 * P[i] - WP[i],
+            P[i]
+        )
     end
     # last command, recalculate last WP if tangent is given
-    last_wp = (P[N] + WP[N-1])/2
+    last_wp = (P[N] + WP[N - 1]) / 2
     if tangents !== nothing
-        p1, p2, t = P[N-1], P[N], normalize(to_pointf32(tangents[2]))
+        p1, p2, t = P[N - 1], P[N], normalize(to_pointf32(tangents[2]))
         dir = p2 - p1
         d = tfactor * norm(dir ⋅ t)
-        last_wp = PT(p2-d*t)
+        last_wp = PT(p2 - d * t)
     end
-    commands[N] = CurveTo(WP[N-1],
-                          last_wp,
-                          P[N])
+    commands[N] = CurveTo(
+        WP[N - 1],
+        last_wp,
+        P[N]
+    )
 
-    BezierPath(commands)
+    return BezierPath(commands)
 end
 
 # same function as above but for just 2 points specifically
-function Path(P::Vararg{PT, 2}; tangents=nothing, tfactor=.5) where {PT<:AbstractPoint}
+function Path(P::Vararg{PT, 2}; tangents = nothing, tfactor = 0.5) where {PT <: AbstractPoint}
     if tfactor isa NTuple{2, <:Number}
         tf1, tf2 = tfactor
     else
@@ -327,10 +334,16 @@ function Path(P::Vararg{PT, 2}; tangents=nothing, tfactor=.5) where {PT<:Abstrac
         t1 = normalize(to_pointf32(tangents[1]))
         t2 = normalize(to_pointf32(tangents[2]))
         len = norm(p2 - p1)
-        return BezierPath([MoveTo(p1),
-                           CurveTo(PT(p1+len*tf1*t1),
-                                   PT(p2-len*tf2*t2),
-                                   p2)])
+        return BezierPath(
+            [
+                MoveTo(p1),
+                CurveTo(
+                    PT(p1 + len * tf1 * t1),
+                    PT(p2 - len * tf2 * t2),
+                    p2
+                ),
+            ]
+        )
     end
 end
 
@@ -340,7 +353,7 @@ end
 Draw straight lines through the points `p`. Within `radius` of each
 point the line will be smoothly connected.
 """
-function Path(radius::Real, p::Vararg{PT, N}) where {PT<:AbstractPoint,N}
+function Path(radius::Real, p::Vararg{PT, N}) where {PT <: AbstractPoint, N}
     if iszero(radius)
         commands = PathCommand{PT}[MoveTo(PT(p[1]))]
         for pos in p[2:end]
@@ -359,12 +372,16 @@ function Path(radius::Real, p::Vararg{PT, N}) where {PT<:AbstractPoint,N}
             dir2 = normalize(dst - mid)
             r1 = mid - radius * dir1
             r2 = mid + radius * dir2
-            c1 = mid - .25 * radius * dir1
-            c2 = mid + .25 * radius * dir2
+            c1 = mid - 0.25 * radius * dir1
+            c2 = mid + 0.25 * radius * dir2
             push!(commands, LineTo(PT(r1)))
-            push!(commands, CurveTo(PT(c1),
-                                    PT(c2),
-                                    PT(r2)))
+            push!(
+                commands, CurveTo(
+                    PT(c1),
+                    PT(c2),
+                    PT(r2)
+                )
+            )
             pos = r2
         end
 
@@ -387,22 +404,36 @@ Those are the first waypoints between in the cubic bezier sense.
 function _cubic_spline(p)
     N = length(p) - 1
 
-    M = SMatrix{N,N}(if i==j # diagonal
-                         if i==1; 2; elseif i==N; 7; else 4 end
-                     elseif i==j+1 # lower
-                         if i==N; 2; else 1 end
-                     elseif i==j-1 # upper
-                         1
-                     else
-                         0
-                     end for i in 1:N, j in 1:N)
+    M = SMatrix{N, N}(
+        if i == j # diagonal
+                if i == 1
+                    2
+            elseif i == N
+                    7
+            else
+                    4
+            end
+        elseif i == j + 1 # lower
+                if i == N
+                    2
+            else
+                    1
+            end
+        elseif i == j - 1 # upper
+                1
+        else
+                0
+        end for i in 1:N, j in 1:N
+    )
 
-    b = SVector{N}(if i == 1
-                       p[i] + 2p[i+1]
-                   elseif i == N
-                       8p[i] + p[i+1]
-                   else
-                       4p[i] + 2p[i+1]
-                   end for i in 1:N)
+    b = SVector{N}(
+        if i == 1
+                p[i] + 2p[i + 1]
+        elseif i == N
+                8p[i] + p[i + 1]
+        else
+                4p[i] + 2p[i + 1]
+        end for i in 1:N
+    )
     return M \ b
 end
