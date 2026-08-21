@@ -12,6 +12,7 @@ NetworkLayout.DEFAULT_RNG[] = StableRNG
 @testset "GraphMakie.jl" begin
 
 include("beziercurves_test.jl")
+include("auto_label_alignment_test.jl")
 
 @testset "basic tests" begin
     g = Observable(wheel_digraph(10))

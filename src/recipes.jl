@@ -66,6 +66,7 @@ data space.
 
 - `nlabels=nothing`: `Vector{String}` with label for each node
 - `nlabels_align=(:left, :bottom)`: Anchor of text field.
+- `nlabels_auto_align=false`: Automatically compute label alignment to avoid edge overlaps. When `true`, finds the largest angular gap between incident edges for each node and places the label in that gap. For nodes with incident edges, this overrides any user-provided `nlabels_align`. For isolated nodes (no edges), `nlabels_align` is still used as a fallback.
 - `nlabels_distance=0.0`: Pixel distance from node in direction of align.
 - `nlabels_color=labels_theme.color`
 - `nlabels_offset=nothing`: `Point` or `Vector{Point}` (in data space)
@@ -178,6 +179,7 @@ Waypoints along edges:
         # node label attributes (Text)
         nlabels = nothing,
         nlabels_align = (:left, :bottom),
+        nlabels_auto_align = false,
         nlabels_distance = 0.0,
         nlabels_color = labels_theme.color,
         nlabels_offset = nothing,
@@ -444,21 +446,40 @@ function Makie.plot!(gp::GraphPlot)
             end
         end
 
-        map!(gp.attributes, [:nlabels_align, :nlabels_distance], :nlabels_offset_processed) do align, distance
-            if align isa Vector
-                distance .* align_to_dir.(align)
-            else
-                distance .* align_to_dir(align)
-            end
-        end
-
         # prepare node labels attributes
         map!(gp.attributes, [:nlabels, :graph], :nlabels_text_processed) do labels, graph
             prep_vertex_attributes(labels, graph, "")
         end
 
-        map!(gp.attributes, [:nlabels_align, :graph], :nlabels_align_processed) do align, graph
-            prep_vertex_attributes(align, graph, dfth.nlabels_align[])
+        # Compute auto-alignments if enabled, otherwise use user-provided alignments
+        map!(gp.attributes, [:nlabels_auto_align, :graph, :node_pos, :nlabels_align], :nlabels_align_processed) do auto_align, graph, node_pos, user_align
+            if auto_align
+                # Compute automatic alignments based on edge geometry
+                auto_aligns = compute_auto_label_aligns(graph, node_pos)
+                # For isolated nodes (no incident edges), use user-provided fallback
+                fallback_align = prep_vertex_attributes(user_align, graph, dfth.nlabels_align[])
+                # Check each node to see if it's isolated
+                n = nv(graph)
+                for i in 1:n
+                    # Isolated nodes: fall back to user / default alignment
+                    if isempty(all_neighbors(graph, i))
+                        auto_aligns[i] = getattr(fallback_align, i, dfth.nlabels_align[])
+                    end
+                end
+                auto_aligns
+            else
+                prep_vertex_attributes(user_align, graph, dfth.nlabels_align[])
+            end
+        end
+
+        # Distance offset must follow the *processed* alignment (auto or user),
+        # otherwise auto-align anchors and pixel offsets disagree.
+        map!(gp.attributes, [:nlabels_align_processed, :nlabels_distance], :nlabels_offset_processed) do align, distance
+            if align isa Vector
+                distance .* align_to_dir.(align)
+            else
+                distance .* align_to_dir(align)
+            end
         end
 
         map!(gp.attributes, [:nlabels_color, :graph], :nlabels_color_processed) do color, graph

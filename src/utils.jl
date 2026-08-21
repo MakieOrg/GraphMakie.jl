@@ -1,4 +1,4 @@
-export get_edge_plot, get_arrow_plot, get_node_plot, get_nlabel_plot, get_elabel_plot
+export get_edge_plot, get_arrow_plot, get_node_plot, get_nlabel_plot, get_elabel_plot, compute_auto_label_aligns
 
 "Get the `EdgePlot` subplot from a `GraphPlot`."
 get_edge_plot(gp::GraphPlot) = gp.edge_plot[]
@@ -240,4 +240,111 @@ function point_near_offset(edge_path, p0::PT, d, to_px, offset) where {PT}
     p1 = p0 - d*normalize(r)*scale_px
 
     return p1
+end
+
+"""
+    compute_auto_label_aligns(g::AbstractGraph, node_positions::AbstractVector)
+
+Compute optimal label alignment for each node to avoid edge overlaps.
+
+For each node, finds the largest angular gap between incident edges and places
+the label in the middle of that gap.
+
+# Arguments
+- `g`: An `AbstractGraph` from Graphs.jl
+- `node_positions`: Vector of node positions (Point2f or similar)
+
+# Returns
+- Vector of `(:horizontal, :vertical)` tuples for `nlabels_align`
+
+# Notes
+- For isolated nodes (no incident edges), returns `(:right, :bottom)` as default
+- Works with both directed and undirected graphs
+- Accounts for both incoming and outgoing edges
+"""
+function compute_auto_label_aligns(g::AbstractGraph, node_positions::AbstractVector)
+    n = nv(g)
+    aligns = Vector{Tuple{Symbol, Symbol}}(undef, n)
+
+    for node in 1:n
+        node_pos = node_positions[node]
+        edge_angles = Float64[]
+
+        # One angle per distinct neighbour (Graphs.jl all_neighbors); skip self-loops.
+        for nbr in all_neighbors(g, node)
+            nbr == node && continue
+            nbr_pos = node_positions[nbr]
+            dx = Float64(nbr_pos[1] - node_pos[1])
+            dy = Float64(nbr_pos[2] - node_pos[2])
+            push!(edge_angles, atan(dy, dx))
+        end
+
+        # Default alignment for isolated nodes
+        if isempty(edge_angles)
+            aligns[node] = (:right, :bottom)
+            continue
+        end
+        
+        # Find the largest angular gap between adjacent edges
+        # Normalize angles (in radians) to [0, 2π] and sort
+        angles_norm = sort([mod(a + 2π, 2π) for a in edge_angles])
+        
+        # Find gaps between adjacent angles (including wrap-around gap)
+        best_gap = 0.0
+        best_midpoint = -π/4  # Default: Southeast (bottom-right)
+        
+        for i in 1:length(angles_norm)
+            next_i = i == length(angles_norm) ? 1 : i + 1
+            # Gap from angles_norm[i] to angles_norm[next_i]
+            if next_i == 1
+                # Wrap-around gap
+                gap = (2π - angles_norm[i]) + angles_norm[1]
+                midpoint = angles_norm[i] + gap / 2
+                if midpoint > π
+                    midpoint -= 2π
+                end
+            else
+                gap = angles_norm[next_i] - angles_norm[i]
+                midpoint = angles_norm[i] + gap / 2
+            end
+            
+            if gap > best_gap
+                best_gap = gap
+                best_midpoint = midpoint
+            end
+        end
+        
+        # Convert best_midpoint angle to alignment
+        # Normalize to [0, 2π]
+        angle = mod(best_midpoint + 2π, 2π)
+        
+        # Map angle to alignment (8 directions)
+        # Each sector spans π/4 (45°), centered on cardinal/ordinal directions
+        # Sector boundaries: 0=E, π/4=NE, π/2=N, 3π/4=NW, π=W, 5π/4=SW, 3π/2=S, 7π/4=SE
+        #
+        # IMPORTANT: Alignment semantics in Makie:
+        # - (:left, :center) means label's LEFT edge at anchor → label extends RIGHT (East)
+        # - (:right, :center) means label's RIGHT edge at anchor → label extends LEFT (West)
+        # - (:center, :bottom) means label's BOTTOM at anchor → label extends UP (North)
+        # - (:center, :top) means label's TOP at anchor → label extends DOWN (South)
+        aligns[node] = if angle < π/8 || angle >= 15π/8
+            (:left, :center)       # Label to East (right of node)
+        elseif angle < 3π/8
+            (:left, :bottom)       # Label to Northeast
+        elseif angle < 5π/8
+            (:center, :bottom)     # Label to North (above node)
+        elseif angle < 7π/8
+            (:right, :bottom)      # Label to Northwest
+        elseif angle < 9π/8
+            (:right, :center)      # Label to West (left of node)
+        elseif angle < 11π/8
+            (:right, :top)         # Label to Southwest
+        elseif angle < 13π/8
+            (:center, :top)        # Label to South (below node)
+        else
+            (:left, :top)          # Label to Southeast
+        end
+    end
+    
+    return aligns
 end
