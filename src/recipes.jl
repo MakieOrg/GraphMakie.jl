@@ -2,7 +2,7 @@ using LinearAlgebra: normalize, ⋅, norm
 using NetworkLayout: AbstractLayout, dim
 export GraphPlot, graphplot, graphplot!, Arrow
 
-const Arrow = Makie.Polygon(Point2f.([(-0.5,-0.5),(0.5,0),(-0.5,0.5),(-0.25,0)]))
+const Arrow = Makie.Polygon(Point2f.([(-0.5, -0.5), (0.5, 0), (-0.5, 0.5), (-0.25, 0)]))
 
 """
     graphplot(graph::AbstractGraph)
@@ -206,10 +206,10 @@ Waypoints along edges:
         selfedge_width = automatic,
         curve_distance = 0.1,
         curve_distance_usage = automatic,
-        tangents=nothing,
-        tfactor=0.6,
-        waypoints=nothing,
-        waypoint_radius=nothing,
+        tangents = nothing,
+        tfactor = 0.6,
+        waypoints = nothing,
+        waypoint_radius = nothing,
     )
 end
 
@@ -258,12 +258,14 @@ function Makie.plot!(gp::GraphPlot)
             string.(ilabels)
         end
 
-        ilabels_plot = text!(gp, gp[:node_pos];
-            text=gp[:ilabels_text],
-            align=(:center, :center),
-            color=gp.ilabels_color,
-            fontsize=gp.ilabels_fontsize,
-            gp.ilabels_attr[]...)
+        ilabels_plot = text!(
+            gp, gp[:node_pos];
+            text = gp[:ilabels_text],
+            align = (:center, :center),
+            color = gp.ilabels_color,
+            fontsize = gp.ilabels_fontsize,
+            gp.ilabels_attr[]...
+        )
         add_constant!(gp.attributes, :ilabels_plot, ilabels_plot) #make plotobj accessible
 
         map!(gp.attributes, [:ilabels_plot, :ilabels_text, :ilabels_fontsize, :node_size], :node_size_m) do ilp, txt, ilabels_fontsize, node_size
@@ -319,27 +321,35 @@ function Makie.plot!(gp::GraphPlot)
     end
 
     # find shifts along edge path that intersect with node marker, including arrow size, short circuits when no shifting is required
-    map!(gp.attributes,
-         [:graph, :edge_paths, :node_pos, :to_px, :node_marker_m, :node_size_m, :node_outset, :edge_outset,
-          :arrow_marker, :arrow_shift, :arrow_size, :arrow_show_m],
-         :start_end_shifts
-         ) do g, paths, node_pos, tpx, nmarker, nsize, noutset, eoutset, arrow_marker, arrow_shift, arrow_size,
-              arrow_show
-        return find_start_end_shift(g, paths, node_pos, tpx, nmarker, nsize, noutset, eoutset, arrow_marker,
-                                    arrow_shift, arrow_size, arrow_show)
+    map!(
+        gp.attributes,
+        [
+            :graph, :edge_paths, :node_pos, :to_px, :node_marker_m, :node_size_m, :node_outset, :edge_outset,
+            :arrow_marker, :arrow_shift, :arrow_size, :arrow_show_m,
+        ],
+        :start_end_shifts
+    ) do g, paths, node_pos, tpx, nmarker, nsize, noutset, eoutset, arrow_marker, arrow_shift, arrow_size,
+            arrow_show
+        return find_start_end_shift(
+            g, paths, node_pos, tpx, nmarker, nsize, noutset, eoutset, arrow_marker,
+            arrow_shift, arrow_size, arrow_show
+        )
     end
 
     # prepare arrow heads
-    map!(gp.attributes,
-         [:edge_paths, :start_end_shifts, :arrow_shift],
-         :arrow_shift_m) do edge_paths, start_end_shifts, arrow_shift
+    map!(
+        gp.attributes,
+        [:edge_paths, :start_end_shifts, :arrow_shift],
+        :arrow_shift_m
+    ) do edge_paths, start_end_shifts, arrow_shift
         return update_arrow_shift(edge_paths, start_end_shifts, arrow_shift)
     end
 
 
-    map!(gp.attributes, [:edge_paths, :arrow_shift_m, :node_pos],
-         :arrow_pos
-         ) do paths, arrow_shifts, np
+    map!(
+        gp.attributes, [:edge_paths, :arrow_shift_m, :node_pos],
+        :arrow_pos
+    ) do paths, arrow_shifts, np
         if !isempty(paths)
             map(paths, arrow_shifts) do path, shift
                 return interpolate(path, shift)
@@ -349,9 +359,10 @@ function Makie.plot!(gp::GraphPlot)
         end
     end
 
-    map!(gp.attributes,
-         [:edge_paths, :to_angle, :arrow_shift_m, :arrow_pos], :arrow_rot
-         ) do paths, tangle, arrow_shifts, arrow_positions
+    map!(
+        gp.attributes,
+        [:edge_paths, :to_angle, :arrow_shift_m, :arrow_pos], :arrow_rot
+    ) do paths, tangle, arrow_shifts, arrow_positions
         if !isempty(paths)
             angles = map(paths, arrow_shifts, arrow_positions) do path, shift, arrow_pos
                 return tangle(path, arrow_pos, shift)
@@ -376,11 +387,13 @@ function Makie.plot!(gp::GraphPlot)
     end
 
     # actually plot edges
-    edge_plot = edgeplot!(gp, gp[:edge_paths], gp[:start_end_shifts];
-        color=gp[:edgeplot_color],
-        linewidth=gp[:edgeplot_linewidth],
-        linestyle=gp[:edgeplot_linestyle],
-        gp.edge_attr[]...)
+    edge_plot = edgeplot!(
+        gp, gp[:edge_paths], gp[:start_end_shifts];
+        color = gp[:edgeplot_color],
+        linewidth = gp[:edgeplot_linewidth],
+        linestyle = gp[:edgeplot_linestyle],
+        gp.edge_attr[]...
+    )
     add_constant!(gp.attributes, :edge_plot, edge_plot) #make plotobj accessible
 
     # prepare arrow plot attributes
@@ -396,7 +409,8 @@ function Makie.plot!(gp::GraphPlot)
         prep_edge_attributes(color, graph, dfth.edge_color[])
     end
 
-    arrow_plot = scatter!(gp,
+    arrow_plot = scatter!(
+        gp,
         gp[:arrow_pos];
         marker = gp[:arrowplot_marker],
         markersize = gp[:arrowplot_markersize],
@@ -405,7 +419,8 @@ function Makie.plot!(gp::GraphPlot)
         strokewidth = 0.0,
         markerspace = :pixel,
         visible = gp[:arrow_show_m],
-        gp.arrow_attr[]...)
+        gp.arrow_attr[]...
+    )
     add_constant!(gp.attributes, :arrow_plot, arrow_plot) #make plotobj accessible
 
 
@@ -426,12 +441,14 @@ function Makie.plot!(gp::GraphPlot)
         prep_vertex_attributes(width, graph, scatter_theme.strokewidth)
     end
 
-    vertex_plot = scatter!(gp, gp[:node_pos];
-        color=gp[:nodeplot_color],
-        marker=gp[:nodeplot_marker],
-        markersize=gp[:nodeplot_markersize],
-        strokewidth=gp[:nodeplot_strokewidth],
-        gp[:node_attr][]...)
+    vertex_plot = scatter!(
+        gp, gp[:node_pos];
+        color = gp[:nodeplot_color],
+        marker = gp[:nodeplot_marker],
+        markersize = gp[:nodeplot_markersize],
+        strokewidth = gp[:nodeplot_strokewidth],
+        gp[:node_attr][]...
+    )
     add_constant!(gp.attributes, :node_plot, vertex_plot) #make plotobj accessible
 
     # plot node labels
@@ -469,13 +486,15 @@ function Makie.plot!(gp::GraphPlot)
             prep_vertex_attributes(fontsize, graph, dfth.nlabels_fontsize[])
         end
 
-        nlabels_plot = text!(gp, gp[:nlabels_positions];
-            text=gp[:nlabels_text_processed],
-            align=gp[:nlabels_align_processed],
-            color=gp[:nlabels_color_processed],
-            offset=gp[:nlabels_offset_processed],
-            fontsize=gp[:nlabels_fontsize_processed],
-            gp.nlabels_attr[]...)
+        nlabels_plot = text!(
+            gp, gp[:nlabels_positions];
+            text = gp[:nlabels_text_processed],
+            align = gp[:nlabels_align_processed],
+            color = gp[:nlabels_color_processed],
+            offset = gp[:nlabels_offset_processed],
+            fontsize = gp[:nlabels_fontsize_processed],
+            gp.nlabels_attr[]...
+        )
         add_constant!(gp.attributes, :nlabels_plot, nlabels_plot) #make plotobj accessible
     end
 
@@ -508,7 +527,7 @@ function Makie.plot!(gp::GraphPlot)
                     rot[i] = valrot
                 elseif valrot == automatic
                     # point the labels up
-                    if (rot[i] > π/2 || rot[i] < - π/2)
+                    if (rot[i] > π / 2 || rot[i] < - π / 2)
                         rot[i] += π
                     end
                 end
@@ -523,7 +542,7 @@ function Makie.plot!(gp::GraphPlot)
                 tpx(p1) - tpx(p0)
             end
 
-            offsets = map(p -> Point(-p.data[2], p.data[1])/norm(p), tangent_px)
+            offsets = map(p -> Point(-p.data[2], p.data[1]) / norm(p), tangent_px)
             offsets .= elabels_distance_offset(g, gp.attributes) .* offsets
         end
 
@@ -544,14 +563,16 @@ function Makie.plot!(gp::GraphPlot)
             prep_edge_attributes(fontsize, graph, dfth.elabels_fontsize[])
         end
 
-        elabels_plot = text!(gp, gp[:elabels_positions];
-            text=gp[:elabels_text_processed],
-            rotation=gp[:elabels_rotation_computed],
-            offset=gp[:elabels_offsets],
-            align=gp[:elabels_align_processed],
-            color=gp[:elabels_color_processed],
-            fontsize=gp[:elabels_fontsize_processed],
-            gp.elabels_attr[]...)
+        elabels_plot = text!(
+            gp, gp[:elabels_positions];
+            text = gp[:elabels_text_processed],
+            rotation = gp[:elabels_rotation_computed],
+            offset = gp[:elabels_offsets],
+            align = gp[:elabels_align_processed],
+            color = gp[:elabels_color_processed],
+            fontsize = gp[:elabels_fontsize_processed],
+            gp.elabels_attr[]...
+        )
         add_constant!(gp.attributes, :elabels_plot, elabels_plot) #make plotobj accessible
     end
 
@@ -577,7 +598,7 @@ function elabels_distance_offset(g, attrs)
                 offs[i] = zero(attrval)
             end
         elseif attrval == automatic
-            offval = (getattr(attrs.elabels_fontsize, i) + getattr(attrs.edge_width, i))/2
+            offval = (getattr(attrs.elabels_fontsize, i) + getattr(attrs.edge_width, i)) / 2
             if attrvalside == :left
                 offs[i] = offval
             elseif attrvalside == :right
@@ -646,7 +667,7 @@ function find_edge_paths(g, attr, pos::AbstractVector{PT}) where {PT}
             paths[i] = selfedge_path(g, pos, src(e), size, direction, width)
         elseif !isnothing(tangents)
             paths[i] = Path(p1, p2; tangents, tfactor)
-        elseif PT<:Point2 && !iszero(curve_distance)
+        elseif PT <: Point2 && !iszero(curve_distance)
             paths[i] = curved_path(p1, p2, curve_distance)
         else # straight line
             paths[i] = Path(p1, p2)
@@ -675,22 +696,22 @@ function selfedge_path(g, pos::AbstractVector{<:Point2}, v, size, direction, wid
 
         for i in 1:length(angles)
             α = angles[i]
-            β = get(angles, i+1, 2π + angles[1])
-            if β-α > Δ
-                Δ = β-α
-                γ = (β+α) / 2
+            β = get(angles, i + 1, 2π + angles[1])
+            if β - α > Δ
+                Δ = β - α
+                γ = (β + α) / 2
             end
         end
 
         # set width of selfloop
-        Δ = min(.7*Δ, π/2)
+        Δ = min(0.7 * Δ, π / 2)
     elseif direction === automatic && isempty(ndirs)
-        γ = π/2
-        Δ = π/2
+        γ = π / 2
+        Δ = π / 2
     else
         @assert direction isa Point2 "Direction of selfedge should be 2 dim vector ($direction)"
         γ = atan(direction[2], direction[1])
-        Δ = π/2
+        Δ = π / 2
     end
 
     if width !== automatic
@@ -704,12 +725,16 @@ function selfedge_path(g, pos::AbstractVector{<:Point2}, v, size, direction, wid
     end
 
     # the actual length of the tagent vectors, magic number from `CurveTo`
-    l = Float32( size/(cos(Δ/2) * 2*0.375) )
-    t1 = vp + l * Point2f(cos(γ-Δ/2), sin(γ-Δ/2))
-    t2 = vp + l * Point2f(cos(γ+Δ/2), sin(γ+Δ/2))
+    l = Float32(size / (cos(Δ / 2) * 2 * 0.375))
+    t1 = vp + l * Point2f(cos(γ - Δ / 2), sin(γ - Δ / 2))
+    t2 = vp + l * Point2f(cos(γ + Δ / 2), sin(γ + Δ / 2))
 
-    return BezierPath([MoveTo(vp),
-                       CurveTo(t1, t2, vp)])
+    return BezierPath(
+        [
+            MoveTo(vp),
+            CurveTo(t1, t2, vp),
+        ]
+    )
 end
 
 function selfedge_path(g, pos::AbstractVector{<:Point3}, v, size, direction, width)
@@ -724,17 +749,17 @@ Return a BezierPath for a curved edge (not selfedge).
 function curved_path(p1::PT, p2::PT, curve_distance) where {PT}
     d = curve_distance
     s = norm(p2 - p1)
-    γ = 2*atan(2 * d/s)
-    a = (p2 - p1)/s * (4*d^2 + s^2)/(3s)
+    γ = 2 * atan(2 * d / s)
+    a = (p2 - p1) / s * (4 * d^2 + s^2) / (3s)
 
     m = @SMatrix[cos(γ) -sin(γ); sin(γ) cos(γ)]
-    c1 = PT(p1 + m*a)
-    c2 = PT(p2 - transpose(m)*a)
+    c1 = PT(p1 + m * a)
+    c2 = PT(p2 - transpose(m) * a)
 
     return BezierPath([MoveTo(p1), CurveTo(c1, c2, p2)])
 end
 
-@recipe EdgePlot (paths,start_end_offsets) begin
+@recipe EdgePlot (paths, start_end_offsets) begin
     Makie.documented_attributes(Lines)...
 end
 
@@ -752,14 +777,14 @@ function Makie.plot!(p::EdgePlot)
             pstart = length(points) + 1
             append!(points, disc)
             push!(points, PT(NaN)) # add NaN to separate segments
-            pstop = pstart+length(disc)
+            pstop = pstart + length(disc)
             push!(ranges, pstart:pstop)
         end
         (points, ranges)
     end
 
     # if the user specified different linestyles, we need to fall back to plotting n `lines` rather than plotting
-    split_edgeplots = !(p[:linestyle][] isa Union{Nothing,Symbol,Linestyle})
+    split_edgeplots = !(p[:linestyle][] isa Union{Nothing, Symbol, Linestyle})
     add_constant!(p.attributes, :split_edgeplots, split_edgeplots)
 
     if !split_edgeplots
@@ -767,9 +792,10 @@ function Makie.plot!(p::EdgePlot)
         map!(_expand_args, p.attributes, [:color, :ranges], :color_expanded)
         map!(_expand_args, p.attributes, [:linewidth, :ranges], :linewidth_expanded)
 
-        lines!(p, p.attributes, p[:points];
-            color=p[:color_expanded],
-            linewidth=p[:linewidth_expanded],
+        lines!(
+            p, p.attributes, p[:points];
+            color = p[:color_expanded],
+            linewidth = p[:linewidth_expanded],
         )
     else
         # manually find colorrange
@@ -791,15 +817,16 @@ function Makie.plot!(p::EdgePlot)
         end
 
         for i in 1:length(p[:paths][])
-            thispoints = Symbol(:points,i)
+            thispoints = Symbol(:points, i)
             map!(p.attributes, [:points, :ranges], thispoints) do points, ranges
-                view(points, ranges[i][1:end-1])
+                view(points, ranges[i][1:(end - 1)])
             end
 
-            lines!(p, p.attributes, p[thispoints];
-                color=_split_arg!(p.attributes, :color, i),
-                linewidth=_split_arg!(p.attributes, :linewidth, i),
-                linestyle=_split_arg!(p.attributes, :linestyle, i),
+            lines!(
+                p, p.attributes, p[thispoints];
+                color = _split_arg!(p.attributes, :color, i),
+                linewidth = _split_arg!(p.attributes, :linewidth, i),
+                linestyle = _split_arg!(p.attributes, :linestyle, i),
             )
         end
     end
@@ -810,22 +837,22 @@ end
 function _expand_args(args::Union{AbstractVector, AbstractDict}, ranges)
     N_paths = length(ranges)
     N_points = N_paths > 0 ? ranges[end][end] : 0
-    allstraight = N_paths*3 == N_points
+    allstraight = N_paths * 3 == N_points
     if args isa AbstractVector && length(args) != N_paths
         throw(ArgumentError("The length of the args vector $args does not match the number of edges!"))
     end
 
-    elT = eltype(args) <:Tuple ? eltype(eltype(args)) : eltype(args)
+    elT = eltype(args) <: Tuple ? eltype(eltype(args)) : eltype(args)
     elT = elT <: Integer ? Float32 : elT # convert integers to floats for interpolation
     expanded = Vector{elT}(undef, N_points)
     for i in 1:N_paths
         attr = getattr(args, i)
         if attr isa Union{Tuple, AbstractVector}
             if length(attr) == length(ranges[i]) - 1
-                expanded[ranges[i][1:end-1]] .= attr
+                expanded[ranges[i][1:(end - 1)]] .= attr
                 expanded[ranges[i][end]] = attr[end] # last point is always the same
             elseif eltype(attr) <: Number && length(attr) == 2 # interpolate between numbers
-                expanded[ranges[i][1:end-1]].= range(attr[1], attr[2], length=length(ranges[i])-1)
+                expanded[ranges[i][1:(end - 1)]] .= range(attr[1], attr[2], length = length(ranges[i]) - 1)
                 expanded[ranges[i][end]] = attr[end] # last point is always the same
             else
                 throw(ArgumentError("Don't know how to map $(attr) to the $(length(ranges[i])) points in this edge."))
@@ -834,7 +861,7 @@ function _expand_args(args::Union{AbstractVector, AbstractDict}, ranges)
             expanded[ranges[i]] .= args[i]
         end
     end
-    expanded
+    return expanded
 end
 _expand_args(arg, ranges) = arg
 function _split_arg!(cg::Makie.ComputeGraph, name, i)
@@ -842,12 +869,12 @@ function _split_arg!(cg::Makie.ComputeGraph, name, i)
     map!(cg, [name, Symbol(:points, i)], splitname) do prop, pointsi
         attr = getattr(prop, i)
         # interpolate numeric values for intermediate points
-        if attr isa Union{Tuple,AbstractVector} && eltype(attr) <: Number && length(attr) == 2
-            attr = range(attr[1], attr[2], length=length(pointsi))
+        if attr isa Union{Tuple, AbstractVector} && eltype(attr) <: Number && length(attr) == 2
+            attr = range(attr[1], attr[2], length = length(pointsi))
         end
         attr
     end
-    cg[splitname]
+    return cg[splitname]
 end
 
 """
@@ -884,11 +911,13 @@ function update_arrow_shift(edge_paths::Vector{<:AbstractPath{<:Point3}}, start_
     return arrow_shift
 end
 
-function find_start_end_shift(g, edge_paths::Vector{<:AbstractPath{<:Point3}}, node_pos, to_px,
-                              node_markers,
-                              node_sizes, node_outsets, edge_outsets, arrow_markers, arrow_shifts, arrow_sizes,
-                              arrow_show)
-    shifts = Vector{Tuple{Float32,Float32}}(undef, ne(g))
+function find_start_end_shift(
+        g, edge_paths::Vector{<:AbstractPath{<:Point3}}, node_pos, to_px,
+        node_markers,
+        node_sizes, node_outsets, edge_outsets, arrow_markers, arrow_shifts, arrow_sizes,
+        arrow_show
+    )
+    shifts = Vector{Tuple{Float32, Float32}}(undef, ne(g))
     for (i, e) in enumerate(edges(g))
         start_node_outset = getattr(node_outsets, src(e), 0.0)
         end_node_outset = getattr(node_outsets, dst(e), 0.0)
@@ -907,10 +936,12 @@ end
 
 sum_if_not_nothing(a, b) = isnothing(a) ? b : isnothing(b) ? a : a + b
 
-function find_start_end_shift(g, edge_paths::Vector{<:AbstractPath{PT}}, node_pos, to_px, node_markers,
-                              node_sizes, node_outsets, edge_outsets, arrow_markers, arrow_shifts, arrow_sizes,
-                              arrow_show) where {PT}
-    shifts = Vector{Tuple{Float32,Float32}}(undef, ne(g))
+function find_start_end_shift(
+        g, edge_paths::Vector{<:AbstractPath{PT}}, node_pos, to_px, node_markers,
+        node_sizes, node_outsets, edge_outsets, arrow_markers, arrow_shifts, arrow_sizes,
+        arrow_show
+    ) where {PT}
+    shifts = Vector{Tuple{Float32, Float32}}(undef, ne(g))
 
     for (i, e) in enumerate(edges(g))
         # find start shift
@@ -988,7 +1019,7 @@ function Makie.preferred_axis_type(plot::Plot{GraphMakie.graphplot})
         dim == 3 && return LScene
         dim == 2 && return Axis
     end
-    Axis
+    return Axis
 end
 
 _dimensionality(obs::Observable, g) = _dimensionality(obs[], g)

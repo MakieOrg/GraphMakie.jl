@@ -5,8 +5,8 @@ In this example we'll plot a dependency graph of a package using
 and a DAG layout from [`LayeredLayouts.jl`](https://github.com/oxinabox/LayeredLayouts.jl)
 =#
 using CairoMakie
-CairoMakie.activate!(type="png") #hide
-set_theme!(size=(800, 600)) #hide
+CairoMakie.activate!(type = "png") #hide
+set_theme!(size = (800, 600)) #hide
 using GraphMakie
 using Graphs
 using LayeredLayouts
@@ -19,11 +19,11 @@ First we need a small function which goes through the dependencies of a package 
 builds a `SimpleDiGraph` object.
 =#
 function depgraph(root)
-    registries=RegistryInstances.reachable_registries()
-    general = registries[findfirst(x->x.name=="General", registries)]
+    registries = RegistryInstances.reachable_registries()
+    general = registries[findfirst(x -> x.name == "General", registries)]
 
     packages = [root]
-    connections = Vector{Pair{Int,Int}}()
+    connections = Vector{Pair{Int, Int}}()
 
     for pkg in packages
         pkgidx = findfirst(isequal(pkg), packages)
@@ -33,7 +33,7 @@ function depgraph(root)
         deps = String[]
         pkginfo = registry_info(general[only(uuids)])
         version = maximum(keys(pkginfo.version_info))
-        for (vrange, dep) ∈ pkginfo.deps
+        for (vrange, dep) in pkginfo.deps
             if version ∈ vrange
                 append!(deps, keys(pkginfo.deps[vrange]))
             end
@@ -75,30 +75,32 @@ nothing #hide
 In `GraphMakie` the layout always needs to be function. So we're creating a dummy function...
 We will use the [Edge waypoints](@ref) attribute to get the graph with the least crossings.
 =#
-lay = Point.(zip(xs,ys))
+lay = Point.(zip(xs, ys))
 ## create a vector of Point2f per edge
 wp = [Point2f.(zip(paths[e]...)) for e in edges(g)]
 
 ## manually tweak some of the label aligns and plot the graph
 align = [(:right, :center) for i in 1:N]
-align[findfirst(isequal("Revise"), packages)]           = (:left, :center)
+align[findfirst(isequal("Revise"), packages)] = (:left, :center)
 align[findfirst(isequal("LoweredCodeUtils"), packages)] = (:center, :top)
-align[findfirst(isequal("CodeTracking"), packages)]     = (:left, :top)
+align[findfirst(isequal("CodeTracking"), packages)] = (:left, :top)
 align[findfirst(isequal("JuliaInterpreter"), packages)] = (:center, :bottom)
-align[findfirst(isequal("TOML"), packages)]     = (:center, :top)
-align[findfirst(isequal("Preferences"), packages)]     = (:center, :top)
+align[findfirst(isequal("TOML"), packages)] = (:center, :top)
+align[findfirst(isequal("Preferences"), packages)] = (:center, :top)
 
-f, ax, p = graphplot(g; layout=lay,
-                     arrow_size=15,
-                     edge_color=:gray,
-                     nlabels=packages,
-                     nlabels_align=align,
-                     nlabels_distance=10,
-                     nlabels_fontsize=15,
-                     node_size=[9.0 for i in 1:N],
-                     edge_width=[3 for i in 1:ne(g)],
-                     waypoints=wp,
-                     waypoint_radius=0.5)
+f, ax, p = graphplot(
+    g; layout = lay,
+    arrow_size = 15,
+    edge_color = :gray,
+    nlabels = packages,
+    nlabels_align = align,
+    nlabels_distance = 10,
+    nlabels_fontsize = 15,
+    node_size = [9.0 for i in 1:N],
+    edge_width = [3 for i in 1:ne(g)],
+    waypoints = wp,
+    waypoint_radius = 0.5
+)
 ax.title = "Dependency Graph of Revise.jl"
 xlims!(ax, -0.6, 5.6)
 ylims!(ax, -1.9, 1.7)
