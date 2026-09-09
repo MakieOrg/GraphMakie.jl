@@ -5,8 +5,8 @@ Plotting your first `AbstractGraph` from [`Graphs.jl`](https://github.com/JuliaG
 is as simple as
 =#
 using CairoMakie
-CairoMakie.activate!(type="png") # hide
-set_theme!(size=(800, 400)) #hide
+CairoMakie.activate!(type = "png") # hide
+set_theme!(size = (800, 400)) #hide
 using GraphMakie
 using Graphs
 using StableRNGs
@@ -44,9 +44,11 @@ add_edge!(g, 4, 1); add_edge!(g, 1, 5);
 edgecolors = [:black for i in 1:ne(g)]
 edgecolors[4] = edgecolors[7] = :red
 
-f, ax, p = graphplot(g, layout=Shell(),
-                     node_color=[:black, :red, :red, :red, :black],
-                     edge_color=edgecolors)
+f, ax, p = graphplot(
+    g, layout = Shell(),
+    node_color = [:black, :red, :red, :red, :black],
+    edge_color = edgecolors
+)
 
 hidedecorations!(ax); hidespines!(ax)
 ax.aspect = DataAspect()
@@ -56,7 +58,7 @@ ax.aspect = DataAspect()
 We can interactively change the attributes as usual with Makie.
 =#
 
-fixed_layout(_) = [(0,0), (0,1), (0.5, 1.5), (1,1), (1,0)]
+fixed_layout(_) = [(0, 0), (0, 1), (0.5, 1.5), (1, 1), (1, 0)]
 ## set new layout
 p.layout = fixed_layout; autolimits!(ax)
 ## change edge width & color
@@ -73,10 +75,12 @@ g = wheel_graph(10)
 colors = [:black for i in 1:nv(g)]
 colors[1] = :red
 
-f, ax, p = graphplot(g,
-                     nlabels=repr.(1:nv(g)),
-                     nlabels_color=colors,
-                     nlabels_align=(:center,:center))
+f, ax, p = graphplot(
+    g,
+    nlabels = repr.(1:nv(g)),
+    nlabels_color = colors,
+    nlabels_align = (:center, :center)
+)
 hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()
 @save_reference f #hide
 
@@ -93,22 +97,26 @@ Sometimes it is prefered to show the labels inside the node. For that you can us
 The Node sizes will be changed according to the size of the labels.
 =#
 g = cycle_digraph(3)
-f, ax, p = graphplot(g;
-                     ilabels=[1, L"\sum_{i=1}^n \alpha^i", "a label"],
-                     arrow_shift=:end)
+f, ax, p = graphplot(
+    g;
+    ilabels = [1, L"\sum_{i=1}^n \alpha^i", "a label"],
+    arrow_shift = :end
+)
 xlims!(ax, (-1.5, 1.3))
 ylims!(ax, (-2.3, 0.7))
 hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()
 @save_reference f #hide
 
 # ## Adding Edge Labels
-g = barabasi_albert(6, 2; rng=StableRNGs.StableRNG(1))
+g = barabasi_albert(6, 2; rng = StableRNGs.StableRNG(1))
 
-labels =  repr.(1:ne(g))
+labels = repr.(1:ne(g))
 
-f, ax, p = graphplot(g, elabels=labels,
-                     elabels_color=[:black for i in 1:ne(g)],
-                     edge_color=[:black for i in 1:ne(g)])
+f, ax, p = graphplot(
+    g, elabels = labels,
+    elabels_color = [:black for i in 1:ne(g)],
+    edge_color = [:black for i in 1:ne(g)]
+)
 hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()
 f #hide
 
@@ -127,9 +135,9 @@ One can shift the label along the edge with the `elabels_shift` argument and det
 in pixels using the `elabels_distance` argument.
 =#
 
-p.elabels_side[] = Dict(i => :right for i in [6,7])
+p.elabels_side[] = Dict(i => :right for i in [6, 7])
 p.elabels_offset[] = [Point2f(0.0, 0.0) for i in 1:ne(g)]
-p.elabels_offset[][5] = Point2f(-0.4,0)
+p.elabels_offset[][5] = Point2f(-0.4, 0)
 p.elabels_offset[] = p.elabels_offset[]
 
 p.elabels_shift[] = [0.5 for i in 1:ne(g)]
@@ -149,8 +157,8 @@ is `true` for `SimpleDiGraph` by default. The position and size of each arrowhea
 change using the `arrow_shift` and `arrow_size` parameters.
 =#
 g = wheel_digraph(10)
-arrow_size = [10+i for i in 1:ne(g)]
-arrow_shift = range(0.1, 0.8, length=ne(g))
+arrow_size = [10 + i for i in 1:ne(g)]
+arrow_shift = range(0.1, 0.8, length = ne(g))
 f, ax, p = graphplot(g; arrow_size, arrow_shift)
 hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()
 @save_reference f #hide
@@ -159,7 +167,7 @@ hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()
 There is a special case for `arrow_shift=:end` which moves the arrows close to the next node:
 =#
 g = cycle_digraph(3)
-f, ax, p = graphplot(g; arrow_shift=:end, node_size=20, arrow_size=20)
+f, ax, p = graphplot(g; arrow_shift = :end, node_size = 20, arrow_size = 20)
 hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()
 f #hide
 
@@ -181,10 +189,10 @@ hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()
 @save_reference f #hide
 
 # It is possible to change the appearance using the `selfedge_` attributes:
-p.selfedge_size = Dict(1=>Makie.automatic, 4=>3.6, 6=>0.5) #idx as in edges(g)
+p.selfedge_size = Dict(1 => Makie.automatic, 4 => 3.6, 6 => 0.5) #idx as in edges(g)
 p.selfedge_direction = Point2f(-0.25, -0.3)
 p.selfedge_width = Any[Makie.automatic for i in 1:ne(g)]
-p.selfedge_width[][4] = 0.6*π; notify(p.selfedge_width)
+p.selfedge_width[][4] = 0.6 * π; notify(p.selfedge_width)
 autolimits!(ax)
 @save_reference f #hide
 
@@ -209,7 +217,7 @@ This behaviour may be changed by using the `curve_distance_usage=Makie.automatic
  - `true`: Use on all edges.
  - `false`: Don't use.
 =#
-f, ax, p = graphplot(g; curve_distance=-.5, curve_distance_usage=true)
+f, ax, p = graphplot(g; curve_distance = -0.5, curve_distance_usage = true)
 hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()
 @save_reference f #hide
 
@@ -217,9 +225,9 @@ hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()
 It is also possible to specify the distance on a per edge base:
 =#
 g = complete_digraph(3)
-distances = collect(0.05:0.05:ne(g)*0.05)
-elabels = "d = ".* repr.(round.(distances, digits=2))
-f, ax, p = graphplot(g; curve_distance=distances, elabels, arrow_size=20, elabels_distance=15)
+distances = collect(0.05:0.05:(ne(g) * 0.05))
+elabels = "d = " .* repr.(round.(distances, digits = 2))
+f, ax, p = graphplot(g; curve_distance = distances, elabels, arrow_size = 20, elabels_distance = 15)
 hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()
 @save_reference f #hide
 
@@ -234,13 +242,17 @@ and dst nodes. For real world usage see the [AST of a Julia function](@ref) exam
 =#
 using GraphMakie: plot_controlpoints!, SquareGrid
 g = complete_graph(3)
-tangents = Dict(1 => ((1,1),(0,-1)),
-                2 => ((0,1),(0,-1)),
-                3 => ((0,-1),(1,0)))
+tangents = Dict(
+    1 => ((1, 1), (0, -1)),
+    2 => ((0, 1), (0, -1)),
+    3 => ((0, -1), (1, 0))
+)
 tfactor = [0.5, 0.75, (0.5, 0.25)]
-f, ax, p = graphplot(g; layout=SquareGrid(cols=3), tangents, tfactor,
-                     arrow_size=20, arrow_show=true, edge_color=[:red, :green, :blue],
-                     elabels="Edge ".*repr.(1:ne(g)), elabels_distance=20)
+f, ax, p = graphplot(
+    g; layout = SquareGrid(cols = 3), tangents, tfactor,
+    arrow_size = 20, arrow_show = true, edge_color = [:red, :green, :blue],
+    elabels = "Edge " .* repr.(1:ne(g)), elabels_distance = 20
+)
 hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()
 plot_controlpoints!(ax, p) # show control points for demonstration
 @save_reference f #hide
@@ -255,35 +267,43 @@ using natural cubic spline interpolation. If the supply a radius the waypoints w
 instead they will be connected with straight lines which bend in the given radius around the
 waypoints.
 =#
-set_theme!(size=(800, 800)) #hide
+set_theme!(size = (800, 800)) #hide
 g = SimpleGraph(8); add_edge!(g, 1, 2); add_edge!(g, 3, 4); add_edge!(g, 5, 6); add_edge!(g, 7, 8)
 
-waypoints = Dict(1 => [(.25,  0.25), (.75, -0.25)],
-                 2 => [(.25, -0.25), (.75, -0.75)],
-                 3 => [(.25, -0.75), (.75, -1.25)],
-                 4 => [(.25, -1.25), (.75, -1.75)])
-waypoint_radius = Dict(1 => nothing,
-                       2 => 0,
-                       3 => 0.05,
-                       4 => 0.15)
+waypoints = Dict(
+    1 => [(0.25, 0.25), (0.75, -0.25)],
+    2 => [(0.25, -0.25), (0.75, -0.75)],
+    3 => [(0.25, -0.75), (0.75, -1.25)],
+    4 => [(0.25, -1.25), (0.75, -1.75)]
+)
+waypoint_radius = Dict(
+    1 => nothing,
+    2 => 0,
+    3 => 0.05,
+    4 => 0.15
+)
 
-f = Figure(); f[1,1] = ax = Axis(f)
+f = Figure(); f[1, 1] = ax = Axis(f)
 using Makie.Colors # hide
 for i in 3:4 #hide
-    poly!(ax, Circle(Point2f(waypoints[i][1]), waypoint_radius[i]), color=RGBA(0.0,0.44705883,0.69803923,0.2)) #hide
-    poly!(ax, Circle(Point2f(waypoints[i][2]), waypoint_radius[i]), color=RGBA(0.0,0.44705883,0.69803923,0.2)) #hide
+    poly!(ax, Circle(Point2f(waypoints[i][1]), waypoint_radius[i]), color = RGBA(0.0, 0.44705883, 0.69803923, 0.2)) #hide
+    poly!(ax, Circle(Point2f(waypoints[i][2]), waypoint_radius[i]), color = RGBA(0.0, 0.44705883, 0.69803923, 0.2)) #hide
 end #hide
 
-p = graphplot!(ax, g; layout=SquareGrid(cols=2, dy=-0.5),
-               waypoints, waypoint_radius,
-               nlabels=["","r = nothing (equals :spline)",
-                        "","r = 0 (straight lines)",
-                        "","r = 0.05 (in data space)",
-                        "","r = 0.1"],
-               nlabels_distance=30, nlabels_align=(:left,:center))
+p = graphplot!(
+    ax, g; layout = SquareGrid(cols = 2, dy = -0.5),
+    waypoints, waypoint_radius,
+    nlabels = [
+        "", "r = nothing (equals :spline)",
+        "", "r = 0 (straight lines)",
+        "", "r = 0.05 (in data space)",
+        "", "r = 0.1",
+    ],
+    nlabels_distance = 30, nlabels_align = (:left, :center)
+)
 
 for i in 1:4 #hide
-    scatter!(ax, waypoints[i], color=RGBA(0.0,0.44705883,0.69803923,1.0)) #hide
+    scatter!(ax, waypoints[i], color = RGBA(0.0, 0.44705883, 0.69803923, 1.0)) #hide
 end #hide
 xlims!(ax, (-0.1, 2.25)), hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()
 @save_reference f #hide
@@ -295,9 +315,11 @@ if `tangents` are given, but no `waypoints`, the `tangents` are ignored.
 =#
 g = SimpleDiGraph(1) #single node
 add_edge!(g, 1, 1) #add self loop
-f, ax, p = graphplot(g, 
-                     layout = [(0,0)], 
-                     waypoints = [[(1,-1),(1,1),(-1,1),(-1,-1)]])
+f, ax, p = graphplot(
+    g,
+    layout = [(0, 0)],
+    waypoints = [[(1, -1), (1, 1), (-1, 1), (-1, -1)]]
+)
 hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect()
 @save_reference f #hide
 
@@ -307,14 +329,14 @@ To create a small gap between each node and all connected edges, use the `node_o
 Use a single number to set the same outset for all nodes, a dictionary indexed by (some) node indices to set the outset
 for some nodes, or a vector of length `nv(g)` to set an individual outset for every node in the graph:
 =#
-set_theme!(size=(800, 400)) #hide
-f = Figure(); ax = Axis(f[1,1]); ax2 = Axis(f[1,2])
-hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect(); limits!(ax, -1.6, 1.3, -2.3,0.6)
-hidedecorations!(ax2); hidespines!(ax2); ax2.aspect = DataAspect(); limits!(ax2, -1.6, 1.3, -2.3,0.6)
+set_theme!(size = (800, 400)) #hide
+f = Figure(); ax = Axis(f[1, 1]); ax2 = Axis(f[1, 2])
+hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect(); limits!(ax, -1.6, 1.3, -2.3, 0.6)
+hidedecorations!(ax2); hidespines!(ax2); ax2.aspect = DataAspect(); limits!(ax2, -1.6, 1.3, -2.3, 0.6)
 
 g = complete_digraph(3)
-graphplot!(ax, g; node_outset = 20, curve_distance=0.3, arrow_size=20)
-graphplot!(ax2, g; node_outset = [10,30,60], ilabels=["small\noutset", "medium\noutset", "large\noutset"], arrow_shift=:end, curve_distance=0.3, arrow_size=20)
+graphplot!(ax, g; node_outset = 20, curve_distance = 0.3, arrow_size = 20)
+graphplot!(ax2, g; node_outset = [10, 30, 60], ilabels = ["small\noutset", "medium\noutset", "large\noutset"], arrow_shift = :end, curve_distance = 0.3, arrow_size = 20)
 @save_reference f #hide
 
 #=
@@ -322,14 +344,14 @@ Similarly, the `edge_outset` parameter can be used to create a gap between each 
 Use a tuple of `(start_outset, end_outset)` for a single value for all edges, a dictionary indexed by (some) edge
 indices to set the outset for some edges or a vector of length `ne(g)` to set the individual outsets for every edge in the graph:
 =#
-set_theme!(size=(800, 400)) #hide
-f = Figure(); ax = Axis(f[1,1]); ax2 = Axis(f[1,2])
-hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect(); limits!(ax, -1.5, 1.3, -2.2,0.5)
-hidedecorations!(ax2); hidespines!(ax2); ax2.aspect = DataAspect(); limits!(ax2, -1.5, 1.3, -2.2,0.5)
+set_theme!(size = (800, 400)) #hide
+f = Figure(); ax = Axis(f[1, 1]); ax2 = Axis(f[1, 2])
+hidedecorations!(ax); hidespines!(ax); ax.aspect = DataAspect(); limits!(ax, -1.5, 1.3, -2.2, 0.5)
+hidedecorations!(ax2); hidespines!(ax2); ax2.aspect = DataAspect(); limits!(ax2, -1.5, 1.3, -2.2, 0.5)
 
 g = complete_digraph(3)
-p = graphplot!(ax, g; edge_outset = (40, 10), curve_distance=0.3, arrow_size=20)
-p = graphplot!(ax2, g; edge_outset = Dict(1 => (10, 40), 2 => (40, 20), 3=>(nothing, 10)), node_size=50, curve_distance=0.3, arrow_size=20)
+p = graphplot!(ax, g; edge_outset = (40, 10), curve_distance = 0.3, arrow_size = 20)
+p = graphplot!(ax2, g; edge_outset = Dict(1 => (10, 40), 2 => (40, 20), 3 => (nothing, 10)), node_size = 50, curve_distance = 0.3, arrow_size = 20)
 @save_reference f #hide
 
 #=
@@ -341,13 +363,15 @@ Combining `node_outset` and `edge_outset` is possible and will apply the sum of 
 If the layout returns points in 3 dimensions, the plot will be in 3D. However this is a bit
 experimental. Feel free to file an issue if there are any problems.
 =#
-set_theme!(size=(800, 800)) #hide
+set_theme!(size = (800, 800)) #hide
 g = smallgraph(:cubical)
-f, ax, p = graphplot(g; layout=Spring(dim=3, seed=5),
-    elabels="Edge ".*repr.(1:ne(g)),
-    arrow_show=true,
-    arrow_shift=0.9,
-    arrow_size=15)
+f, ax, p = graphplot(
+    g; layout = Spring(dim = 3, seed = 5),
+    elabels = "Edge " .* repr.(1:ne(g)),
+    arrow_show = true,
+    arrow_shift = 0.9,
+    arrow_size = 15
+)
 @save_reference f #hide
 
 #=
@@ -355,8 +379,8 @@ Using [`WGLMakie.jl`](https://github.com/MakieOrg/Makie.jl/tree/master/WGLMakie)
 we can also add some interactivity:
 =#
 using WGLMakie #md
-WGLMakie.Page(exportable=true, offline=true) #md
+WGLMakie.Page(exportable = true, offline = true) #md
 WGLMakie.activate!() #md
-set_theme!(size=(800, 600)) #md
+set_theme!(size = (800, 600)) #md
 g = smallgraph(:dodecahedral) #md
-graphplot(g, layout=Spring(dim=3)) #md
+graphplot(g, layout = Spring(dim = 3)) #md

@@ -10,18 +10,20 @@ We star with a simple wheel graph again. This time we use arrays for some attrib
 because we want to change them later in the interactions for individual nodes/edges.
 =#
 using CairoMakie
-CairoMakie.activate!(type="png") # hide
-set_theme!(size=(800, 400)) #hide
+CairoMakie.activate!(type = "png") # hide
+set_theme!(size = (800, 400)) #hide
 using GraphMakie
 using Graphs
 using CairoMakie.Colors
 
 g = wheel_graph(10)
-f, ax, p = graphplot(g,
-                     edge_width = [2.0 for i in 1:ne(g)],
-                     edge_color = [colorant"gray" for i in 1:ne(g)],
-                     node_size = [10 for i in 1:nv(g)],
-                     node_color = [colorant"red" for i in 1:nv(g)])
+f, ax, p = graphplot(
+    g,
+    edge_width = [2.0 for i in 1:ne(g)],
+    edge_color = [colorant"gray" for i in 1:ne(g)],
+    node_size = [10 for i in 1:nv(g)],
+    node_color = [colorant"red" for i in 1:nv(g)]
+)
 hidedecorations!(ax); hidespines!(ax)
 ax.aspect = DataAspect()
 @save_reference f # hide
@@ -38,13 +40,13 @@ nothing #hide
 function node_hover_action(state, idx, event, axis)
     @info idx #hide
     p.node_size[][idx] = state ? 20 : 10
-    p.node_size[] = p.node_size[] # trigger observable
+    return p.node_size[] = p.node_size[] # trigger observable
 end
 nhover = NodeHoverHandler(node_hover_action)
 register_interaction!(ax, :nhover, nhover)
 
 function set_cursor!(p) #hide
-    θ = π/8  # rotation angle #hide
+    θ = π / 8  # rotation angle #hide
     R = Float32[cos(θ) -sin(θ); sin(θ) cos(θ)] #hide
     scale = 3 #hide
     full_height = 0.8 #hide
@@ -52,17 +54,19 @@ function set_cursor!(p) #hide
     inner_height = 0.5 #hide
     head_width = 0.6 #hide
     tail_width = 0.15 #hide
-    arrow = scale * Point2f.([ #hide
-        ( 0.0, 0.0), #hide
-        (-head_width/2, -head_height),  #hide
-        (-tail_width/2, -inner_height), #hide
-        (-tail_width/2, -full_height),  #hide
-        ( tail_width/2, -full_height),  #hide
-        ( tail_width/2, -inner_height), #hide
-        ( head_width/2, -head_height),  #hide
-    ]) #hide
+    arrow = scale * Point2f.(
+        [ #hide
+            (0.0, 0.0), #hide
+            (-head_width / 2, -head_height),  #hide
+            (-tail_width / 2, -inner_height), #hide
+            (-tail_width / 2, -full_height),  #hide
+            (tail_width / 2, -full_height),  #hide
+            (tail_width / 2, -inner_height), #hide
+            (head_width / 2, -head_height),  #hide
+        ]
+    ) #hide
     rotated_arrow = Makie.Polygon([Point2f(R * Vec(p)) for p in arrow]) #hide
-    scatter!(p; marker=rotated_arrow, color=:black, strokecolor=:white, strokewidth=1) #hide
+    return scatter!(p; marker = rotated_arrow, color = :black, strokecolor = :white, strokewidth = 1) #hide
 end #hide
 nodepos = copy(p[:node_pos][]) #hide
 set_cursor!(nodepos[5] + Point2f(0.05, 0)) #hide
@@ -76,13 +80,13 @@ pop!(ax.scene.plots) #hide
 p.node_size[][5] = 10; p.node_size[] = p.node_size[] #hide
 function edge_hover_action(state, idx, event, axis)
     @info idx #hide
-    p.edge_width[][idx]= state ? 5.0 : 2.0
-    p.edge_width[] = p.edge_width[] # trigger observable
+    p.edge_width[][idx] = state ? 5.0 : 2.0
+    return p.edge_width[] = p.edge_width[] # trigger observable
 end
 ehover = EdgeHoverHandler(edge_hover_action)
 register_interaction!(ax, :ehover, ehover)
 
-set_cursor!((nodepos[4]+nodepos[1])/2) #hide
+set_cursor!((nodepos[4] + nodepos[1]) / 2) #hide
 p.edge_width[][3] = 5.0; p.edge_width[] = p.edge_width[] #hide
 @save_reference f #hide
 
@@ -90,14 +94,14 @@ p.edge_width[][3] = 5.0; p.edge_width[] = p.edge_width[] #hide
 # In a similar fashion we might change the color of nodes and lines by click.
 function node_click_action(idx, args...)
     p.node_color[][idx] = rand(RGB)
-    p.node_color[] = p.node_color[]
+    return p.node_color[] = p.node_color[]
 end
 nclick = NodeClickHandler(node_click_action)
 register_interaction!(ax, :nclick, nclick)
 
 function edge_click_action(idx, args...)
     p.edge_color[][idx] = rand(RGB)
-    p.edge_color[] = p.edge_color[]
+    return p.edge_color[] = p.edge_color[]
 end
 eclick = EdgeClickHandler(edge_click_action)
 register_interaction!(ax, :eclick, eclick)
@@ -115,12 +119,12 @@ pop!(ax.scene.plots) #hide
 p.edge_width[][3] = 2.0; p.edge_width[] = p.edge_width[] #hide
 function node_drag_action(state, idx, event, axis)
     p[:node_pos][][idx] = event.data
-    p[:node_pos][] = p[:node_pos][]
+    return p[:node_pos][] = p[:node_pos][]
 end
 ndrag = NodeDragHandler(node_drag_action)
 register_interaction!(ax, :ndrag, ndrag)
 
-p[:node_pos][][1] = nodepos[1] + Point2f(1.0,0.5) #hide
+p[:node_pos][][1] = nodepos[1] + Point2f(1.0, 0.5) #hide
 p[:node_pos][] = p[:node_pos][] #hide
 set_cursor!(p[:node_pos][][1] + Point2f(0.05, 0)) #hide
 p.node_size[][1] = 20; p.node_size[] = p.node_size[] #hide
@@ -139,8 +143,8 @@ mutable struct EdgeDragAction
 end
 function (action::EdgeDragAction)(state, idx, event, axis)
     edge = collect(edges(g))[idx]
-    if state == true
-        if action.src===action.dst===action.init===nothing
+    return if state == true
+        if action.src === action.dst === action.init === nothing
             action.init = event.data
             action.src = p[:node_pos][][src(edge)]
             action.dst = p[:node_pos][][dst(edge)]
@@ -150,16 +154,16 @@ function (action::EdgeDragAction)(state, idx, event, axis)
         p[:node_pos][][dst(edge)] = action.dst + offset
         p[:node_pos][] = p[:node_pos][] # trigger change
     elseif state == false
-        action.src = action.dst = action.init =  nothing
+        action.src = action.dst = action.init = nothing
     end
 end
 edrag = EdgeDragHandler(EdgeDragAction())
 register_interaction!(ax, :edrag, edrag)
 
-p[:node_pos][][9] = nodepos[9] + Point2f(0.9,1.0) #hide
-p[:node_pos][][10] = nodepos[10] + Point2f(0.9,1.0) #hide
+p[:node_pos][][9] = nodepos[9] + Point2f(0.9, 1.0) #hide
+p[:node_pos][][10] = nodepos[10] + Point2f(0.9, 1.0) #hide
 p[:node_pos][] = p[:node_pos][] #hide
-pm = (p[:node_pos][][9] + p[:node_pos][][10])/2 #hide
+pm = (p[:node_pos][][9] + p[:node_pos][][10]) / 2 #hide
 set_cursor!(pm) #hide
 p.edge_width[][18] = 5.0; p.edge_width[] = p.edge_width[] #hide
 @save_reference f # hide
