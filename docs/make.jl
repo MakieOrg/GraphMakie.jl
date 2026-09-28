@@ -31,7 +31,7 @@ end
 
 makedocs(;
     modules = [GraphMakie], authors = "Simon Danisch, Hans Würfel",
-    repo = "https://github.com/MakieOrg/GraphMakie.jl/blob/{commit}{path}#{line}",
+    repo = Remotes.GitHub("MakieOrg", "GraphMakie.jl"),
     sitename = "GraphMakie.jl",
     format = Documenter.HTML(;
         prettyurls = get(ENV, "CI", "false") == "true",
