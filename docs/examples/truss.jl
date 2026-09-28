@@ -21,18 +21,20 @@ For more information on the models see the corresponding [example in the Network
 =#
 
 function fixed_g(pos, x, p, t)
-    pos .= p
+    return pos .= p
 end
-vertex_fix = VertexModel(g=fixed_g, psym=[:xfix, :yfix], outsym=[:x, :y], ff=NoFeedForward())
+vertex_fix = VertexModel(g = fixed_g, psym = [:xfix, :yfix], outsym = [:x, :y], ff = NoFeedForward())
 function free_f(dx, x, Fsum, (M, γ, g), t)
     v = view(x, 1:2)
     dx[1:2] .= (Fsum .- γ .* v) ./ M
     dx[2] -= g
     dx[3:4] .= v
-    nothing
+    return nothing
 end
-vertex_free = VertexModel(f=free_f, g=3:4, sym=[:vx=>0, :vy=>0, :x, :y],
-                             psym=[:M=>10, :γ=>200, :g=>9.81], insym=[:Fx, :Fy])
+vertex_free = VertexModel(
+    f = free_f, g = 3:4, sym = [:vx => 0, :vy => 0, :x, :y],
+    psym = [:M => 10, :γ => 200, :g => 9.81], insym = [:Fx, :Fy]
+)
 function edge_g!(F, pos_src, pos_dst, (K, L), t)
     dx = pos_dst[1] - pos_src[1]
     dy = pos_dst[2] - pos_src[2]
@@ -40,16 +42,16 @@ function edge_g!(F, pos_src, pos_dst, (K, L), t)
     Fabs = K * (L - d)
     F[1] = Fabs * dx / d
     F[2] = Fabs * dy / d
-    nothing
+    return nothing
 end
 function observedf(obsout, u, pos_src, pos_dst, (K, L), t)
     dx = pos_dst[1] .- pos_src[1]
     dy = pos_dst[2] .- pos_src[2]
     d = sqrt(dx^2 + dy^2)
     obsout[1] = K * (L - d)
-    nothing
+    return nothing
 end
-beam = EdgeModel(g=AntiSymmetric(edge_g!), psym=[:K=>0.5e6, :L], outsym=[:Fx, :Fy], obsf=observedf, obssym=[:Fabs])
+beam = EdgeModel(g = AntiSymmetric(edge_g!), psym = [:K => 0.5e6, :L], outsym = [:Fx, :Fy], obsf = observedf, obssym = [:Fabs])
 nothing #hide
 
 #=
@@ -58,19 +60,19 @@ Set up graph topology and initial positions.
 N = 5
 dx = 1.0
 shift = 0.2
-g = SimpleGraph(2*N + 1)
+g = SimpleGraph(2 * N + 1)
 for i in 1:N
-    add_edge!(g, i, i+N); add_edge!(g, i, i+N)
+    add_edge!(g, i, i + N); add_edge!(g, i, i + N)
     if i < N
-        add_edge!(g, i+1, i+N); add_edge!(g, i, i+1); add_edge!(g, i+N, i+N+1)
+        add_edge!(g, i + 1, i + N); add_edge!(g, i, i + 1); add_edge!(g, i + N, i + N + 1)
     end
 end
-add_edge!(g, 2N, 2N+1)
+add_edge!(g, 2N, 2N + 1)
 pos0 = zeros(Point2f, 2N + 1)
-pos0[1:N] = [Point((i-1)dx,0) for i in 1:N]
-pos0[N+1:2*N] = [Point(i*dx + shift, 1) for i in 1:N]
-pos0[2N+1] = Point(N*dx + 1, -1)
-fixed = [1,4] # set fixed vertices
+pos0[1:N] = [Point((i - 1)dx, 0) for i in 1:N]
+pos0[(N + 1):(2 * N)] = [Point(i * dx + shift, 1) for i in 1:N]
+pos0[2N + 1] = Point(N * dx + 1, -1)
+fixed = [1, 4] # set fixed vertices
 nothing #hide
 
 #=
@@ -96,7 +98,7 @@ for i in eachindex(pos0, verts)
     end
 end
 ## set L for edges
-for (i,e) in enumerate(edges(g))
+for (i, e) in enumerate(edges(g))
     u0.p.e[i, :L] = norm(pos0[src(e)] - pos0[dst(e)])
 end
 ## set damping and mass for "big mass" at the end
@@ -109,46 +111,56 @@ With rhs, parameters and initial conditions constructed we can integrate the sys
 =#
 tspan = (0.0, 12.0)
 prob = ODEProblem(nw, uflat(u0), tspan, pflat(u0))
-sol  = solve(prob, Tsit5())
+sol = solve(prob, Tsit5())
 nothing #hide
 
 #=
 ## Plot the solution
 =#
 
-fig = Figure(size=(1000,550));
-fig[1,1] = title = Label(fig, "Stress on truss", fontsize=30)
+fig = Figure(size = (1000, 550));
+fig[1, 1] = title = Label(fig, "Stress on truss", fontsize = 30)
 title.tellwidth = false
 
-fig[2,1] = ax = Axis(fig)
+fig[2, 1] = ax = Axis(fig)
 ax.aspect = DataAspect();
 hidespines!(ax); # no borders
 hidedecorations!(ax); # no grid, axis, ...
-limits!(ax, -0.1, pos0[end][1]+0.3, pos0[end][2]-0.5, 1.15) # axis limits to show full plot
+limits!(ax, -0.1, pos0[end][1] + 0.3, pos0[end][2] - 0.5, 1.15) # axis limits to show full plot
 
 ## get the maximum force during the simulation to get the color scale
 ## It is only possible to access `:Fabs` directly becaus we've define the observable function for it!
-(fmin, fmax) = 0.3 .* extrema(Iterators.flatten(sol(sol.t, idxs=eidxs(nw, :, :Fabs))))
+(fmin, fmax) = 0.3 .* extrema(Iterators.flatten(sol(sol.t, idxs = eidxs(nw, :, :Fabs))))
 
-p = graphplot!(ax, g;
-               edge_width = 4.0,
-               node_size = 3*sqrt.(try u0.p.v[i, :M] catch; 10.0 end for i in 1:nv(g)),
-               nlabels = [i in fixed ? "Δ" : "" for i in 1:nv(g)],
-               nlabels_align = (:center,:top),
-               nlabels_fontsize = 30,
-               elabels = ["edge $i" for i in 1:ne(g)],
-               elabels_side = Dict(ne(g)  => :right),
-               edge_color = [0.0 for i in 1:ne(g)],
-               edge_attr = (colorrange=(fmin,fmax),
-                          colormap=:diverging_bkr_55_10_c35_n256))
+p = graphplot!(
+    ax, g;
+    edge_width = 4.0,
+    node_size = 3 * sqrt.(
+        try
+                u0.p.v[i, :M]
+        catch
+                10.0
+        end for i in 1:nv(g)
+    ),
+    nlabels = [i in fixed ? "Δ" : "" for i in 1:nv(g)],
+    nlabels_align = (:center, :top),
+    nlabels_fontsize = 30,
+    elabels = ["edge $i" for i in 1:ne(g)],
+    elabels_side = Dict(ne(g) => :right),
+    edge_color = [0.0 for i in 1:ne(g)],
+    edge_attr = (
+        colorrange = (fmin, fmax),
+        colormap = :diverging_bkr_55_10_c35_n256,
+    )
+)
 
 ## draw colorbar
-fig[3,1] = cb = Colorbar(fig, get_edge_plot(p), label = "Axial force", vertical=false)
+fig[3, 1] = cb = Colorbar(fig, get_edge_plot(p), label = "Axial force", vertical = false)
 
 T = tspan[2]
 fps = 30
-trange = range(0.0, sol.t[end], length=Int(T * fps))
-record(fig, "truss.mp4", trange; framerate=fps) do t
+trange = range(0.0, sol.t[end], length = Int(T * fps))
+record(fig, "truss.mp4", trange; framerate = fps) do t
     title.text = @sprintf "Stress on truss (t = %.2f )" t
     s_at_t = NWState(sol, t)
     for i in eachindex(pos0)

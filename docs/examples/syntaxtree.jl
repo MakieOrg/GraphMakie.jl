@@ -5,8 +5,8 @@ In this example we are going to plot an abstract syntax tree of a Julia function
 Bucheim Layout from [`NetworkLayout.jl`](https://github.com/JuliaGraphs/NetworkLayout.jl).
 =#
 using CairoMakie
-CairoMakie.activate!(type="png") #hide
-set_theme!(size=(800, 600)) #hide
+CairoMakie.activate!(type = "png") #hide
+set_theme!(size = (800, 600)) #hide
 using Graphs
 using GraphMakie
 using NetworkLayout
@@ -16,7 +16,7 @@ using CairoMakie
 The following code, which walks the AST and creates a `SimpleDiGraph` was taken and slightly
 modified from [`TreeView.jl`](https://github.com/JuliaTeX/TreeView.jl). Thanks!
 =#
-function walk_tree(ex; show_call=true)
+function walk_tree(ex; show_call = true)
     g = SimpleDiGraph()
     labels = Any[]
     walk_tree!(g, labels, ex, show_call)
@@ -59,34 +59,36 @@ The expression we want to look at is the recursive definition of the Fibonacci s
 expr = quote
     function fib(n)
         if n > 1
-            return fib(n-1) + fib(n-2)
+            return fib(n - 1) + fib(n - 2)
         else
             return n
         end
     end
 end
 
-g, labels = walk_tree(expr, show_call=true)
+g, labels = walk_tree(expr, show_call = true)
 nlabels_align = [(:left, :bottom) for v in vertices(g)]
-fig, ax, p = graphplot(g; layout=Buchheim(),
-                       nlabels=repr.(labels),
-                       nlabels_distance=5,
-                       nlabels_align,
-                       tangents=((0,-1),(0,-1)))
+fig, ax, p = graphplot(
+    g; layout = Buchheim(),
+    nlabels = repr.(labels),
+    nlabels_distance = 5,
+    nlabels_align,
+    tangents = ((0, -1), (0, -1))
+)
 hidedecorations!(ax); hidespines!(ax)
 @save_reference fig #hide
 
 # This does not look nice yet! Lets tweak the `align` parameter of the nodes labels...
 for v in vertices(g)
     if isempty(inneighbors(g, v)) # root
-        nlabels_align[v] = (:center,:bottom)
+        nlabels_align[v] = (:center, :bottom)
     elseif isempty(outneighbors(g, v)) #leaf
-        nlabels_align[v] = (:center,:top)
+        nlabels_align[v] = (:center, :top)
     else
         self = p[:node_pos][][v]
         parent = p[:node_pos][][inneighbors(g, v)[1]]
         if self[1] < parent[1] # left branch
-            nlabels_align[v] = (:right,:bottom)
+            nlabels_align[v] = (:right, :bottom)
         end
     end
 end

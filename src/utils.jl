@@ -19,7 +19,7 @@ get_elabel_plot(gp::GraphPlot) = haskey(gp.attributes, :elabels_plot) ? gp[:elab
 
 Return enumeration of edges for directed graph
 """
-@traitfn function getedgekeys(gr::G, edgedat::D) where {G<:AbstractGraph, K<:AbstractEdge, D<:AbstractDict{K}; IsDirected{G}}
+@traitfn function getedgekeys(gr::G, edgedat::D) where {G <: AbstractGraph, K <: AbstractEdge, D <: AbstractDict{K}; IsDirected{G}}
     return edges(gr)
 end
 
@@ -31,8 +31,8 @@ Return enumeration of edges for undirected graph such that the user's keys are u
 # Extended help
 Wraps the `edges()` method such that the edges are referenced as the user defined them in the dictionary.
 """
-@traitfn function getedgekeys(gr::G, edgedat::D) where {G<:AbstractGraph, K<:AbstractEdge, D<:AbstractDict{K}; !IsDirected{G}}
-    Iterators.map(e -> reverse(e) ∈ keys(edgedat) ? reverse(e) : e , edges(gr))
+@traitfn function getedgekeys(gr::G, edgedat::D) where {G <: AbstractGraph, K <: AbstractEdge, D <: AbstractDict{K}; !IsDirected{G}}
+    Iterators.map(e -> reverse(e) ∈ keys(edgedat) ? reverse(e) : e, edges(gr))
 end
 
 """
@@ -49,7 +49,7 @@ If observable wraps an AbstractVector or AbstractDict return
 the value at idx. If dict has no key idx returns default.
 Else return the one and only element.
 """
-getattr(o::Union{Observable,Makie.Computed}, idx, default=nothing) = getattr(o[], idx, default)
+getattr(o::Union{Observable, Makie.Computed}, idx, default = nothing) = getattr(o[], idx, default)
 
 """
     getattr(x, idx, default=nothing)
@@ -58,7 +58,7 @@ If `x` wraps an AbstractVector or AbstractDict return
 the value at idx. If dict has no key idx return default.
 Else return the one and only element.
 """
-function getattr(x, idx, default=nothing)
+function getattr(x, idx, default = nothing)
     if x isa AbstractVector && !isa(x, Point)
         return x[idx]
     elseif x isa DefaultDict || x isa DefaultOrderedDict
@@ -77,8 +77,8 @@ Prepare the vertex attributes to be forwarded to the internal recipes.
 If the attribute is a `Vector` or single value forward it as is (or the `default_value` if isnothing).
 If it is an `AbstractDict` expand it to a `Vector` using vertex indices.
 """
-function prep_vertex_attributes(attr, graph::AbstractGraph, default_value=nothing)
-    if issingleattribute(attr)
+function prep_vertex_attributes(attr, graph::AbstractGraph, default_value = nothing)
+    return if issingleattribute(attr)
         isnothing(attr) ? default_value : attr
     elseif attr isa AbstractVector
         attr
@@ -94,8 +94,8 @@ Prepare the edge attributes to be forwarded to the internal recipes.
 If the attribute is a `Vector` or single value forward it as is (or the `default_value` if isnothing).
 If it is an `AbstractDict` expand it to a `Vector` using edge indices.
 """
-function prep_edge_attributes(attr, graph::AbstractGraph, default_value=nothing)
-    if issingleattribute(attr)
+function prep_edge_attributes(attr, graph::AbstractGraph, default_value = nothing)
+    return if issingleattribute(attr)
         isnothing(attr) ? default_value : attr
     elseif attr isa AbstractVector
         attr
@@ -116,9 +116,9 @@ issingleattribute(x) = isa(x, Point) || (!isa(x, AbstractVector) && !isa(x, Abst
 
 Convert Point{N, T} or NTuple{N, T} to Point{N, Float32}.
 """
-to_pointf32(p::Union{Point{N,T}, NTuple{N,T}}) where {N,T} = Point{N, Float32}(p)
-to_pointf32(p::StaticVector{N, T}) where {N,T} = Point{N, Float32}(p)
-to_pointf32(p::Vararg{T,N}) where {N,T} = Point{N, Float32}(p)
+to_pointf32(p::Union{Point{N, T}, NTuple{N, T}}) where {N, T} = Point{N, Float32}(p)
+to_pointf32(p::StaticVector{N, T}) where {N, T} = Point{N, Float32}(p)
+to_pointf32(p::Vararg{T, N}) where {N, T} = Point{N, Float32}(p)
 to_pointf32(p::Vector{T}) where {T} = Point{length(p), Float32}(p)
 
 """
@@ -143,8 +143,8 @@ function align_to_dir(align::Tuple{Symbol, Symbol})
     elseif valign === :bottom
         y = 1.0
     end
-    norm = x==y==0.0 ? 1 : sqrt(x^2 + y^2)
-    return Point2f(x/norm, y/norm)
+    norm = x == y == 0.0 ? 1 : sqrt(x^2 + y^2)
+    return Point2f(x / norm, y / norm)
 end
 
 """
@@ -163,16 +163,18 @@ function plot_controlpoints!(ax::Axis, gp::GraphPlot)
         color = getattr(gp.edge_color, i)
         plot_controlpoints!(ax, p; color)
     end
+    return
 end
 
-function plot_controlpoints!(ax::Axis, p::BezierPath; color=:black)
+function plot_controlpoints!(ax::Axis, p::BezierPath; color = :black)
     for (j, c) in enumerate(p.commands)
         if c isa CurveTo
-            segs = [p.commands[j-1].p, c.c1, c.p, c.c2]
-            linesegments!(ax, segs; color, linestyle=:dot)
+            segs = [p.commands[j - 1].p, c.c1, c.p, c.c2]
+            linesegments!(ax, segs; color, linestyle = :dot)
             scatter!(ax, [c.c1, c.c2]; color)
         end
     end
+    return
 end
 
 """
@@ -195,17 +197,17 @@ function scale_factor(marker::Symbol)
     if marker == :circle #BezierCircle
         r = 0.47
     elseif marker in [:rect, :diamond, :vline, :hline] #BezierSquare
-        rmarker = 0.95*sqrt(pi)/2/2
-        r = sqrt(2*rmarker^2) #pithagoras to get radius of circle that circumscribes marker
+        rmarker = 0.95 * sqrt(pi) / 2 / 2
+        r = sqrt(2 * rmarker^2) #pithagoras to get radius of circle that circumscribes marker
     elseif marker in [:utriangle, :dtriangle, :ltriangle, :rtriangle] #Bezier Triangles
-        r = 0.97/2
+        r = 0.97 / 2
     elseif marker in [:star4, :star5, :star6, :star8] #Bezier Stars
         r = 0.6
     else #Bezier Crosses/Xs and Ngons
         r = 0.5
     end
 
-    return 2*r*size_factor #get shape diameter
+    return 2 * r * size_factor #get shape diameter
 end
 
 """
@@ -237,7 +239,7 @@ function point_near_offset(edge_path, p0::PT, d, to_px, offset) where {PT}
     pt = tangent(edge_path, offset) #edge tangent along path
     r = to_px(pt) - to_px(PT(0)) #direction vector in pixels
     scale_px = 1 ./ (to_px(PT(1)) - to_px(PT(0)))
-    p1 = p0 - d*normalize(r)*scale_px
+    p1 = p0 - d * normalize(r) * scale_px
 
     return p1
 end

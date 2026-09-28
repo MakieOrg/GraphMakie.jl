@@ -48,7 +48,7 @@ function registration_setup!(parent, inter::GraphInteraction)
     end
     gplot = gplots[1]
     set_nodeplot!(inter, get_node_plot(gplot))
-    set_edgeplot!(inter, get_edge_plot(gplot))
+    return set_edgeplot!(inter, get_edge_plot(gplot))
 end
 
 ####
@@ -60,9 +60,9 @@ end
 
 Object to handle hovers on `plot::P`. Calls `fun` on hover.
 """
-mutable struct HoverHandler{P<:ScenePlot,F} <: GraphInteraction
-    idx::Union{Nothing,Int}
-    plot::Union{Nothing,P}
+mutable struct HoverHandler{P <: ScenePlot, F} <: GraphInteraction
+    idx::Union{Nothing, Int}
+    plot::Union{Nothing, P}
     fun::F
 end
 set_nodeplot!(h::HoverHandler{Scatter}, plot) = h.plot = plot
@@ -108,7 +108,7 @@ julia> function action(state, idx, event, axis)
 julia> register_interaction!(ax, :nodehover, NodeHoverHandler(action))
 ```
 """
-NodeHoverHandler(fun::F) where {F} = HoverHandler{Scatter,F}(nothing, nothing, fun)
+NodeHoverHandler(fun::F) where {F} = HoverHandler{Scatter, F}(nothing, nothing, fun)
 
 """
     NodeHoverHeighlight(p::GraphPlot, factor=2)
@@ -122,7 +122,7 @@ julia> f, ax, p = graphplot(g, node_size = [20 for i in 1:nv(g)])
 julia> register_interaction!(ax, :nodehover, NodeHoverHighlight(p))
 ```
 """
-function NodeHoverHighlight(p::GraphPlot, factor=2)
+function NodeHoverHighlight(p::GraphPlot, factor = 2)
     @assert p.node_size[] isa Vector{<:Real} "`node_size` object needs to be an Vector{<:Real} for this interaction to work!"
     action = (state, idx, _, _) -> begin
         old = p.node_size[][idx]
@@ -152,7 +152,7 @@ julia> function action(state, idx, event, axis)
 julia> register_interaction!(ax, :edgehover, EdgeHoverHandler(action))
 ```
 """
-EdgeHoverHandler(fun::F) where {F} = HoverHandler{EdgePlot,F}(nothing, nothing, fun)
+EdgeHoverHandler(fun::F) where {F} = HoverHandler{EdgePlot, F}(nothing, nothing, fun)
 
 """
     EdgeHoverHeighlight(p::GraphPlot, factor=2)
@@ -168,7 +168,7 @@ julia> f, ax, p = graphplot(g, edge_width = [3 for i in 1:ne(g)],
 julia> register_interaction!(ax, :nodehover, EdgeHoverHighlight(p))
 ```
 """
-function EdgeHoverHighlight(p::GraphPlot, factor=2)
+function EdgeHoverHighlight(p::GraphPlot, factor = 2)
     @assert p.edge_width[] isa Vector{<:Real} "`edge_width` object needs to be an Vector{<:Real} for this interaction to work!"
     scale_arrows = p.arrow_size[] isa Vector{<:Real}
 
@@ -212,10 +212,10 @@ end
 
 Object to handle left mous drags on `plot::P`.
 """
-mutable struct DragHandler{P<:ScenePlot,F} <: GraphInteraction
+mutable struct DragHandler{P <: ScenePlot, F} <: GraphInteraction
     dragstate::Bool
     idx::Int
-    plot::Union{Nothing,P}
+    plot::Union{Nothing, P}
     fun::F
 end
 set_nodeplot!(h::DragHandler{Scatter}, plot) = h.plot = plot
@@ -267,7 +267,7 @@ julia> function action(state, idx, event, axis)
 julia> register_interaction!(ax, :nodedrag, NodeDragHandler(action))
 ```
 """
-NodeDragHandler(fun::F) where {F} = DragHandler{Scatter,F}(false, 0, nothing, fun)
+NodeDragHandler(fun::F) where {F} = DragHandler{Scatter, F}(false, 0, nothing, fun)
 
 """
     NodeDrag(p::GraphPlot)
@@ -304,7 +304,7 @@ the last time `fun` is triggered. `idx` is the edge index.
 See [`EdgeDrag`](@ref) for a concrete implementation.
 ```
 """
-EdgeDragHandler(fun::F) where {F} = DragHandler{EdgePlot,F}(false, 0, nothing, fun)
+EdgeDragHandler(fun::F) where {F} = DragHandler{EdgePlot, F}(false, 0, nothing, fun)
 
 """
     EdgeDrag(p::GraphPlot)
@@ -325,17 +325,17 @@ function EdgeDrag(p)
     return EdgeDragHandler(action)
 end
 
-mutable struct EdgeDragAction{PT<:GraphPlot}
+mutable struct EdgeDragAction{PT <: GraphPlot}
     p::PT
-    init::Union{Nothing,Point2f} # save click position
-    src::Union{Nothing,Point2f}  # save src vertex position
-    dst::Union{Nothing,Point2f}  # save dst vertex position
+    init::Union{Nothing, Point2f} # save click position
+    src::Union{Nothing, Point2f}  # save src vertex position
+    dst::Union{Nothing, Point2f}  # save dst vertex position
     EdgeDragAction(p::T) where {T} = new{T}(p, nothing, nothing, nothing)
 end
 
 function (action::EdgeDragAction)(state, idx, event, _)
     edge = collect(edges(action.p[:graph][]))[idx]
-    if state == true
+    return if state == true
         if action.src === action.dst === action.init === nothing
             action.init = event.data
             action.src = action.p[:node_pos][][src(edge)]
@@ -359,8 +359,8 @@ end
 
 Object to handle left mouse clicks on `plot::P`.
 """
-mutable struct ClickHandler{P<:ScenePlot,F} <: GraphInteraction
-    plot::Union{Nothing,P}
+mutable struct ClickHandler{P <: ScenePlot, F} <: GraphInteraction
+    plot::Union{Nothing, P}
     fun::F
 end
 set_nodeplot!(h::ClickHandler{Scatter}, plot) = h.plot = plot
@@ -398,7 +398,7 @@ julia> function action(idx, event, axis)
 julia> register_interaction!(ax, :nodeclick, NodeClickHandler(action))
 ```
 """
-NodeClickHandler(fun::F) where {F} = ClickHandler{Scatter,F}(nothing, fun)
+NodeClickHandler(fun::F) where {F} = ClickHandler{Scatter, F}(nothing, fun)
 
 """
     EdgeClickHandler(fun)
@@ -421,4 +421,4 @@ julia> function action(idx, event, axis)
 julia> register_interaction!(ax, :edgeclick, EdgeClickHandler(action))
 ```
 """
-EdgeClickHandler(fun::F) where {F} = ClickHandler{EdgePlot,F}(nothing, fun)
+EdgeClickHandler(fun::F) where {F} = ClickHandler{EdgePlot, F}(nothing, fun)

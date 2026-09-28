@@ -9,7 +9,7 @@ const ASSETS = joinpath(@__DIR__, "..", "assets")
 const EXAMPLE_BASEPATH = joinpath(@__DIR__, "..", "docs", "examples")
 
 const TMPDIR = joinpath(ASSETS, "tmp")
-isdir(TMPDIR) && rm(TMPDIR; recursive=true)
+isdir(TMPDIR) && rm(TMPDIR; recursive = true)
 mkdir(TMPDIR)
 
 const IMAGE_COUNTERS = Dict{String, Int}()
@@ -27,9 +27,9 @@ macro save_reference(fig)
     else
         IMAGE_COUNTERS[f] = 1
     end
-    quote
-        path = joinpath(TMPDIR, $f*"-"*lpad($postfix, 2, "0")*".png")
-        save(path, $(esc(fig)), px_per_unit=1)
+    return quote
+        path = joinpath(TMPDIR, $f * "-" * lpad($postfix, 2, "0") * ".png")
+        save(path, $(esc(fig)), px_per_unit = 1)
         println("   saved fig $path")
     end
 end
@@ -81,13 +81,13 @@ function get_difference(old, new, score_color)
 
     diffimage = map(b .- a) do i
         i = clamp(i, -1, 1)
-        i<0 ? weighted_color_mean(abs(i), RGBf(1,0,0), RGBf(1,1,1)) : weighted_color_mean(i, RGBf(0,1,0), RGBf(1,1,1))
+        i < 0 ? weighted_color_mean(abs(i), RGBf(1, 0, 0), RGBf(1, 1, 1)) : weighted_color_mean(i, RGBf(0, 1, 0), RGBf(1, 1, 1))
     end
-    
+
     border = 3
-    canvas = fill(score_color, size(diffimage) .+ 2*border)
-    canvas[border+1:end-border, border+1:end-border] .= diffimage
-    canvas
+    canvas = fill(score_color, size(diffimage) .+ 2 * border)
+    canvas[(border + 1):(end - border), (border + 1):(end - border)] .= diffimage
+    return canvas
 end
 
 # now test all the generated graphics in the TMPDIR and compare against files in assets dir
@@ -108,41 +108,41 @@ end
 
         # equal = ReferenceTests.psnr_equality()(load(old), load(new))
         score = compare(load(old), load(new))
-        MEH =  40
+        MEH = 40
         GOOD = 60
 
         # basicially disable check on older julia versions
         if VERSION < v"1.11"
-            MEH = 0;
+            MEH = 0
         end
 
         if score > GOOD
-            printstyled(" ✓ [", repr(round(score, digits=1)), "] $ass\n"; color=:green)
+            printstyled(" ✓ [", repr(round(score, digits = 1)), "] $ass\n"; color = :green)
             @test true
             rm(new)
         else
             if score > MEH
-                printstyled(" ? [", repr(round(score, digits=1)), "] $ass\n"; color=:yellow)
+                printstyled(" ? [", repr(round(score, digits = 1)), "] $ass\n"; color = :yellow)
                 @test_broken false
             else
-                printstyled(" × [", repr(round(score, digits=1)), "] $ass\n"; color=:red)
+                printstyled(" × [", repr(round(score, digits = 1)), "] $ass\n"; color = :red)
                 @test false
             end
-            parts = rsplit(ass, "."; limit=2)
+            parts = rsplit(ass, "."; limit = 2)
             @assert length(parts) == 2
 
             diffname = parts[1] * ".diff." * parts[2]
-            diff_image = get_difference(old, new, score > MEH ? RGBf(1,0.7,0) : RGBf(1,0,0))
+            diff_image = get_difference(old, new, score > MEH ? RGBf(1, 0.7, 0) : RGBf(1, 0, 0))
             save(joinpath(ASSETS, diffname), diff_image)
 
-            newname = parts[1] * "+." *parts[2]
-            mv(new, joinpath(ASSETS, newname), force=true)
+            newname = parts[1] * "+." * parts[2]
+            mv(new, joinpath(ASSETS, newname), force = true)
             @warn "There is a difference in $(ass)! New version moved to $newname. Resolve manually!"
         end
     end
 
     for new in setdiff(newassets, oldassets)
-        printstyled(" × Move new asset $(new)!\n"; color=:red)
+        printstyled(" × Move new asset $(new)!\n"; color = :red)
         @test false
         mv(joinpath(TMPDIR, new), joinpath(ASSETS, new))
     end
