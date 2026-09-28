@@ -21,7 +21,9 @@ mkpath(BUILD_DIR) # make sure path exists, otherwise the serve might fail
 function readline_timeout(prompt, default, timeout)
     msg = Channel{String}(1)
     task = Task() do
-        try eof(stdin); put!(msg, readline(stdin)); catch end
+        try
+            eof(stdin); put!(msg, readline(stdin))
+        catch end
     end
     interrupter = Task() do
         sleep(timeout)
@@ -44,8 +46,8 @@ end
 
 function full_serving()
     @info "Start server..."
-    port=8000
-    servetask = @async serve(;dir=BUILD_DIR, port)
+    port = 8000
+    servetask = @async serve(; dir = BUILD_DIR, port)
     errormonitor(servetask)
 
     run = true
@@ -55,23 +57,24 @@ function full_serving()
         try
             include("make.jl")
         catch e
-            @error "make.jl error" exception=(e, catch_backtrace())
+            @error "make.jl error" exception = (e, catch_backtrace())
         end
 
-        printstyled("\n\nDocs are served at http://localhost:$port\n\n", color=:blue, bold=true)
+        printstyled("\n\nDocs are served at http://localhost:$port\n\n", color = :blue, bold = true)
         println("Run again? Enter! Exit with 'q'.")
         if readline() == "q"
             run = false
         end
     end
+    return
 end
 
 function draft_serving()
     ENV["DOCUMENTER_DRAFT"] = "true"
-    servedocs(
-        foldername=".",
-        literate=joinpath(@__DIR__, "examples"),
-        skip_dir=joinpath(@__DIR__, "src", "generated")
+    return servedocs(
+        foldername = ".",
+        literate = joinpath(@__DIR__, "examples"),
+        skip_dir = joinpath(@__DIR__, "src", "generated")
     )
 end
 
@@ -86,7 +89,7 @@ using Revise
 using LiveServer
 
 if VERSION ≤ v"1.11-"
-    Pkg.develop(PackageSpec(path=dirname(@__DIR__))) # adds the package this script is called from
+    Pkg.develop(PackageSpec(path = dirname(@__DIR__))) # adds the package this script is called from
 end
 
 if do_update[1] == 'y'
@@ -94,7 +97,7 @@ if do_update[1] == 'y'
 end
 Pkg.instantiate()
 
-draft_arg = findfirst(a -> a=="--draft", ARGS)
+draft_arg = findfirst(a -> a == "--draft", ARGS)
 if !isnothing(draft_arg)
     @info "Found --draft, run in draft mode (no examples, automatic rerendering!)"
     draft_serving()

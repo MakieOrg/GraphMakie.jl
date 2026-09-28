@@ -10,3 +10,5 @@ Manifest.toml
 
 /assets/*.diff.png
 /assets/*+.png
+
+/test/current.jl

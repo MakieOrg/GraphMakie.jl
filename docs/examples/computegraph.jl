@@ -9,7 +9,7 @@ the interdependence of some calculations can sometimes help in debugging Makie r
 =#
 
 using CairoMakie
-CairoMakie.activate!(; type="svg") #hide
+CairoMakie.activate!(; type = "svg") #hide
 using GraphMakie
 using Graphs
 using NetworkLayout
@@ -73,10 +73,12 @@ function plot_compute_graph!(ax, compute_graph; kwargs...)
             :red
         end
     end
-    plot = graphplot!(ax, g; node_color=node_colors,
-                      edge_color=[labels[e.src][1] == :calculation ? :orange : :darkgrey for e in edges(g)],
-                      nlabels=[i[1] == :calculation ? "" : string(i[2]) for i in labels],
-                      nlabels_align=(:center, :bottom), kwargs...)
+    plot = graphplot!(
+        ax, g; node_color = node_colors,
+        edge_color = [labels[e.src][1] == :calculation ? :orange : :darkgrey for e in edges(g)],
+        nlabels = [i[1] == :calculation ? "" : string(i[2]) for i in labels],
+        nlabels_align = (:center, :bottom), kwargs...
+    )
     return plot
 end
 nothing #hide
@@ -103,7 +105,7 @@ end
 
 f = Figure()
 ax = Axis(f[1, 1])
-g_plot = plot_compute_graph!(ax, graph; arrow_size=20, arrow_shift=0.9)
+g_plot = plot_compute_graph!(ax, graph; arrow_size = 20, arrow_shift = 0.9)
 f
 
 # ## `ComputeGraph` of a the `graphplot!` recipe
@@ -112,5 +114,5 @@ f
 
 f = Figure()
 ax = Axis(f[1, 1])
-plot_compute_graph!(ax, g_plot.attributes; nlabels_fontsize=9, layout=Spring(; C=8.0, iterations=2000))
+plot_compute_graph!(ax, g_plot.attributes; nlabels_fontsize = 9, layout = Spring(; C = 8.0, iterations = 2000))
 f
